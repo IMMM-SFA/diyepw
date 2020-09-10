@@ -239,7 +239,8 @@ def write_epw(save_path):
 amy_epw_file_out_path = '../outputs/AMY_combined_NOAA_TMY3_EPW'
 
 # Set relative path for non-EPW output items produced by this script.
-create_out_path = os.path.abspath('../outputs/create_amy_epw_files_output')
+# create_out_path = os.path.abspath('../outputs/create_amy_epw_files_output') TODO: remove if not used
+create_out_path  = '../outputs/create_amy_epw_files_output'
 
 # Provide the relative path to list of WMO stations for which new AMY EPW files should be created.
 path_to_station_list = '../outputs/analyze_noaa_data_output/files_to_convert.csv'
@@ -248,6 +249,7 @@ path_to_station_list = '../outputs/analyze_noaa_data_output/files_to_convert.csv
 station_list = pd.read_csv(path_to_station_list)
 station_list = station_list[station_list.columns[0]]
 
+# TODO: should maybe wrap this in an if statement to confirm that station_list is pointing to something
 print('Read in station list.')
 
 # Initialize the df to hold station-years for files that violate EnergyPlus valid value criteria.
@@ -308,7 +310,7 @@ for station_year in station_list:
         year_s_string = str(int(year) + 1)
 
         # Grab the relative path to the NOAA AMY file for the subsequent year.
-        noaa_amy_s_info_path = glob.glob('NOAA_AMY/' + station_number_string + '*' + year_s_string)
+        noaa_amy_s_info_path = glob.glob('../outputs/NOAA_AMY/' + station_number_string + '*' + year_s_string)
         noaa_amy_s_info_path = noaa_amy_s_info_path[0]
 
         # Read in the NOAA AMY file for the station for the subsequent year.
@@ -534,6 +536,7 @@ for station_year in station_list:
 
     except:
         # Do the following if unable to complete the above process and convert to CSV.
+        # TODO add in something to return the error
         no_epw.loc[no_counter, 'file'] = station_year
         no_counter += 1
         print('Problem processing: ' + station_year)
