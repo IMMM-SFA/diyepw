@@ -1,0 +1,54 @@
+ISD-Lite Technical Document
+June 20, 2006
+
+Introduction
+
+The ISD-Lite product is designed to be an easier to work with subset of the larger Integrated Surface Data hourly dataset.  ISD-Lite contains eight common hourly time-series climatological variables represented in a fixed-width format.  The elements extracted are:
+
+1.	Air temperature (degrees Celsius * 10)
+2.	Dew point temperature (degrees Celsius * 10)
+3.	Sea level pressure (hectopascals)
+4.	Wind direction (angular degrees)
+5.	Wind speed (meters per second * 10)
+6.	Total cloud cover (coded, see format documentation)
+7.	One-hour accumulated liquid precipitation (millimeters)
+8.	Six-hour accumulated liquid precipitation (millimeters)
+
+The ISD-Lite data are represented with a modified time stamp which corresponds to the nearest hour of actual observation.  Sub-hourly observations were removed.  Duplicate observations were resolved according to a ranking system.  
+
+Observation Selection
+
+For the purposes of ISD-Lite, a capture window was defined to extract observational elements closest to the top of the hour.  This capture window was defined as observations with observation minute greater than or equal to ten minutes before the top of the hour up to and including the top of the hour.  ISD elements with an observation minute outside of the capture window were ignored.
+
+In most cases, the choice of the hourly value was made on an element-by-element basis.  This means that it is possible to have an observation for air temperature paired with an observation for dew point temperature where the observation time differs by as much as ten minutes.  The exception to this was wind speed and wind direction, which are chosen as a pair and are always extracted from the same observation.
+
+Duplicate Removal
+
+In many cases, there can be more than one element at the same observation time or within the capture window.  In these situations, a single element is chosen from the list of duplicates according to a ranking schema.  The ranking schema assigns a score to each element according to these criteria:
+
+1.	Difference between actual observation time (minute) and the top of the hour.  Observations that are closer to the top of the hour are favored.
+2.	Ranking of the data quality flag from the ISD observation.  Generally, observations with a higher data quality flag (i.e. passed all quality control checks) are favored over observations with a lower data quality flag (i.e. suspect).
+3.	Ranking of the data source flag from the ISD observation.  Observations that come from a merger of datasets are favored over elements that have not been merged (i.e. datsav3/td3280/td3240 merged elements are favored over just datsav3).
+4.	Ranking of the report type code from the ISD observation.  Observations that are formed from merger of multiple report types are favored over observations that are not (i.e. merger of Synoptic/Metar is favored over just Synoptic).
+
+A score is assigned to each of these tests, favoring the order listed above.  The observation with this highest score is chosen to be the hourly value.  In case of a tie score, the element that was encountered first in the original ISD file is chosen.
+
+For the case of wind speed/wind direction, the duplicate elimination is based on the combined score for both wind speed and wind direction.
+
+Data Format Information
+
+Care was taken to adjust the data values as little as possible from the original ISD format.  The units and domain for each value largely match the original ISD format.  There are a few exceptions:
+
+1.	Missing value.  In all cases, the missing value was reset to a common value.  For all elements the missing value is coded as -9999
+2.	Calm winds.  In the case of calm winds, wind direction and wind speed are indicated by a zero 0.  This is not to be confused with northerly wind direction, which is coded as 360.
+3.	Trace precipitation.  In the case of 1-hour and 6-hour duration precipitation accumulations, trace precipitation is coded as a -1 value.
+
+Suitability of Data
+
+The ISD-Lite product is not intended to replace the full ISD for situations where exact observation time and/or observation density is critical.  Instead, it is designed to be a smaller and easier to work with format which may be suitable for investigating trends, larger scale patterns or rough climatological averages.
+
+It should also be noted that inter-comparison of fields across an observational hour may not be recommended due to the possibility of slight differences in actual observation time between elements.  This feature is most pronounced between the mandatory elements and the additional elements, for example air temperature versus precipitation.  In many cases the observation time for these elements can differ by as much as ten minutes.
+
+No additional quality control was performed on the ISD-Lite product and the absence of flag data may make it difficult to determine good data from suspicious data.
+
+
