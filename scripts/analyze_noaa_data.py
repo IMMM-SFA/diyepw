@@ -6,6 +6,10 @@ import os
 import pandas as pd
 from datetime import datetime
 
+# Set thresholds (or obtain from the user)
+max_rows_missing = 700
+max_consec_rows_missing = 48
+
 # Identify the current year
 current_year = str(datetime.now().year)
 
@@ -61,7 +65,7 @@ for file in os.listdir(noaa_amy_files_path):
         rows_present = df.shape[0]
         rows_missing = 8760 - rows_present
 
-        if rows_missing > 700:
+        if rows_missing > max_rows_missing:
             missing_total_entries_high = missing_total_entries_high.append(
                 {'file': file, 'total_rows_missing' : rows_missing}, ignore_index=True)
 
@@ -99,7 +103,7 @@ for file in os.listdir(noaa_amy_files_path):
                 else:
                     continue
 
-            if maxcounter > 48:
+            if maxcounter > max_consec_rows_missing:
                 missing_consec_entries_high = missing_consec_entries_high.append(
                     {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
                     ignore_index=True)
