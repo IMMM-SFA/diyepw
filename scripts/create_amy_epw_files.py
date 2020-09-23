@@ -239,7 +239,6 @@ def write_epw(save_path):
 amy_epw_file_out_path = '../outputs/AMY_combined_NOAA_TMY3_EPW'
 
 # Set relative path for non-EPW output items produced by this script.
-# create_out_path = os.path.abspath('../outputs/create_amy_epw_files_output') TODO: remove if not used
 create_out_path  = '../outputs/create_amy_epw_files_output'
 
 # Provide the relative path to list of WMO stations for which new AMY EPW files should be created.

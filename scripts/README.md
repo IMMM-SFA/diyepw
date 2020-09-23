@@ -13,11 +13,15 @@ The script analyze_noaa_data.py will assess the files in the `NOAA_AMY` folder f
 1. Total number of rows missing
 1. Maximum number of consecutive rows missing
 
-and will provide:
+and will provide (as applicable):
 
-1. A list of files where the total number of rows missing exceeds some threshold.
+1. A list of files where the total number of rows missing exceeds a threshold.
+   - This is currently set to rule out files where more than 700 (out of 8760 total) entries are missing entirely.
 1. A list of files where the maximum consecutive number of rows missing exceeds some threshold.
-1. A list of files to be used for creating weather files, where neither of the above conditions were met. This is called `files_to_convert.csv` and may be altered so that only a single file, or subset of available files, are converted to EPW. Simply remove rows for any files that you do not want the next script to process.
+   - This is currently set to rule out files where more than 48 consecutive entries are missing entirely.
+1. A list of files to be used for creating weather files, where neither of the above conditions were met. 
+This is called `files_to_convert.csv` and may be altered so that only a single file, or subset of available files, 
+are converted to EPW. Simply remove rows for any files that you do not want the next script to process.
 
 These are located in a folder in /outputs called `analyze_noaa_data_ouput`.
 
@@ -44,7 +48,29 @@ It will also convert these quantities from using NOAA units (described in the
 documentation found in [the NOAA ISD Lite folder](../../inputs/canonical_epw_files/NOAA_ISD_Lite_Raw) to
 using units consistent with those expected in an EPW file, as shown in [the EPW data dictionary](https://bigladdersoftware.com/epx/docs/8-3/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html).
 
-Functions for reading TMY3 files and writing EPW files within this script were taken or adapted from the [LAF.py script](https://github.com/SSESLab/laf/blob/master/LAF.py) by Carlo Bianchi at the Site-Specific Energy Systems Lab repository.
+## Missing data
+
+Missing data are expected in the observed weather data, either because entire rows are missing, but the cutoff 
+thresholds in the previous script were not exceeded, or because one or more variables have missing data even if a
+weather observation is present for that time step.
+
+This script will impute missing data as follows:
+
+- 1-6 consecutive missing records: fill with linear interpolation between the surrounding previous time step, *p*, 
+and subsequent time step, *s*.
+- 7-48 consecutive missing records: obtain the mean value for that variable in that hour of the day for the 
+“surrounding month” (previous 2 weeks and subsequent 2 weeks, as available). Use that to fill in missing records except:
+  - the first missing time step, *p+1*, will be the mean of the average value calculated as above and the value 
+  present in *p*.
+  - the last missing time step, *s-1*, will be the mean of the average value calculated as above and the value present 
+  in *s*.
+  - These exceptions are made to help smooth “jumps” in the weather variable if the day with missing values happens to 
+  be different from the monthly average values.
+  
+## Reading in TMY3 files and writing EPW files
+Functions for reading TMY3 files and writing EPW files within this script were taken or adapted from the 
+[LAF.py script](https://github.com/SSESLab/laf/blob/master/LAF.py) by Carlo Bianchi at the Site-Specific Energy Systems 
+Lab repository.
 
 # Optional: Look up station location
 
