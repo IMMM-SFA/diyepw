@@ -112,12 +112,8 @@ for file in files:
                 counter += 1
                 if counter > maxcounter:
                     maxcounter = counter
-                else:
-                    continue
             elif step > pd.Timedelta('1h'):
                 counter = 0
-            else:
-                continue
 
         if maxcounter > max_consec_rows_missing:
             missing_consec_entries_high = missing_consec_entries_high.append(
