@@ -16,9 +16,11 @@ The script analyze_noaa_data.py will assess the files in the `NOAA_AMY` folder f
 and will provide (as applicable):
 
 1. A list of files where the total number of rows missing exceeds a threshold.
-   - This is currently set to rule out files where more than 700 (out of 8760 total) entries are missing entirely.
+   - This is currently set to rule out files where more than 700 (out of 8760 total) entries are missing entirely
+     by default, but a custom value can be set using the --max-missing-rows option.
 1. A list of files where the maximum consecutive number of rows missing exceeds some threshold.
-   - This is currently set to rule out files where more than 48 consecutive entries are missing entirely.
+   - This is currently set to rule out files where more than 48 consecutive entries are missing entirely by default,
+     but a custom value can be set using the max-consecutive-missing-rows option.
 1. A list of files to be used for creating weather files, where neither of the above conditions were met. 
 This is called `files_to_convert.csv` and may be altered so that only a single file, or subset of available files, 
 are converted to EPW. Simply remove rows for any files that you do not want the next script to process.
