@@ -132,10 +132,10 @@ for file in files:
                 ignore_index=True)
 
 # Write the dataframes to CSVs for the output files.
-if missing_total_entries_high.empty == False:
+if not missing_total_entries_high.empty:
     missing_total_entries_high.to_csv('analyze_noaa_data_output/missing_total_entries_high.csv', index=False)
 
-if missing_consec_entries_high.empty == False:
+if not missing_consec_entries_high.empty:
     missing_consec_entries_high.to_csv('analyze_noaa_data_output/missing_consec_entries_high.csv', index=False)
 
 files_to_convert.to_csv('../outputs/analyze_noaa_data_output/files_to_convert.csv',index=False)
