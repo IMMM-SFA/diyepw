@@ -16,8 +16,8 @@ if not os.path.exists(output_dir):
 
 for gzfile in filelist:
     # Grab the file name
-    gzfile_string = gzfile.split("/")[-1]
-    filename_string = gzfile_string[0:-3]
+    gzfile_string = os.path.basename(gzfile)
+    filename_string = gzfile_string[0:-3]  # Remove the file extension (should be ".gz") from the filename
     # Unpack gz file and send to csv
     with gzip.open(gzfile, 'rb') as f_in:
         output_path = os.path.join(output_dir, filename_string)
