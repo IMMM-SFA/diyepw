@@ -7,8 +7,8 @@ import argparse
 import pandas as pd
 from datetime import datetime
 
-output_path = '../outputs/analyze_noaa_data_output'
-files_to_convert_csv_path = os.path.join(output_path, 'files_to_convert.csv')
+output_dir_path = '../outputs/analyze_noaa_data_output'
+files_to_convert_csv_path = os.path.join(output_dir_path, 'files_to_convert.csv')
 
 parser = argparse.ArgumentParser(
     description=f"""
@@ -18,9 +18,11 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('--max-missing-rows',
                     default=700,
+                    type=int,
                     help='ISD files with more than this number of missing rows will be excluded from the output')
 parser.add_argument('--max-consecutive-missing-rows',
                     default=48,
+                    type=int,
                     help='ISD files with more than this number of consecutive missing rows will be excluded from the output')
 args = parser.parse_args()
 
@@ -37,8 +39,8 @@ files_processed = 0
 files_skipped = 0
 
 # Make a directory to store results if it doesn't already exist.
-if not os.path.exists(output_path):
-    os.makedirs(output_path)
+if not os.path.exists(output_dir_path):
+    os.makedirs(output_dir_path)
 
 # Obtain path to the unpacked files with NOAA ISD Lite AMY information.
 noaa_amy_files_path= '../outputs/NOAA_AMY'
@@ -143,12 +145,24 @@ for file in files:
 
 # Write the dataframes to CSVs for the output files.
 if not missing_total_entries_high.empty:
-    missing_total_entries_high.to_csv('analyze_noaa_data_output/missing_total_entries_high.csv', index=False)
+    missing_total_entries_high_file_path = os.path.join(output_dir_path, 'missing_total_entries_high.csv')
+    print(
+        len(missing_total_entries_high),
+        "records excluded because they were missing more than", args.max_missing_rows,
+        "rows. Information about these files will be written to", missing_total_entries_high_file_path
+    )
+    missing_total_entries_high.to_csv(missing_total_entries_high_file_path, index=False)
 
 if not missing_consec_entries_high.empty:
-    missing_consec_entries_high.to_csv('analyze_noaa_data_output/missing_consec_entries_high.csv', index=False)
+    missing_consec_entries_high_file_path = os.path.join(output_dir_path, 'missing_consec_entries_high.csv')
+    print(
+        len(missing_consec_entries_high),
+        "records excluded because they were missing more than", args.max_consecutive_missing_rows,
+        "consecutive rows. Information about these files will be written to", missing_consec_entries_high_file_path
+    )
+    missing_consec_entries_high.to_csv(missing_consec_entries_high_file_path, index=False)
 
-files_to_convert.to_csv('../outputs/analyze_noaa_data_output/files_to_convert.csv',index=False)
+files_to_convert.to_csv(os.path.join(output_dir_path, 'files_to_convert.csv'), index=False)
 
 print('total files: ', len(files))
 print('files processed: ', str(files_processed))
