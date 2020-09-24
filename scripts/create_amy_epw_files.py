@@ -235,6 +235,10 @@ def write_epw(save_path):
 # START
 ####################################################################################################################
 
+# Set thresholds (or obtain from user)
+max_records_to_interpolate = 6
+max_records_to_impute = 48
+
 # Set relative path for where new EPW files should be saved.
 amy_epw_file_out_path = '../outputs/AMY_combined_NOAA_TMY3_EPW'
 
@@ -347,7 +351,7 @@ for station_year in station_list:
             # DIDN'T WORK on first element, column 2, station_year = '722880-23152-2017'
 
             # Fill in up to 6 consecutive missing values by linear interpolation.
-            var_series.interpolate(method='linear', limit=6, inplace=True)
+            var_series.interpolate(method='linear', limit=max_records_to_interpolate, inplace=True)
 
             # Start a dataframe that will be used to do the replacement of groups of consecutive missing values.
             var_df = pd.DataFrame(var_series)
