@@ -20,5 +20,7 @@ for gzfile in filelist:
     filename_string = gzfile_string[0:-3]
     # Unpack gz file and send to csv
     with gzip.open(gzfile, 'rb') as f_in:
-        with open(os.path.join(output_dir, filename_string), 'wb') as f_out:
+        output_path = os.path.join(output_dir, filename_string)
+        with open(output_path, 'wb') as f_out:
+            print("Copying %s to %s" % (filename_string, output_path))
             shutil.copyfileobj(f_in, f_out)
