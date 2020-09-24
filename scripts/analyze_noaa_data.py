@@ -18,8 +18,9 @@ missing_total_entries_high = pd.DataFrame(columns=['file', 'total_rows_missing']
 missing_consec_entries_high = pd.DataFrame(columns=['file', 'total_rows_missing', 'max_consec_rows_missing'])
 files_to_convert = pd.DataFrame(columns=['file', 'total_rows_missing', 'max_consec_rows_missing'])
 
-# Initialize counter for how many files have been processed.
-file_counter = 0
+# Initialize counters for how many files have been processed and skipped.
+files_processed = 0
+files_skipped = 0
 
 # Make a directory to store results if it doesn't already exist.
 if not os.path.exists('../outputs/analyze_noaa_data_output'):
@@ -28,94 +29,107 @@ if not os.path.exists('../outputs/analyze_noaa_data_output'):
 # Obtain path to the unpacked files with NOAA ISD Lite AMY information.
 noaa_amy_files_path= '../outputs/NOAA_AMY'
 
+files = os.listdir(noaa_amy_files_path)
+
 # Loop through files in noaa_amy_files_path
-for file in os.listdir(noaa_amy_files_path):
+for file in files:
+    skip_reason = None
 
-    # Ignore files with file extensions (e.g. ".md") and make sure file starts with "7" for WMO station number.
-    if not file.endswith(".*") and file.startswith("7"):
+    # Ignore files with file extensions (e.g. ".md")
+    if file.endswith(".*"):
+        skip_reason = "it has a file extension"
+    # make sure file starts with "7" for WMO station number.
+    elif not file.startswith("7"):
+        skip_reason = "its name does not start with a '7'"
+    # Skip current year's files because they are probably incomplete
+    elif file.endswith(current_year):
+        skip_reason = "it is from the current year"
 
-        if file.endswith(current_year):
-            continue
-    
-        # Get the filepath to the current file.
-        AMY_NOAA_filepath = (os.path.join('../outputs/NOAA_AMY/', file))
+    if skip_reason is not None:
+        print(file + ": skipping file because " + skip_reason)
+        files_skipped += 1
+        continue
+    else:
+        print(file + ": Processing")
+        files_processed += 1
 
-        # Read the file into a Pandas dataframe.
-        df = pd.read_csv(AMY_NOAA_filepath,
-                         delim_whitespace=True,
-                         header=None)
+    # Get the filepath to the current file.
+    AMY_NOAA_filepath = (os.path.join('../outputs/NOAA_AMY/', file))
 
-        # Assign column headings according to NOAA ISD Lite information.
-        list_of_columns = ["Year", "Month", "Day", "Hour", "Air_Temperature",
-                           "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
-                           "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
-                           "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
-        df.columns = list_of_columns
+    # Read the file into a Pandas dataframe.
+    df = pd.read_csv(AMY_NOAA_filepath,
+                     delim_whitespace=True,
+                     header=None)
 
-        # Take year-month-day-hour columns and convert to datetime stamps.
-        df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
-                                                            'month': df['Month'],
-                                                            'day': df['Day'],
-                                                            'hour': df['Hour']}))
+    # Assign column headings according to NOAA ISD Lite information.
+    list_of_columns = ["Year", "Month", "Day", "Hour", "Air_Temperature",
+                       "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
+                       "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
+                       "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
+    df.columns = list_of_columns
 
-        # Remove unnecessary year, month, day, hour columns
-        df = df.drop(columns=['Year', 'Month', 'Day', 'Hour'])
+    # Take year-month-day-hour columns and convert to datetime stamps.
+    df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
+                                                        'month': df['Month'],
+                                                        'day': df['Day'],
+                                                        'hour': df['Hour']}))
 
-        # Identify files with 5% or more of data missing.
-        rows_present = df.shape[0]
-        rows_missing = 8760 - rows_present
+    # Remove unnecessary year, month, day, hour columns
+    df = df.drop(columns=['Year', 'Month', 'Day', 'Hour'])
 
-        if rows_missing > max_rows_missing:
-            missing_total_entries_high = missing_total_entries_high.append(
-                {'file': file, 'total_rows_missing' : rows_missing}, ignore_index=True)
+    # Identify files with 5% or more of data missing.
+    rows_present = df.shape[0]
+    rows_missing = 8760 - rows_present
 
-        # Identify files with more than 4 consecutive rows missing.
+    if rows_missing > max_rows_missing:
+        missing_total_entries_high = missing_total_entries_high.append(
+            {'file': file, 'total_rows_missing' : rows_missing}, ignore_index=True)
 
-        else:
-            # Create series of continuous timestamp values for that year
-            all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], periods=8760, freq='H')
+    # Identify files with more than 4 consecutive rows missing.
 
-            # Merge to one dataframe containing all continuous timestamp values.
-            all_times = pd.DataFrame(all_timestamps, columns=['all_timestamps'])
-            df_all_times = pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on='obs_timestamps')
+    else:
+        # Create series of continuous timestamp values for that year
+        all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], periods=8760, freq='H')
 
-            # Create series of only the missing timestamp values
+        # Merge to one dataframe containing all continuous timestamp values.
+        all_times = pd.DataFrame(all_timestamps, columns=['all_timestamps'])
+        df_all_times = pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on='obs_timestamps')
 
-            missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
-            missing_times = missing_times['all_timestamps']
+        # Create series of only the missing timestamp values
 
-            # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
-            missing_times_diff = missing_times.diff()
+        missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
+        missing_times = missing_times['all_timestamps']
 
-            # Count the maximum number of consecutive missing time steps.
-            counter = 1
-            maxcounter = 0
+        # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
+        missing_times_diff = missing_times.diff()
 
-            for step in missing_times_diff:
-                if step == pd.Timedelta('1h'):
-                    counter += 1
-                    if counter > maxcounter:
-                        maxcounter = counter
-                    else:
-                        continue
-                elif step > pd.Timedelta('1h'):
-                    counter = 0
+        # Count the maximum number of consecutive missing time steps.
+        counter = 1
+        maxcounter = 0
+
+        for step in missing_times_diff:
+            if step == pd.Timedelta('1h'):
+                counter += 1
+                if counter > maxcounter:
+                    maxcounter = counter
                 else:
                     continue
-
-            if maxcounter > max_consec_rows_missing:
-                missing_consec_entries_high = missing_consec_entries_high.append(
-                    {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
-                    ignore_index=True)
-
-            # Capture the names of files to be converted to AMY EPWs.
-
+            elif step > pd.Timedelta('1h'):
+                counter = 0
             else:
-                files_to_convert = files_to_convert.append(
-                    {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
-                    ignore_index=True)
+                continue
 
-        file_counter += 1
+        if maxcounter > max_consec_rows_missing:
+            missing_consec_entries_high = missing_consec_entries_high.append(
+                {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
+                ignore_index=True)
+
+        # Capture the names of files to be converted to AMY EPWs.
+
+        else:
+            files_to_convert = files_to_convert.append(
+                {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
+                ignore_index=True)
 
 # Write the dataframes to CSVs for the output files.
 if missing_total_entries_high.empty == False:
@@ -126,4 +140,6 @@ if missing_consec_entries_high.empty == False:
 
 files_to_convert.to_csv('../outputs/analyze_noaa_data_output/files_to_convert.csv',index=False)
 
-print('files processed: ' + str(file_counter))
+print('total files: ', len(files))
+print('files processed: ', str(files_processed))
+print('files skipped: ', str(files_skipped))
