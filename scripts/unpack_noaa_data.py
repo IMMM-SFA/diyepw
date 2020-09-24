@@ -4,12 +4,24 @@ import glob
 import gzip
 import shutil
 import os
+import argparse
 
-zipfiles = '../inputs/NOAA_ISD_Lite_Raw/*/*.gz'
+zipfiles_base_dir = os.path.join('..', 'inputs', 'NOAA_ISD_Lite_Raw')
+zipfiles = os.path.join(zipfiles_base_dir, '*', '*.gz')
 filelist = glob.glob(zipfiles, recursive=True)
+output_dir = os.path.join('..', 'outputs', 'NOAA_AMY')
+
+# We don't really take advantage of argparse, since there are no arguments to this scripts, but by having
+# this we support calling this script with the --help flag, making it behave consistently with other
+# scripts in this project
+parser = argparse.ArgumentParser(
+    description=f"""
+        Unpack the compressed files in {zipfiles_base_dir} and put the decompressed files in {output_dir} 
+    """
+)
+args = parser.parse_args()  # This call is required for --help support
 
 # Create the output directory if it doesn't already exist
-output_dir = os.path.join('..', 'outputs', 'NOAA_AMY')
 if not os.path.exists(output_dir):
     print("Creating outputs directory " + output_dir)
     os.mkdir(output_dir)
