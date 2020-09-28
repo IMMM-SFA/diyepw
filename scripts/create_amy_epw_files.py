@@ -32,7 +32,7 @@ def clean_noaa_df(df):
                           'Liquid_Precipitation_Depth_Dimension_1H', 'Liquid_Precipitation_Depth_Dimension_6H'])
 
     # Create series of continuous timestamp values for that year
-    all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], periods=8760, freq='H')
+    all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], df['obs_timestamps'].iloc[-1], freq='H')
 
     # Merge to one dataframe containing all continuous timestamp values.
     all_timestamps = pd.DataFrame(all_timestamps, columns=['timestamp'])
