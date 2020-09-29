@@ -50,9 +50,10 @@ def clean_noaa_df(df):
 # Replace missing value codes with NAs
 ####################################################################################################################
 
-def replace_series_value(series, to_replace=-9999, replacement_value=None):
-    """Take a Pandas Series and replace a particular value (default -9999) with a replacement value (default None).
-    This provides similar functionality to .replace(), which will not reliably replace -9999's with None values.
+def replace_series_value(series, to_replace, replacement_value):
+    """Take a Pandas Series and replace a particular value with a replacement value.
+    This provides similar functionality to .replace(), which has an issue when replacing
+    values in slices with heterogeneous data types.
     (Related issue: https://github.com/pandas-dev/pandas/issues/29813)"""
 
     replaceindex = series[series==to_replace].index
@@ -362,10 +363,7 @@ for idx, station_year in enumerate(station_list, start=1):
             var_series = noaa_df.iloc[:,column].copy()
 
             # Replace -9999 values (missing values in NOAA's ISD Lite format) with NaNs.
-            var_series = replace_series_value(var_series)
-
-            # var_series.replace(to_replace=-9999, value=None, inplace=True)
-            # DIDN'T WORK on first element, column 2, station_year = '722880-23152-2017'
+            var_series = replace_series_value(var_series, -9999, None)
 
             # Fill in up to 6 consecutive missing values by linear interpolation.
             var_series.interpolate(method='linear', limit=args.max_records_to_interpolate, inplace=True)
