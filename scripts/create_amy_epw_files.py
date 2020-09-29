@@ -21,6 +21,7 @@ def clean_noaa_df(df):
                        "Wind_Speed", "Sky_Condition_Total_Coverage_Code",
                        "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
     df.columns = list_of_columns
+    df_year = str(df['Year'][0])  # Year is the same for all entries, so just get one
 
     # Take year-month-day-hour columns and convert to datetime stamps.
     df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
@@ -33,7 +34,7 @@ def clean_noaa_df(df):
                           'Liquid_Precipitation_Depth_Dimension_1H', 'Liquid_Precipitation_Depth_Dimension_6H'])
 
     # Create series of continuous timestamp values for that year
-    all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], df['obs_timestamps'].iloc[-1], freq='H')
+    all_timestamps = pd.date_range(df_year + '-01-01 00:00:00', df_year + '-12-31 23:00:00', freq='H')
 
     # Merge to one dataframe containing all continuous timestamp values.
     all_timestamps = pd.DataFrame(all_timestamps, columns=['timestamp'])
