@@ -402,14 +402,14 @@ for idx, station_year in enumerate(station_list, start=1):
                 p_ts = ts - pd.Timedelta('1h')
                 if p_ts < noaa_df.index[0]:
                     var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-                elif var_df.loc[p_ts, 'needs_replacement'] == False:
+                elif not var_df.loc[p_ts, 'needs_replacement']:
                     var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
                                                            + var_df.loc[p_ts, colname]) / 2
 
                 s_ts = ts + pd.Timedelta('1h')
                 if s_ts > noaa_df.index[-1]:
                     var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-                elif var_df.loc[s_ts, 'needs_replacement'] == False:
+                elif not var_df.loc[s_ts, 'needs_replacement']:
                     var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
                                                            + var_df.loc[s_ts, colname]) / 2
 
@@ -561,13 +561,13 @@ for idx, station_year in enumerate(station_list, start=1):
         print('Problem processing: ' + station_year + ': ' + str(e))
 
 # Write CSV of any NOAA files that were not processed into an EPW file.
-if no_epw.empty == False:
+if not no_epw.empty:
     no_epw.to_csv(create_out_path + '/no_epw_created.csv', index=False)
 else:
     print('All files were converted to EPWs.')
 
 # Write CSV of any files that have values that will fail the EPW maximum/minimum criteria.
-if epw_max_or_min_violations.empty == False:
+if not epw_max_or_min_violations.empty:
     epw_max_or_min_violations.to_csv(create_out_path + '/epw_max_or_min_violations.csv', index=False)
 else:
     print('No files were found to have issues with EPW maximum or minimum values.')
