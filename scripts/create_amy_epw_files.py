@@ -388,7 +388,7 @@ for idx, station_year in enumerate(station_list, start=1):
                     if idx < noaa_df.index[0]:
                         continue
                     elif idx > noaa_df.index[-1]:
-                        continue
+                        break
                     else:
                         val = var_df.loc[idx, colname]
                     values.append(val)
@@ -407,7 +407,7 @@ for idx, station_year in enumerate(station_list, start=1):
                                                            + var_df.loc[p_ts, colname]) / 2
 
                 s_ts = ts + pd.Timedelta('1h')
-                if s_ts > noaa_df.index[8759]:
+                if s_ts > noaa_df.index[-1]:
                     var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
                 elif var_df.loc[s_ts, 'needs_replacement'] == False:
                     var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
