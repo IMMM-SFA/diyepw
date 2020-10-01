@@ -394,7 +394,7 @@ for idx, station_year in enumerate(station_list, start=1):
                     values.append(val)
 
                 # Take the mean of the values pulled. Will ignore NaNs.
-                var_df.loc[ts, 'replacement_value'] = pd.Series(values).mean()
+                var_df.loc[ts, 'replacement_value'] = pd.Series(values, dtype=np.float64).mean()
 
                 # Average out the first and last replacement values in a sequence of missing values with
                 # the previous and subsequent observed values to smooth the transitions between observed and replaced.
