@@ -317,7 +317,7 @@ for idx, station_year in enumerate(station_list, start=1):
         noaa_df = clean_noaa_df(noaa_df)
 
         # Save the first timestamp for that year.
-        start_timestamp = noaa_df.first_valid_index()
+        start_timestamp = noaa_df.index[0]
 
         # Read in the corresponding TMY3 EPW file.
         read_tmy3(tmy3_epw_file_path)
@@ -554,6 +554,7 @@ for idx, station_year in enumerate(station_list, start=1):
         write_epw(amy_epw_file_out_path)
 
     except Exception as e:
+        raise e
         # Do the following if unable to complete the above process and convert to CSV.
         # TODO add in something to return the error
         no_epw.loc[no_counter, 'file'] = station_year
