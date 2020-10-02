@@ -21,6 +21,7 @@ def clean_noaa_df(df):
                        "Wind_Speed", "Sky_Condition_Total_Coverage_Code",
                        "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
     df.columns = list_of_columns
+    df_year = str(df['Year'][0])  # Year is the same for all entries, so just get one
 
     # Take year-month-day-hour columns and convert to datetime stamps.
     df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
@@ -33,7 +34,7 @@ def clean_noaa_df(df):
                           'Liquid_Precipitation_Depth_Dimension_1H', 'Liquid_Precipitation_Depth_Dimension_6H'])
 
     # Create series of continuous timestamp values for that year
-    all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], periods=8760, freq='H')
+    all_timestamps = pd.date_range(df_year + '-01-01 00:00:00', df_year + '-12-31 23:00:00', freq='H')
 
     # Merge to one dataframe containing all continuous timestamp values.
     all_timestamps = pd.DataFrame(all_timestamps, columns=['timestamp'])
@@ -316,7 +317,7 @@ for idx, station_year in enumerate(station_list, start=1):
         noaa_df = clean_noaa_df(noaa_df)
 
         # Save the first timestamp for that year.
-        start_timestamp = noaa_df.first_valid_index()
+        start_timestamp = noaa_df.index[0]
 
         # Read in the corresponding TMY3 EPW file.
         read_tmy3(tmy3_epw_file_path)
@@ -331,7 +332,10 @@ for idx, station_year in enumerate(station_list, start=1):
         year_s_string = str(int(year) + 1)
 
         # Grab the relative path to the NOAA AMY file for the subsequent year.
-        noaa_amy_s_info_path = glob.glob('../outputs/NOAA_AMY/' + station_number_string + '*' + year_s_string)
+        glob_string = '../outputs/NOAA_AMY/' + station_number_string + '*' + year_s_string
+        noaa_amy_s_info_path = glob.glob(glob_string)
+        if len(noaa_amy_s_info_path) == 0:
+            raise Exception("Couldn't load subsequent year's data: no file was found matching '" + glob_string + "'")
         noaa_amy_s_info_path = noaa_amy_s_info_path[0]
 
         # Read in the NOAA AMY file for the station for the subsequent year.
@@ -386,14 +390,14 @@ for idx, station_year in enumerate(station_list, start=1):
                     idx = ts - mult*pd.Timedelta('24h')
                     if idx < noaa_df.index[0]:
                         continue
-                    elif idx > noaa_df.index[8759]:
-                        continue
+                    elif idx > noaa_df.index[-1]:
+                        break
                     else:
                         val = var_df.loc[idx, colname]
                     values.append(val)
 
                 # Take the mean of the values pulled. Will ignore NaNs.
-                var_df.loc[ts, 'replacement_value'] = pd.Series(values).mean()
+                var_df.loc[ts, 'replacement_value'] = pd.Series(values, dtype=np.float64).mean()
 
                 # Average out the first and last replacement values in a sequence of missing values with
                 # the previous and subsequent observed values to smooth the transitions between observed and replaced.
@@ -401,14 +405,14 @@ for idx, station_year in enumerate(station_list, start=1):
                 p_ts = ts - pd.Timedelta('1h')
                 if p_ts < noaa_df.index[0]:
                     var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-                elif var_df.loc[p_ts, 'needs_replacement'] == False:
+                elif not var_df.loc[p_ts, 'needs_replacement']:
                     var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
                                                            + var_df.loc[p_ts, colname]) / 2
 
                 s_ts = ts + pd.Timedelta('1h')
-                if s_ts > noaa_df.index[8759]:
+                if s_ts > noaa_df.index[-1]:
                     var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-                elif var_df.loc[s_ts, 'needs_replacement'] == False:
+                elif not var_df.loc[s_ts, 'needs_replacement']:
                     var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
                                                            + var_df.loc[s_ts, colname]) / 2
 
@@ -560,13 +564,13 @@ for idx, station_year in enumerate(station_list, start=1):
         print('Problem processing: ' + station_year + ': ' + str(e))
 
 # Write CSV of any NOAA files that were not processed into an EPW file.
-if no_epw.empty == False:
+if not no_epw.empty:
     no_epw.to_csv(create_out_path + '/no_epw_created.csv', index=False)
 else:
     print('All files were converted to EPWs.')
 
 # Write CSV of any files that have values that will fail the EPW maximum/minimum criteria.
-if epw_max_or_min_violations.empty == False:
+if not epw_max_or_min_violations.empty:
     epw_max_or_min_violations.to_csv(create_out_path + '/epw_max_or_min_violations.csv', index=False)
 else:
     print('No files were found to have issues with EPW maximum or minimum values.')
