@@ -332,7 +332,10 @@ for idx, station_year in enumerate(station_list, start=1):
         year_s_string = str(int(year) + 1)
 
         # Grab the relative path to the NOAA AMY file for the subsequent year.
-        noaa_amy_s_info_path = glob.glob('../outputs/NOAA_AMY/' + station_number_string + '*' + year_s_string)
+        glob_string = '../outputs/NOAA_AMY/' + station_number_string + '*' + year_s_string
+        noaa_amy_s_info_path = glob.glob(glob_string)
+        if len(noaa_amy_s_info_path) == 0:
+            raise Exception("Couldn't load subsequent year's data: no file was found matching '" + glob_string + "'")
         noaa_amy_s_info_path = noaa_amy_s_info_path[0]
 
         # Read in the NOAA AMY file for the station for the subsequent year.
@@ -554,7 +557,6 @@ for idx, station_year in enumerate(station_list, start=1):
         write_epw(amy_epw_file_out_path)
 
     except Exception as e:
-        raise e
         # Do the following if unable to complete the above process and convert to CSV.
         # TODO add in something to return the error
         no_epw.loc[no_counter, 'file'] = station_year
