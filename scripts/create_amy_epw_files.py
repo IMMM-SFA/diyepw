@@ -4,6 +4,7 @@ import csv
 import numpy as np
 import pandas as pd
 import argparse
+import datetime
 
 ####################################################################################################################
 # Clean NOAA ISD Lite dataframe
@@ -46,20 +47,6 @@ def clean_noaa_df(df):
 
     # Return the cleaned data frame.
     return df
-
-####################################################################################################################
-# Replace missing value codes with NAs
-####################################################################################################################
-
-def replace_series_value(series, to_replace, replacement_value):
-    """Take a Pandas Series and replace a particular value with a replacement value.
-    This provides similar functionality to .replace(), which has an issue when replacing
-    values in slices with heterogeneous data types.
-    (Related issue: https://github.com/pandas-dev/pandas/issues/29813)"""
-
-    replaceindex = series[series==to_replace].index
-    series[replaceindex] = replacement_value
-    return series
 
 
 ####################################################################################################################
@@ -233,6 +220,161 @@ def write_epw(save_path):
         writer.writerow(row)
     ofile.close()
 
+def split_list_into_contiguous_segments(l:list, step):
+    """
+    Given a list, will return a new list of lists, where each of the inner lists is one block of contiguous
+    values from the original list.
+
+    Example: split_list_into_contiguous_segments([1, 2, 5, 6, 7, 9, 11], 1) =>
+    [
+        [1, 2],
+        [5, 6, 7],
+        [9],
+        [11]
+    ]
+
+    :param l: The list to split. The values in this list must be of the same type as step_size, and must
+      be of a type allowing sorting, as well as addition, such that you would expect some list item added to
+      step_size to produce another valid list value. If the list contains duplicate entries, the duplicates
+      will be removed.
+    :param step: Items in the list that differ from one another by this amount will be considered
+      neighbors in a contiguous segment.
+    :return:
+    """
+
+    # Ensure the list is sorted and remove any duplicates
+    l = list(set(l))
+    l.sort()
+
+    segments = []
+    cur_segment = []
+    prev_val = None
+    for val in l:
+        if prev_val is not None and val - step != prev_val:
+            segments.append(cur_segment)
+            cur_segment = [val]
+        else:
+            cur_segment.append(val)
+        prev_val = val
+    segments.append(cur_segment)
+
+    return segments
+
+def handle_missing_values(
+        df:pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
+        imputation_step, missing_values:list=[np.nan]
+):
+    """
+    Look for missing values in a DataFrame. If possible, the missing values will be
+    populated in place, using one of two strategies:
+
+    If the missing values are in a contiguous block up to the length defined by max_to_interpolate,
+    the values will linearly interpolated using the previous and following values.
+
+    Otherwise, if the missing values are in a contiguous block up to the length defined by
+    max_to_impute, the values will be imputed by going forward and back a distance defined
+    by imputation_step, and averaging the two values found at those positions.
+
+    Otherwise, if the DataFrame contains at least one contiguous block of missing values
+    larger than max_to_impute, it will be left unchanged, and an Exception will be raised.
+
+    :param df: The dataframe to be searched for missing values.
+    :param step: The step size to use in considering whether the indexes of the dataframe are
+      contiguous. If two indices are one step apart, they are neighbors in a contiguous block.
+      Otherwise they do not belong to the same contiguous block.
+    :param max_to_interpolate: The maximum length of contiguous block to treat with the
+      interpolation strategy described above.
+    :param max_to_impute: The maximum length of contiguous block to treat with the imputation
+      strategy described above.
+    :param imputation_step: The step-size to use in finding values to impute from, as described
+      in the imputation strategy above.
+    :param missing_values: Values matching any value in this list will be treated as missing.
+    :return:
+    """
+    for col_name in df:
+        indices_to_replace = df.index[df[col_name].isin(missing_values)].tolist()
+        indices_to_replace = split_list_into_contiguous_segments(
+            indices_to_replace,
+            step=step
+        )
+
+        # max(..., key=len) gives us the longest sequence, then we use len() to get that sequence's length
+        longest_sequence = len(max(indices_to_replace, key=len))
+        if longest_sequence > args.max_records_to_impute:
+            # TODO: Add information about these files to outputs/create_amy_epw_files/no_epw_created.csv
+            raise Exception("The longest set of missing records for {} is {}, but the max allowed is {}".format(
+                col_name, longest_sequence, max_to_impute
+            ))
+
+        # First, perform interpolation on all the sequences that are short enough to allow it. That reduces the
+        # chances that we run into empty values when we try to perform imputation
+        for indices in indices_to_replace:
+            # Any blocks longer than our limit are skipped - they'll be imputed
+            if len(indices) > max_to_interpolate:
+                continue
+
+            # We need to retrieve the values from the previous and next rows because they are
+            # required for interpolation
+            prev_index = indices[0] - step
+            next_index = indices[-1] + step
+            indices = [prev_index] + indices + [next_index]
+
+            # Perform interpolation, then use combine_first to merge the new values back into the set
+            # of values for the column
+            values = df[col_name][indices]
+            values.interpolate(inplace=True)
+            df[col_name] = df[col_name].combine_first(values)
+
+# TODO: This is where I left off when Lea arrived. Interpolation looks like it's working. Now need to add
+#  imputation, and we're good to go.
+
+
+        for ts in indices_to_replace:
+
+            # List to store the variable values
+            values = list([])
+
+            # Grab the values of the same variable in the same hour for 2 weeks preceding and 2 weeks after.
+            # Note: Will use fewer than 4 weeks of data if it extends before or after the file's calendar year.
+            for mult in range(-14, 15):
+                idx = ts - mult * pd.Timedelta('24h')
+                if idx < noaa_df.index[0]:
+                    continue
+                elif idx > noaa_df.index[-1]:
+                    break
+                else:
+                    val = var_df.loc[idx, colname]
+                values.append(val)
+
+            # Take the mean of the values pulled. Will ignore NaNs.
+            var_df.loc[ts, 'replacement_value'] = pd.Series(values, dtype=np.float64).mean()
+
+            # Average out the first and last replacement values in a sequence of missing values with
+            # the previous and subsequent observed values to smooth the transitions between observed and replaced.
+
+            p_ts = ts - pd.Timedelta('1h')
+            if p_ts < noaa_df.index[0]:
+                var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
+            elif not var_df.loc[p_ts, 'needs_replacement']:
+                var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
+                                                       + var_df.loc[p_ts, colname]) / 2
+
+            s_ts = ts + pd.Timedelta('1h')
+            if s_ts > noaa_df.index[-1]:
+                var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
+            elif not var_df.loc[s_ts, 'needs_replacement']:
+                var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
+                                                       + var_df.loc[s_ts, colname]) / 2
+
+            # Move the replacement values into the variable values column.
+            var_df.loc[ts, colname] = var_df.loc[ts, 'replacement_value']
+
+        # Drop unnecessary columns.
+        var_df = var_df.drop(columns=['needs_replacement', 'replacement_value'])
+
+        # Save the filled-in variable column to the NOAA AMY info dataframe.
+        noaa_df[colname] = var_df[colname]
+
 
 ####################################################################################################################
 # START
@@ -256,13 +398,25 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--max-records-to-interpolate',
                     default=6,
                     type=int,
-                    help='The maximum number of consecutive records to interpolate.')
+                    help="""The maximum number of consecutive records to interpolate. See the documentation of the
+                            pandas.DataFrame.interpolate() method's "limit" argument for more details. Basically,
+                            if fields are missing, those missing values will be set to a value interpolated linearly
+                            using the values of the fields immediately preceding and following the missing field(s).
+                            If a sequence of fields longer than this argument is encountered, only this maximum number
+                            of values will be interpolated, and the remaining set of missing fields will be imputed
+                            by averaging the ."""
+                    )
 
-# TODO: Add handling for this argument
 parser.add_argument('--max-records-to-impute',
                     default=48,
                     type=int,
-                    help='The maximum number of records to impute.')
+                    help="""The maximum number of records to impute. For groups of missing records larger than the
+                            limit set by --max-records-to-interpolate, we replace the missing values using the
+                            average of the values two weeks prior and two weeks after the missing value. However, if
+                            there are more missing records after interpolation than this limit (i.e. if a group of
+                            missing records is larger than --max-records-to-interpolate PLUS --max-records-to-impute)
+                            then the file will be discarded. Information about discarded files can be found in
+                            outputs/create_amy_epw_files/no_epw_created.csv""")
 args = parser.parse_args()
 
 # Read in list of WMO stations for which new AMY EPW files should be created.
@@ -285,7 +439,7 @@ no_epw = pd.DataFrame(columns=['file'])
 no_counter = 0
 
 # Iterate through stations in the list.
-for idx, station_year in enumerate(station_list, start=1):
+for idx, station_year in enumerate(['722016-12896-2017'], start=1):
 
     print("Processing", station_year, "(", idx, "/", len(station_list),  ")")
 
@@ -359,71 +513,14 @@ for idx, station_year in enumerate(station_list, start=1):
         # Remove time steps that aren't applicable to the year of interest
         noaa_df = noaa_df[noaa_df.index >= start_timestamp]
 
-        for column in range(0, 5):
-
-            colname = noaa_df.columns[column]
-
-            # Take a series out for the variable column we're working with.
-            var_series = noaa_df.iloc[:,column].copy()
-
-            # Replace -9999 values (missing values in NOAA's ISD Lite format) with NaNs.
-            var_series = replace_series_value(var_series, -9999, None)
-
-            # Fill in up to 6 consecutive missing values by linear interpolation.
-            var_series.interpolate(method='linear', limit=args.max_records_to_interpolate, inplace=True)
-
-            # Start a dataframe that will be used to do the replacement of groups of consecutive missing values.
-            var_df = pd.DataFrame(var_series)
-            var_df['needs_replacement'] = pd.isnull(var_series)
-            var_df['replacement_value'] = None
-
-            replace_list = var_df.index[var_df['needs_replacement'] == True].tolist()
-
-            for ts in replace_list:
-
-                # List to store the variable values
-                values = list([])
-
-                # Grab the values of the same variable in the same hour for 2 weeks preceding and 2 weeks after.
-                # Note: Will use fewer than 4 weeks of data if it extends before or after the file's calendar year.
-                for mult in range(-14, 15):
-                    idx = ts - mult*pd.Timedelta('24h')
-                    if idx < noaa_df.index[0]:
-                        continue
-                    elif idx > noaa_df.index[-1]:
-                        break
-                    else:
-                        val = var_df.loc[idx, colname]
-                    values.append(val)
-
-                # Take the mean of the values pulled. Will ignore NaNs.
-                var_df.loc[ts, 'replacement_value'] = pd.Series(values, dtype=np.float64).mean()
-
-                # Average out the first and last replacement values in a sequence of missing values with
-                # the previous and subsequent observed values to smooth the transitions between observed and replaced.
-
-                p_ts = ts - pd.Timedelta('1h')
-                if p_ts < noaa_df.index[0]:
-                    var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-                elif not var_df.loc[p_ts, 'needs_replacement']:
-                    var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
-                                                           + var_df.loc[p_ts, colname]) / 2
-
-                s_ts = ts + pd.Timedelta('1h')
-                if s_ts > noaa_df.index[-1]:
-                    var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-                elif not var_df.loc[s_ts, 'needs_replacement']:
-                    var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
-                                                           + var_df.loc[s_ts, colname]) / 2
-
-                # Move the replacement values into the variable values column.
-                var_df.loc[ts, colname] = var_df.loc[ts, 'replacement_value']
-
-            # Drop unnecessary columns.
-            var_df = var_df.drop(columns=['needs_replacement', 'replacement_value'])
-
-            # Save the filled-in variable column to the NOAA AMY info dataframe.
-            noaa_df[colname] = var_df[colname]
+        handle_missing_values(
+            noaa_df,
+            step=pd.Timedelta("1h"),
+            max_to_interpolate=args.max_records_to_interpolate,
+            max_to_impute=args.max_records_to_impute,
+            imputation_step=pd.Timedelta("2w"),
+            missing_values=[np.nan, -9999]
+        )
 
         # Convert air (dry bulb) temperature in NOAA df to degrees C.
         noaa_df['Air_Temperature'] = noaa_df['Air_Temperature'] / 10
