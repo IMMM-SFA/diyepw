@@ -262,7 +262,7 @@ def split_list_into_contiguous_segments(l:list, step):
 
 def handle_missing_values(
         df:pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
-        imputation_step, missing_values:list=[np.nan]
+        imputation_range, imputation_step, missing_values:list=[np.nan]
 ):
     """
     Look for missing values in a DataFrame. If possible, the missing values will be
@@ -272,8 +272,13 @@ def handle_missing_values(
     the values will linearly interpolated using the previous and following values.
 
     Otherwise, if the missing values are in a contiguous block up to the length defined by
-    max_to_impute, the values will be imputed by going forward and back a distance defined
-    by imputation_step, and averaging the two values found at those positions.
+    max_to_impute, the values will be imputed by going back through the indices by
+    imputation_range, then stepping through by step sizes defined by imputation_step
+    until the index that is imputation_range ahead of the missing value is found, and
+    averaging all values encountered. For example, assuming a dataframe indexed by timestamp,
+    if imputation_range is two weeks and imputation_step is 24 hours, a missing value will
+    be imputed by calculating the average value at the same time of day every day going back
+    two weeks and forward two weeks from the missing row.
 
     Otherwise, if the DataFrame contains at least one contiguous block of missing values
     larger than max_to_impute, it will be left unchanged, and an Exception will be raised.
@@ -286,17 +291,27 @@ def handle_missing_values(
       interpolation strategy described above.
     :param max_to_impute: The maximum length of contiguous block to treat with the imputation
       strategy described above.
+    :param imputation_range: The distance before and after a missing record that will be searched
+      for values to average when imputing a missing value
     :param imputation_step: The step-size to use in finding values to impute from, as described
       in the imputation strategy above.
     :param missing_values: Values matching any value in this list will be treated as missing.
     :return:
     """
-    for col_name in df:
-        indices_to_replace = df.index[df[col_name].isin(missing_values)].tolist()
+
+    def get_indices_to_replace(df, col_name):
+        indices_to_replace = df.index[df[col_name].isna()].tolist()
         indices_to_replace = split_list_into_contiguous_segments(
             indices_to_replace,
             step=step
         )
+        return indices_to_replace
+
+    for col_name in df:
+        # For simplicity's sake, set all missing values to NAN
+        df.loc[df[col_name].isin(missing_values)] = np.nan
+
+        indices_to_replace = get_indices_to_replace(df, col_name)
 
         # max(..., key=len) gives us the longest sequence, then we use len() to get that sequence's length
         longest_sequence = len(max(indices_to_replace, key=len))
@@ -309,6 +324,7 @@ def handle_missing_values(
         # First, perform interpolation on all the sequences that are short enough to allow it. That reduces the
         # chances that we run into empty values when we try to perform imputation
         for indices in indices_to_replace:
+
             # Any blocks longer than our limit are skipped - they'll be imputed
             if len(indices) > max_to_interpolate:
                 continue
@@ -317,64 +333,50 @@ def handle_missing_values(
             # required for interpolation
             prev_index = indices[0] - step
             next_index = indices[-1] + step
-            indices = [prev_index] + indices + [next_index]
+
+            indices_to_interpolate = [prev_index] + indices + [next_index]
+
+            # Only include indices that are present in the dataframe index. This prevents issues with records
+            # at the very start and end of the dataframe, where stepping back and forward takes us out of the
+            # valid range of indices in the dataframe.
+            indices_to_interpolate = [i for i in indices_to_interpolate if i in df.index]
 
             # Perform interpolation, then use combine_first to merge the new values back into the set
             # of values for the column
-            values = df[col_name][indices]
+            values = df[col_name][indices_to_interpolate]
             values.interpolate(inplace=True)
             df[col_name] = df[col_name].combine_first(values)
 
-# TODO: This is where I left off when Lea arrived. Interpolation looks like it's working. Now need to add
-#  imputation, and we're good to go.
+            # Remove the current set of indices from the set to replace, so that they are no longer present
+            # when we loop over the list again to perform imputation
+            indices_to_replace.remove(indices)
 
+        for indices in indices_to_replace:
+            # We will perform imputation on all the elements in the chunk *except* for the first and last
+            # ones. To smooth out the transition between imputed and real data, we will set the first and last
+            # element of each chunk to the average of the nearest real value and the nearest imputed value. We
+            # do that with a trick: We just skip the first and last elements when performing imputation, then
+            # we can call interpolate() a single time on the whole set, which will result in all of the remaining
+            # NANs being set to the desired value.
+            indices_to_impute = indices[1:-1]
 
-        for ts in indices_to_replace:
+            # For imputation, we will operate index-by-index, setting each one to the average of all the values
+            # in the range extending from imputation_step indices behind to imputation_step indices ahead.
+            for index_to_impute in indices_to_impute:
+                replacement_value_index = index_to_impute - imputation_range
+                replacement_values = []
+                while replacement_value_index <= index_to_impute + imputation_range:
+                    if replacement_value_index in df.index:
+                        replacement_values.append(df[col_name][replacement_value_index])
+                    replacement_value_index += imputation_step
 
-            # List to store the variable values
-            values = list([])
+                # Take the mean of the values pulled. Will ignore NaNs.
+                df[col_name][index_to_impute] = pd.Series(replacement_values, dtype=np.float64).mean()
 
-            # Grab the values of the same variable in the same hour for 2 weeks preceding and 2 weeks after.
-            # Note: Will use fewer than 4 weeks of data if it extends before or after the file's calendar year.
-            for mult in range(-14, 15):
-                idx = ts - mult * pd.Timedelta('24h')
-                if idx < noaa_df.index[0]:
-                    continue
-                elif idx > noaa_df.index[-1]:
-                    break
-                else:
-                    val = var_df.loc[idx, colname]
-                values.append(val)
+#TODO: This is where I am leaving off Sunday. There are still chunks of size greater than 1 being left behind, so something
+# is probably going wrong with imputation.
 
-            # Take the mean of the values pulled. Will ignore NaNs.
-            var_df.loc[ts, 'replacement_value'] = pd.Series(values, dtype=np.float64).mean()
-
-            # Average out the first and last replacement values in a sequence of missing values with
-            # the previous and subsequent observed values to smooth the transitions between observed and replaced.
-
-            p_ts = ts - pd.Timedelta('1h')
-            if p_ts < noaa_df.index[0]:
-                var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-            elif not var_df.loc[p_ts, 'needs_replacement']:
-                var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
-                                                       + var_df.loc[p_ts, colname]) / 2
-
-            s_ts = ts + pd.Timedelta('1h')
-            if s_ts > noaa_df.index[-1]:
-                var_df.loc[ts, 'replacement_value'] = var_df.loc[ts, 'replacement_value']
-            elif not var_df.loc[s_ts, 'needs_replacement']:
-                var_df.loc[ts, 'replacement_value'] = (var_df.loc[ts, 'replacement_value']
-                                                       + var_df.loc[s_ts, colname]) / 2
-
-            # Move the replacement values into the variable values column.
-            var_df.loc[ts, colname] = var_df.loc[ts, 'replacement_value']
-
-        # Drop unnecessary columns.
-        var_df = var_df.drop(columns=['needs_replacement', 'replacement_value'])
-
-        # Save the filled-in variable column to the NOAA AMY info dataframe.
-        noaa_df[colname] = var_df[colname]
-
+    df.interpolate()
 
 ####################################################################################################################
 # START
@@ -439,7 +441,7 @@ no_epw = pd.DataFrame(columns=['file'])
 no_counter = 0
 
 # Iterate through stations in the list.
-for idx, station_year in enumerate(['722016-12896-2017'], start=1):
+for idx, station_year in enumerate(station_list, start=1):
 
     print("Processing", station_year, "(", idx, "/", len(station_list),  ")")
 
@@ -518,7 +520,8 @@ for idx, station_year in enumerate(['722016-12896-2017'], start=1):
             step=pd.Timedelta("1h"),
             max_to_interpolate=args.max_records_to_interpolate,
             max_to_impute=args.max_records_to_impute,
-            imputation_step=pd.Timedelta("2w"),
+            imputation_range=pd.Timedelta("2w"),
+            imputation_step=pd.Timedelta("1d"),
             missing_values=[np.nan, -9999]
         )
 
