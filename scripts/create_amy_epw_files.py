@@ -256,7 +256,8 @@ def split_list_into_contiguous_segments(l:list, step):
         else:
             cur_segment.append(val)
         prev_val = val
-    segments.append(cur_segment)
+    if len(cur_segment) > 0:
+        segments.append(cur_segment)
 
     return segments
 
@@ -307,61 +308,48 @@ def handle_missing_values(
         )
         return indices_to_replace
 
+    # For simplicity's sake, set all missing values to NAN up front
     for col_name in df:
-        # For simplicity's sake, set all missing values to NAN
-        df.loc[df[col_name].isin(missing_values)] = np.nan
+        df[col_name][df[col_name].isin(missing_values)] = np.nan
 
+    for col_name in df:
+        print(col_name)
         indices_to_replace = get_indices_to_replace(df, col_name)
 
+        # There is no work to be done on this column if it has no missing data
+        if len(indices_to_replace) == 0:
+            continue
+
         # max(..., key=len) gives us the longest sequence, then we use len() to get that sequence's length
-        longest_sequence = len(max(indices_to_replace, key=len))
-        if longest_sequence > args.max_records_to_impute:
+        max_sequence_length = len(max(indices_to_replace, key=len))
+
+        # We raise an exception if a column has too many sequential missing rows; it's up to the calling
+        # code to decide how we are going to handle records that can't be processed for this reason.
+        if max_sequence_length > args.max_records_to_impute:
             # TODO: Add information about these files to outputs/create_amy_epw_files/no_epw_created.csv
             raise Exception("The longest set of missing records for {} is {}, but the max allowed is {}".format(
-                col_name, longest_sequence, max_to_impute
+                col_name, max_sequence_length, max_to_impute
             ))
 
-        # First, perform interpolation on all the sequences that are short enough to allow it. That reduces the
-        # chances that we run into empty values when we try to perform imputation
+        # We make two passes to fill in missing records: The first pass uses the imputation strategy described
+        # in this function's doc comment to fill in any gaps that are larger than max_to_interpolate. That
+        # pass leaves behind any sequences that are smaller than that limit, and also leaves behind the first
+        # and last item in any imputed sequence, which are also interpolated (i.e. set to the average of the imputed
+        # value and the observed value on either side) to smooth out the transition between computed and observed
+        # values.
         for indices in indices_to_replace:
-
-            # Any blocks longer than our limit are skipped - they'll be imputed
-            if len(indices) > max_to_interpolate:
+            # Any blocks within our interpolation limit are skipped - they'll be filled in by the interpolate()
+            # call below
+            if len(indices) <= max_to_interpolate:
                 continue
 
-            # We need to retrieve the values from the previous and next rows because they are
-            # required for interpolation
-            prev_index = indices[0] - step
-            next_index = indices[-1] + step
-
-            indices_to_interpolate = [prev_index] + indices + [next_index]
-
-            # Only include indices that are present in the dataframe index. This prevents issues with records
-            # at the very start and end of the dataframe, where stepping back and forward takes us out of the
-            # valid range of indices in the dataframe.
-            indices_to_interpolate = [i for i in indices_to_interpolate if i in df.index]
-
-            # Perform interpolation, then use combine_first to merge the new values back into the set
-            # of values for the column
-            values = df[col_name][indices_to_interpolate]
-            values.interpolate(inplace=True)
-            df[col_name] = df[col_name].combine_first(values)
-
-            # Remove the current set of indices from the set to replace, so that they are no longer present
-            # when we loop over the list again to perform imputation
-            indices_to_replace.remove(indices)
-
-        for indices in indices_to_replace:
             # We will perform imputation on all the elements in the chunk *except* for the first and last
-            # ones. To smooth out the transition between imputed and real data, we will set the first and last
-            # element of each chunk to the average of the nearest real value and the nearest imputed value. We
-            # do that with a trick: We just skip the first and last elements when performing imputation, then
-            # we can call interpolate() a single time on the whole set, which will result in all of the remaining
-            # NANs being set to the desired value.
+            # ones, which will be interpolated to smooth out the transition between computed and observed values
             indices_to_impute = indices[1:-1]
 
-            # For imputation, we will operate index-by-index, setting each one to the average of all the values
-            # in the range extending from imputation_step indices behind to imputation_step indices ahead.
+            # Set each missing value to the average of all the values in the range extending from imputation_range
+            # indices behind to imputation_range indices ahead, walking through that range in steps whose size are
+            # set by imputation_step.
             for index_to_impute in indices_to_impute:
                 replacement_value_index = index_to_impute - imputation_range
                 replacement_values = []
@@ -373,10 +361,11 @@ def handle_missing_values(
                 # Take the mean of the values pulled. Will ignore NaNs.
                 df[col_name][index_to_impute] = pd.Series(replacement_values, dtype=np.float64).mean()
 
-#TODO: This is where I am leaving off Sunday. There are still chunks of size greater than 1 being left behind, so something
-# is probably going wrong with imputation.
-
-    df.interpolate()
+    # Perform interpolation on any remaining missing values. At this point we know that there are no
+    # sequences larger than the max permitted for interpolation, because they would have been imputed
+    # or caused an exception (if larger than the imputation limit), so we can just call interpolate()
+    # on anything that is still missing.
+    df.interpolate(inplace=True)
 
 ####################################################################################################################
 # START
@@ -522,7 +511,7 @@ for idx, station_year in enumerate(station_list, start=1):
             max_to_impute=args.max_records_to_impute,
             imputation_range=pd.Timedelta("2w"),
             imputation_step=pd.Timedelta("1d"),
-            missing_values=[np.nan, -9999]
+            missing_values=[np.nan, -9999.]
         )
 
         # Convert air (dry bulb) temperature in NOAA df to degrees C.
