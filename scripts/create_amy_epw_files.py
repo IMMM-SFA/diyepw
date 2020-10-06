@@ -98,9 +98,7 @@ def read_datafile(file_name, skiplines):
 # Read TMY3 file
 ####################################################################################################################
 def read_tmy3(tmy3_name):
-    if len(tmy3_name) == 0:
-        nothing = 1
-    else:
+    if len(tmy3_name) > 0:
         ############################
         # Read TMY3 header
         ############################
@@ -182,7 +180,6 @@ def read_tmy3(tmy3_name):
                  str(int(MM[i])) + ':00'
             DateTime.append(dt)
         ############################
-        return
 
 
 # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
