@@ -4,7 +4,6 @@ import csv
 import numpy as np
 import pandas as pd
 import argparse
-import datetime
 
 ####################################################################################################################
 # Clean NOAA ISD Lite dataframe
