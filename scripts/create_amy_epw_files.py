@@ -309,7 +309,6 @@ def handle_missing_values(
         df[col_name][df[col_name].isin(missing_values)] = np.nan
 
     for col_name in df:
-        print(col_name)
         indices_to_replace = get_indices_to_replace(df, col_name)
 
         # There is no work to be done on this column if it has no missing data
