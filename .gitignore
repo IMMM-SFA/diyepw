@@ -4,3 +4,6 @@
 # Generated outputs
 outputs/*/*
 !outputs/*/README.md
+
+# Package installation files
+*.egg-info
