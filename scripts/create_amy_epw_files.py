@@ -204,13 +204,12 @@ def write_epw(save_path):
     ofile.write(header[3])
     ofile.write(header[4])
     ofile.write('COMMENTS 1, ' + str(comm1) + '\n')
-    # ofile.write(header[6])
     ofile.write('COMMENTS 2, TMY3 data from energyplus.net/weather supplemented with NOAA ISD Lite data from '
                 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/ for an actual meteorological year (AMY)\n')
     ofile.write('DATA PERIODS,1,1,Data,' + day_name + ', 1/1, 12/31\n')
-    #
+
     writer = csv.writer(ofile, delimiter=',')
-    #
+
     for i in range(0, 8760):
         row = [int(Y[i]), int(M[i]), int(D[i]), int(HH[i]), int(MM[i]), DS,
                Tdb[i], Tdew[i], RH[i], Patm[i], ExHorRad[i], ExDirNormRad[i], HorIR[i],
