@@ -111,9 +111,7 @@ def read_datafile(file_name, skiplines):
 # Read TMY3 file
 ####################################################################################################################
 def read_tmy3(tmy3_name):
-    if len(tmy3_name) == 0:
-        nothing = 1
-    else:
+    if len(tmy3_name) > 0:
         ############################
         # Read TMY3 header
         ############################
@@ -185,16 +183,6 @@ def read_tmy3(tmy3_name):
         Albedo = data[:, 32]
         LiqPrecDepth = data[:, 33]
         LiqPrecQuant = data[:, 34]
-        ############################
-        # Date/Time vector
-        ############################
-        global DateTime
-        DateTime = []
-        for i in range(0, 8760):
-            dt = str(int(Y[i])) + '/' + str(int(M[i])) + '/' + str(int(D[i])) + ' - ' + str(int(HH[i])) + ':' + \
-                 str(int(MM[i])) + ':00'
-            DateTime.append(dt)
-        ############################
         return
 
 
