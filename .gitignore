@@ -7,3 +7,6 @@ outputs/*/*
 
 # Package installation files
 *.egg-info
+
+# Python cache files
+__pycache__
