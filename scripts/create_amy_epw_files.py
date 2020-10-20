@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import argparse
 import diyepw
+import math
 
 ####################################################################################################################
 # Clean NOAA ISD Lite dataframe
@@ -305,10 +306,7 @@ for idx, station_year in enumerate(station_list, start=1):
         station_number_string = station_year.split("-")[0]
 
         # Grab the year from the station_year string.
-        year_string = station_year.split("-")[-1]
-
-        # Convert year to float
-        year = float(year_string)
+        year = int(station_year.split("-")[-1])
 
         # Grab the relative path to the EPW file corresponding to that station.
         tmy3_epw_file_path = glob.glob('../inputs/Energy_Plus_TMY3_EPW/*.'
@@ -333,7 +331,7 @@ for idx, station_year in enumerate(station_list, start=1):
         tz_shift = tmy.timezone_gmt_offset
 
         # Identify the number of time steps to be obtained from the subsequent year's NOAA file.
-        abs_time_steps = abs(tz_shift)
+        abs_time_steps = math.ceil(abs(tz_shift))
 
         # Identify the name of the subsequent year's NOAA file.
         year_s_string = str(int(year) + 1)
@@ -387,43 +385,16 @@ for idx, station_year in enumerate(station_list, start=1):
 
         # Convert sea level pressure in NOAA df to atmospheric station pressure in Pa.
         for index in noaa_df.index:
-            stp = convert_to_station_pressure(noaa_df['Sea_Level_Pressure'][index], elev)
+            stp = convert_to_station_pressure(noaa_df['Sea_Level_Pressure'][index], tmy.elevation)
             noaa_df.loc[index, 'Station_Pressure'] = stp
 
-        # Remove unnecessary sea level pressure column from NOAA df.
-        noaa_df = noaa_df.drop(columns=['Sea_Level_Pressure'])
-
-        # Convert wind speed in NOAA df to m/s.
-        noaa_df['Wind_Speed'] = noaa_df['Wind_Speed'] / 10
-
-        # Change year to the AMY value
-        for i, val in enumerate(Y):
-             Y[i] = year
-
-        # Change the dry bulb temperature to the AMY values.
-        Tdb_new = noaa_df['Air_Temperature'].array
-        for i, val in enumerate(Tdb):
-            Tdb[i] = Tdb_new[i]
-
-        # Change the dew point temperature to the AMY values.
-        Tdew_new = noaa_df['Dew_Point_Temperature'].array
-        for i, val in enumerate(Tdew):
-            Tdew[i] = Tdew_new[i]
-
-        # Change the pressure to the AMY values.
-        Patm_new = noaa_df['Station_Pressure'].array
-        for i, val in enumerate(Patm):
-            Patm[i] = Patm_new[i]
-
-        # Change the wind direction to the AMY values.
-        Wdir_new = noaa_df['Wind_Direction'].array
-        for i, val in enumerate(Wdir):
-            Wdir[i] = Wdir_new[i]
-
-        # Change the wind speed to the AMY values.
-        Wspeed_new = noaa_df['Wind_Speed'].array
-        for i, val in enumerate(Wspeed):
-            Wspeed[i] = Wspeed_new[i]
+        # Change observation values to the values taken from the AMY data
+        tmy.set('year', year)
+        tmy.set('Tdb',  noaa_df['Air_Temperature'])
+        tmy.set('Tdew', noaa_df['Dew_Point_Temperature'])
+        tmy.set('Patm', noaa_df['Station_Pressure'])
+        tmy.set('Wdir', noaa_df['Wind_Direction'])
+        tmy.set('Wspeed', [i / 10 for i in noaa_df['Wind_Speed']]) # Divide by 10 to convert AMY value to m/sec
 
         # Output information about any files that have values that will fail the EPW maximum/minimum criteria.
         # TODO: Write function to do these checks with a dictionary & append call
@@ -498,14 +469,8 @@ for idx, station_year in enumerate(station_list, start=1):
             epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Wdir.max()
             epw_counter += 1
 
-        # Grab the correct day of week to be written to the epw file
-        day_dict = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
-        day1 = pd.Series(noaa_df.first_valid_index())
-        day_number = day1.dt.dayofweek[0]
-        day_name = day_dict[day_number]
-
         # Write new EPW file.
-        write_epw(amy_epw_file_out_path)
+        tmy.write_epw(amy_epw_file_out_path)
 
     except Exception as e:
         # Do the following if unable to complete the above process and convert to CSV.
