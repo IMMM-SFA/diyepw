@@ -330,7 +330,7 @@ for idx, station_year in enumerate(station_list, start=1):
         tmy = diyepw.TypicalMeteorologicalYear.from_tmy3_file(tmy3_epw_file_path)
 
         # Identify the time zone shift as an integer.
-        tz_shift = int(float(tz))
+        tz_shift = tmy.timezone_gmt_offset
 
         # Identify the number of time steps to be obtained from the subsequent year's NOAA file.
         abs_time_steps = abs(tz_shift)
