@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import datetime
 import calendar
+import typing
 
 class TypicalMeteorologicalYear:
     """
@@ -38,6 +39,55 @@ class TypicalMeteorologicalYear:
         self._elevation = None
         self._comment = None
         self._observations = None
+
+    @property
+    def station_number(self):
+        return self._station_number
+    @station_number.setter
+    def station_number(self, station_number:int):
+        self._station_number = station_number
+
+    @property
+    def latlong(self):
+        return self._latitude, self._longitude
+    @latlong.setter
+    def latlong(self, latlong:typing.Tuple[int, int]):
+        self._latitude, self._longitude = latlong
+
+    @property
+    def city(self):
+        return self._city
+    @city.setter
+    def city(self, city:str):
+        self.city = city
+
+    @property
+    def state(self):
+        return self._state
+    @state.setter
+    def state(self, state:str):
+        self._state = state
+
+    @property
+    def country(self):
+        return self._country
+    @country.setter
+    def country(self, country:str):
+        self._country = country
+
+    @property
+    def timezone_gmt_offset(self):
+        return self._timezone_gmt_offset
+    @timezone_gmt_offset.setter
+    def timezone_gmt_offset(self, timezone_gmt_offset:int):
+        self._timezone_gmt_offset = timezone_gmt_offset
+
+    @property
+    def elevation(self):
+        return self._elevation
+    @elevation.setter
+    def elevation(self, elevation:int):
+        self._elevation = elevation
 
     # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
     ####################################################################################################################
