@@ -1,9 +1,9 @@
 import os
 import glob
-import csv
 import numpy as np
 import pandas as pd
 import argparse
+import diyepw
 
 ####################################################################################################################
 # Clean NOAA ISD Lite dataframe
@@ -97,130 +97,6 @@ def convert_to_station_pressure(Pa, h_m) -> object:
     return Pstn
 
 
-# from https://github.com/SSESLab/laf/blob/master/LAF.py
-####################################################################################################################
-# Read file
-####################################################################################################################
-def read_datafile(file_name, skiplines):
-    data = np.genfromtxt(file_name, delimiter=',', skip_header=skiplines)
-    return data
-
-
-# adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
-####################################################################################################################
-# Read TMY3 file
-####################################################################################################################
-def read_tmy3(tmy3_name):
-    if len(tmy3_name) > 0:
-        ############################
-        # Read TMY3 header
-        ############################
-        f = open(tmy3_name)
-        global header
-        header = []
-        for i in range(0, 8):
-            line = f.readline()
-            header.append(line)
-        f.close()
-
-        f2 = open(tmy3_name, 'rt')
-        first_line = next(csv.reader(f2))
-        for i in range(0, 4):
-            next(csv.reader(f2))
-        comm_line = next(csv.reader(f2))
-        f2.close()
-        #
-        global lat, long, DS, City, State, Country, elev, comm1, tz, refy
-        lat = first_line[6]
-        long = first_line[7]
-        DS = 'NOAA_TMY3' # Data Source and Uncertainty Flags
-        City = first_line[1]
-        State = first_line[2]
-        Country = first_line[3]
-        # WMO field in EPW corresponds to station_number_string
-        elev = first_line[9] # station elevation in meters
-        comm1 = comm_line[1]
-        tz = first_line[8] # time zone relative to GMT
-        ############################
-        # Read TMY3 data
-        ############################
-        data = read_datafile(tmy3_name, 8)
-        global Y, M, D, HH, MM, Tdb, Tdew, RH, Patm, ExHorRad, ExDirNormRad, HorIR, GHRad, DNRad, DHRad, GHIll, DNIll, DHIll
-        global HorIR, GHRad, GHIll, DNIll, DHIll, ZenLum, Wdir, Wspeed, TotSkyCover, OpSkyCover, Visib, CeilH, PrecWater
-        global AerOptDepth, SnowDepth, DSLS, Albedo, LiqPrecDepth, LiqPrecQuant, PresWeathObs, PresWeathCodes
-
-        Y = data[:, 0]
-        M = data[:, 1]
-        D = data[:, 2]
-        HH = data[:, 3]
-        MM = data[:, 4]
-        Tdb = data[:, 6]
-        Tdew = data[:, 7]
-        RH = data[:, 8]
-        Patm = data[:, 9]
-        ExHorRad = data[:, 10]
-        ExDirNormRad = data[:, 11]
-        HorIR = data[:, 12]
-        GHRad = data[:, 13]
-        DNRad = data[:, 14]
-        DHRad = data[:, 15]
-        GHIll = data[:, 16]
-        DNIll = data[:, 17]
-        DHIll = data[:, 18]
-        ZenLum = data[:, 19]
-        Wdir = data[:, 20]
-        Wspeed = data[:, 21]
-        TotSkyCover = data[:, 22]
-        OpSkyCover = data[:, 23]
-        Visib = data[:, 24]
-        CeilH = data[:, 25]
-        PresWeathObs = data[:, 26]
-        PresWeathCodes = data[:, 27]
-        PrecWater = data[:, 28]
-        AerOptDepth = data[:, 29]
-        SnowDepth = data[:, 30]
-        DSLS = data[:, 31]
-        Albedo = data[:, 32]
-        LiqPrecDepth = data[:, 33]
-        LiqPrecQuant = data[:, 34]
-        return
-
-
-# adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
-####################################################################################################################
-# Write new EPW file
-####################################################################################################################
-def write_epw(save_path):
-    filename_epw = '/' + Country + '_' + State + '_' + City + '.' + station_number_string + '_AMY_' + \
-             year_string + '.epw'
-    filename_epw = filename_epw.replace(' ', '-')
-    OPFILE = save_path + filename_epw
-    ofile = open(OPFILE, 'w', newline='')
-    line1 = 'LOCATION,' + City + ',' + State + ',' + Country + ',customized weather file,' + station_number_string + \
-            ',' + str(lat) + ',' + str(long) + ',' + str(tz) + ',' + str(elev) + '\n'
-    ofile.write(line1)
-    ofile.write(header[1])
-    ofile.write(header[2])
-    ofile.write(header[3])
-    ofile.write(header[4])
-    ofile.write('COMMENTS 1, ' + str(comm1) + '\n')
-    ofile.write('COMMENTS 2, TMY3 data from energyplus.net/weather supplemented with NOAA ISD Lite data from '
-                'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/ for an actual meteorological year (AMY)\n')
-    ofile.write('DATA PERIODS,1,1,Data,' + day_name + ', 1/1, 12/31\n')
-
-    writer = csv.writer(ofile, delimiter=',')
-
-    for i in range(0, 8760):
-        row = [int(Y[i]), int(M[i]), int(D[i]), int(HH[i]), int(MM[i]), DS,
-               Tdb[i], Tdew[i], RH[i], Patm[i], ExHorRad[i], ExDirNormRad[i], HorIR[i],
-               GHRad[i], DNRad[i], DHRad[i], GHIll[i], DNIll[i], DHIll[i], ZenLum[i],
-               Wdir[i], Wspeed[i], TotSkyCover[i], OpSkyCover[i], Visib[i], CeilH[i],
-               PresWeathObs[i], PresWeathCodes[i], PrecWater[i], AerOptDepth[i], SnowDepth[i],
-               DSLS[i], Albedo[i], LiqPrecDepth[i], LiqPrecQuant[i]]
-        writer.writerow(row)
-    ofile.close()
-
-
 ####################################################################################################################
 # START
 ####################################################################################################################
@@ -307,7 +183,7 @@ for idx, station_year in enumerate(station_list, start=1):
         start_timestamp = noaa_df.index[0]
 
         # Read in the corresponding TMY3 EPW file.
-        read_tmy3(tmy3_epw_file_path)
+        tmy = diyepw.TypicalMeteorologicalYear.from_tmy3_file(tmy3_epw_file_path)
 
         # Identify the time zone shift as an integer.
         tz_shift = int(float(tz))
