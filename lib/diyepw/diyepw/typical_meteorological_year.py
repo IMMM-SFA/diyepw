@@ -90,6 +90,10 @@ class TypicalMeteorologicalYear:
     def elevation(self, elevation:int):
         self._elevation = elevation
 
+    @property
+    def observations(self):
+        return self._observations
+
     # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
     ####################################################################################################################
     # Write new EPW file
