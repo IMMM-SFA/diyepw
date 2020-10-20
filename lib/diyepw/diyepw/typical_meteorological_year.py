@@ -94,6 +94,40 @@ class TypicalMeteorologicalYear:
     def observations(self):
         return self._observations
 
+    def set(self, column_name:str, val):
+        """
+        Overwrite one of the columns in this instance's observations
+        :param column_name: Must be the name of one of the columns in this instance's observations
+        :param val: Mixed.
+           If val is a single value, every value of the named column will be set to that value
+           If val is a list or pandas.Series, it must contain the same number of items as there are
+               rows in this instance's observations, and will replace those values for the named column
+        :return:
+        """
+        if not column_name in self._observations:
+            raise Exception("{c} is not one of the columns in this meteorological year's observations".format(c=column_name))
+
+        # If we are passed a Pandas Series, just convert it to a list and let the generic list handling take care of it
+        if isinstance(val, pd.Series):
+            val = list(val)
+
+        # If we have a list, we will check that its length is identical to that of the observation set, and that it has
+        # consistently typed data of the correct type before using it
+        if isinstance(val, list):
+            # Lists replace the items in a column one-to-one, so we have to ensure that the passed list contains
+            # exactly the same number of elements as our observations have rows
+            if len(val) != len(self._observations):
+                raise Exception("""
+                    This meteorological year has {my_num} observations, but you passed a 
+                    list of {your_num} replacement values
+                """.format(my_num=len(self._observations), your_num=len(val))
+                )
+
+        # An assignment works here regardless of whether val is a list or a single item. If it's a list, the whole
+        # column will be replaced with the values from the list. If it's a single item, that item will be duplicated
+        # to fill the entire column
+        self._observations[column_name] = val
+
     # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
     ####################################################################################################################
     # Write new EPW file
@@ -172,11 +206,11 @@ class TypicalMeteorologicalYear:
         ############################
         data = np.genfromtxt(file_path, delimiter=',', skip_header=8)
         instance._observations = pd.DataFrame(data={
-            "year":           data[:, 0],
-            "month":          data[:, 1],
-            "day":            data[:, 2],
-            "hour":           data[:, 3],
-            "minute":         data[:, 4],
+            "year":           [ int(i) for i in data[:, 0] ],
+            "month":          [ int(i) for i in data[:, 1] ],
+            "day":            [ int(i) for i in data[:, 2] ],
+            "hour":           [ int(i) for i in data[:, 3] ],
+            "minute":         [ int(i) for i in data[:, 4] ],
             "Tdb":            data[:, 6],
             "Tdew":           data[:, 7],
             "RH":             data[:, 8],
