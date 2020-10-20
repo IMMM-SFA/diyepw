@@ -23,6 +23,7 @@ class TypicalMeteorologicalYear:
             from GMT
         _elevation - float - The elevation at which the data was observed in meters above sea level
         _comment - str - A comment string describing the TMY file
+        _observations - DataFrame - Data representing the year's observations
     """
 
     def __init__(self):
