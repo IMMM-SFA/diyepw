@@ -146,12 +146,6 @@ for idx, station_year in enumerate(station_list, start=1):
             missing_values=[np.nan, -9999.]
         )
 
-        # Convert air (dry bulb) temperature in NOAA df to degrees C.
-        noaa_df['Air_Temperature'] = noaa_df['Air_Temperature'] / 10
-
-        # Convert dew point temperature in NOAA df to degrees C.
-        noaa_df['Dew_Point_Temperature'] = noaa_df['Dew_Point_Temperature'] / 10
-
         # Initialize new column for station pressure (not strictly necessary)
         noaa_df['Station_Pressure'] = None
 
@@ -162,11 +156,11 @@ for idx, station_year in enumerate(station_list, start=1):
 
         # Change observation values to the values taken from the AMY data
         tmy.set('year', year)
-        tmy.set('Tdb',  noaa_df['Air_Temperature'])
-        tmy.set('Tdew', noaa_df['Dew_Point_Temperature'])
+        tmy.set('Tdb',  [i / 10 for i in noaa_df['Air_Temperature']]) # Convert AMY value to degrees C
+        tmy.set('Tdew', [i / 10 for i in noaa_df['Dew_Point_Temperature']]) # Convert AMY value to degrees C
         tmy.set('Patm', noaa_df['Station_Pressure'])
         tmy.set('Wdir', noaa_df['Wind_Direction'])
-        tmy.set('Wspeed', [i / 10 for i in noaa_df['Wind_Speed']]) # Divide by 10 to convert AMY value to m/sec
+        tmy.set('Wspeed', [i / 10 for i in noaa_df['Wind_Speed']]) # Convert AMY value to m/sec
 
         # Output information about any files that have values that will fail the EPW maximum/minimum criteria.
         # TODO: Write function to do these checks with a dictionary & append call
