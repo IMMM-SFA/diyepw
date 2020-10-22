@@ -5,6 +5,14 @@ import datetime
 import calendar
 import typing
 
+_RANGES = {
+    'Tdb': (-70, 70),
+    'Tdew': (-70, 70),
+    'Patm': (31000, 120000),
+    'Wspeed': (0, 40),
+    'Wdir': (0, 360)
+}
+
 class TypicalMeteorologicalYear:
     """
     Represents a Typical Meteorological Year (TMY) file; a dataset made up of a year of
@@ -243,3 +251,35 @@ class TypicalMeteorologicalYear:
         })
 
         return instance
+
+    def validate_against_epw_rules(self) -> list:
+        """
+        Check all observations to see whether they violate any restrictions that would prevent them
+        from being used in an EPW file
+
+        :return: A list of dicts in the form {
+            'weather_variable': The name of the column that contains the invalid value
+            'allowed_range': (min, max) The min and max values permitted
+            'extreme_observed_value': The value found to be outside the permitted range for this column
+        }
+        """
+        violations = []
+
+        for col_name in _RANGES:
+            min_allowed, max_allowed = _RANGES[col_name]
+            min_observation = self._observations[col_name].min()
+            max_observation = self._observations[col_name].max()
+            if min_observation < min_allowed:
+                violations.append({
+                    'weather_variable': col_name,
+                    'allowed_range': _RANGES[col_name],
+                    'extreme_observed_value': min_observation
+                })
+            if self._observations[col_name].max() > max_allowed:
+                violations.append({
+                    'weather_variable': col_name,
+                    'allowed_range': _RANGES[col_name],
+                    'extreme_observed_value': max_observation
+                })
+
+        return violations

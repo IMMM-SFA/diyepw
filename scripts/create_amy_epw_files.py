@@ -49,16 +49,12 @@ args = parser.parse_args()
 station_list = pd.read_csv(path_to_station_list)
 station_list = station_list[station_list.columns[0]]
 
-# TODO: should maybe wrap this in an if statement to confirm that station_list is pointing to something
-print('Read in station list.')
+epw_file_violations_path = create_out_path + '/no_epw_created.csv'
+epw_rule_violations_found = False
 
-# Initialize the df to hold station-years for files that violate EnergyPlus valid value criteria.
-epw_max_or_min_violations = pd.DataFrame(columns=['file',
-                                                  'weather_variable',
-                                                  'max_or_min',
-                                                  'limit_value',
-                                                  'extreme_observed_value'])
-epw_counter = 0
+# Truncate the contents of the EPW violations file so that it only contains entries from this run
+with open(epw_file_violations_path, 'w'):
+    pass # We don't have to do anything but open the file, because 'w' mode truncates the file contents
 
 # Initialize the df to hold station-years for NOAA files that were not converted to an EPW.
 no_epw = pd.DataFrame(columns=['file'])
@@ -162,78 +158,23 @@ for idx, station_year in enumerate(station_list, start=1):
         tmy.set('Wdir', noaa_df['Wind_Direction'])
         tmy.set('Wspeed', [i / 10 for i in noaa_df['Wind_Speed']]) # Convert AMY value to m/sec
 
-        # Output information about any files that have values that will fail the EPW maximum/minimum criteria.
-        # TODO: Write function to do these checks with a dictionary & append call
-        if Tdb.min() < -70:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Tdb'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'min'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = -70
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Tdb.min()
-            epw_counter += 1
-        if Tdb.max() > 70:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Tdb'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'max'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 70
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Tdb.max()
-            epw_counter += 1
-        if Tdew.min() < -70:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Tdew'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'min'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = -70
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Tdew.min()
-            epw_counter += 1
-        if Tdew.max() > 70:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Tdew'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'max'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 70
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Tdew.max()
-            epw_counter += 1
-        if Patm.min() < 31000:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Patm'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'min'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 31000
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Patm.min()
-            epw_counter += 1
-        if Patm.max() > 120000:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Patm'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'max'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 120000
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Patm.max()
-            epw_counter += 1
-        if Wspeed.min() < 0:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Wspeed'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'min'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 0
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Wspeed.min()
-            epw_counter += 1
-        if Wspeed.max() > 40:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Wspeed'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'max'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 40
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Wspeed.max()
-            epw_counter += 1
-        if Wdir.min() < 0:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Wdir'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'min'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 0
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Wdir.min()
-            epw_counter += 1
-        if Wdir.max() > 360:
-            epw_max_or_min_violations.loc[epw_counter, 'file'] = station_year
-            epw_max_or_min_violations.loc[epw_counter, 'weather_variable'] = 'Wdir'
-            epw_max_or_min_violations.loc[epw_counter, 'max_or_min'] = 'max'
-            epw_max_or_min_violations.loc[epw_counter, 'limit_value'] = 360
-            epw_max_or_min_violations.loc[epw_counter, 'extreme_observed_value'] = Wdir.max()
-            epw_counter += 1
+        # Check for violations of EPW file standards, and if any exist, append them to the violations file
+        epw_rule_violations = tmy.validate_against_epw_rules()
+        if len(epw_rule_violations) > 0:
+            with open(epw_file_violations_path, 'a') as f:
+                for violation in epw_rule_violations:
+                    # If this is the first violation we've found, add a header row
+                    if not epw_rule_violations_found:
+                        f.write(",".join(list(violation) + ["file"]))
+                        epw_rule_violations_found = True
+
+                    # Convert the violation definition from a dict to a list of strings
+                    violation = [str(i) for i in violation.values()]
+
+                    # Add the AMY file name to the row to be written to the file
+                    violation.insert(0, station_year)
+
+                    f.write(",".join(violation) + "\n")
 
         # Write new EPW file.
         tmy.write_epw(amy_epw_file_out_path)
@@ -252,8 +193,8 @@ else:
     print('All files were converted to EPWs.')
 
 # Write CSV of any files that have values that will fail the EPW maximum/minimum criteria.
-if not epw_max_or_min_violations.empty:
-    epw_max_or_min_violations.to_csv(create_out_path + '/epw_max_or_min_violations.csv', index=False)
+if epw_rule_violations_found:
+    print('Some files violate EPW validation rules. Check ' + epw_file_violations_path + ' for more information')
 else:
     print('No files were found to have issues with EPW maximum or minimum values.')
 
