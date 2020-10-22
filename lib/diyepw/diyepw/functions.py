@@ -1,3 +1,6 @@
+import pandas as _pd
+import numpy as _np
+
 ####################################################################################################################
 # Clean NOAA ISD Lite dataframe
 ####################################################################################################################
@@ -17,7 +20,7 @@ def clean_noaa_df(df):
     df_year = str(df['Year'][0])  # Year is the same for all entries, so just get one
 
     # Take year-month-day-hour columns and convert to datetime stamps.
-    df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
+    df['obs_timestamps'] = _pd.to_datetime(_pd.DataFrame({'year': df['Year'],
                                                         'month': df['Month'],
                                                         'day': df['Day'],
                                                         'hour': df['Hour']}))
@@ -27,11 +30,11 @@ def clean_noaa_df(df):
                           'Liquid_Precipitation_Depth_Dimension_1H', 'Liquid_Precipitation_Depth_Dimension_6H'])
 
     # Create series of continuous timestamp values for that year
-    all_timestamps = pd.date_range(df_year + '-01-01 00:00:00', df_year + '-12-31 23:00:00', freq='H')
+    all_timestamps = _pd.date_range(df_year + '-01-01 00:00:00', df_year + '-12-31 23:00:00', freq='H')
 
     # Merge to one dataframe containing all continuous timestamp values.
-    all_timestamps = pd.DataFrame(all_timestamps, columns=['timestamp'])
-    df = pd.merge(all_timestamps, df, how='left', left_on='timestamp', right_on='obs_timestamps')
+    all_timestamps = _pd.DataFrame(all_timestamps, columns=['timestamp'])
+    df = _pd.merge(all_timestamps, df, how='left', left_on='timestamp', right_on='obs_timestamps')
     df = df.drop(columns=['obs_timestamps'])
 
     # Set timestamps as index.
@@ -118,8 +121,8 @@ def split_list_into_contiguous_segments(l:list, step):
     return segments
 
 def handle_missing_values(
-        df:pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
-        imputation_range, imputation_step, missing_values:list=[np.nan]
+        df:_pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
+        imputation_range, imputation_step, missing_values:list=None
 ):
     """
     Look for missing values in a DataFrame. If possible, the missing values will be
@@ -152,9 +155,13 @@ def handle_missing_values(
       for values to average when imputing a missing value
     :param imputation_step: The step-size to use in finding values to impute from, as described
       in the imputation strategy above.
-    :param missing_values: Values matching any value in this list will be treated as missing.
+    :param missing_values: Values matching any value in this list will be treated as missing. If not
+      passed, defaults to numpy.nan
     :return:
     """
+
+    if missing_values is None:
+        missing_values = [_np.nan]
 
     def get_indices_to_replace(df, col_name):
         indices_to_replace = df.index[df[col_name].isna()].tolist()
@@ -166,7 +173,7 @@ def handle_missing_values(
 
     # For simplicity's sake, set all missing values to NAN up front
     for col_name in df:
-        df[col_name][df[col_name].isin(missing_values)] = np.nan
+        df[col_name][df[col_name].isin(missing_values)] = _np.nan
 
     for col_name in df:
         indices_to_replace = get_indices_to_replace(df, col_name)
@@ -180,7 +187,7 @@ def handle_missing_values(
 
         # We raise an exception if a column has too many sequential missing rows; it's up to the calling
         # code to decide how we are going to handle records that can't be processed for this reason.
-        if max_sequence_length > args.max_records_to_impute:
+        if max_sequence_length > max_to_impute:
             # TODO: Add information about these files to outputs/create_amy_epw_files/no_epw_created.csv
             raise Exception("The longest set of missing records for {} is {}, but the max allowed is {}".format(
                 col_name, max_sequence_length, max_to_impute
@@ -214,7 +221,7 @@ def handle_missing_values(
                     replacement_value_index += imputation_step
 
                 # Take the mean of the values pulled. Will ignore NaNs.
-                df[col_name][index_to_impute] = pd.Series(replacement_values, dtype=np.float64).mean()
+                df[col_name][index_to_impute] = _pd.Series(replacement_values, dtype=_np.float64).mean()
 
     # Perform interpolation on any remaining missing values. At this point we know that there are no
     # sequences larger than the max permitted for interpolation, because they would have been imputed
