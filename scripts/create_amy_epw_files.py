@@ -659,4 +659,4 @@ if not epw_max_or_min_violations.empty:
 else:
     print('No files were found to have issues with EPW maximum or minimum values.')
 
-print('All files are processed. See create_amy_files_output in this directory for any issues.')
+print('All files are processed. See create_amy_files_output in the outputs directory for any issues.')
