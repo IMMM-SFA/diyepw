@@ -26,11 +26,11 @@ parser.add_argument('--max-records-to-interpolate',
                     type=int,
                     help="""The maximum number of consecutive records to interpolate. See the documentation of the
                             pandas.DataFrame.interpolate() method's "limit" argument for more details. Basically,
-                            if fields are missing, those missing values will be set to a value interpolated linearly
-                            using the values of the fields immediately preceding and following the missing field(s).
-                            If a sequence of fields longer than this argument is encountered, only this maximum number
-                            of values will be interpolated, and the remaining set of missing fields will be imputed
-                            by averaging the ."""
+                            if a sequence of fields up to the length defined by this argument are missing, those 
+                            missing values will be interpolated linearly using the values of the fields immediately 
+                            preceding and following the missing field(s). If a sequence of fields is longer than this
+                            limit, then those fields' values will be imputed instead (see --max-records-to-impute)
+                            """
                     )
 
 parser.add_argument('--max-records-to-impute',
@@ -257,4 +257,4 @@ if not epw_max_or_min_violations.empty:
 else:
     print('No files were found to have issues with EPW maximum or minimum values.')
 
-print('All files are processed. See create_amy_files_output in this directory for any issues.')
+print('All files are processed. See create_amy_files_output in the outputs directory for any issues.')
