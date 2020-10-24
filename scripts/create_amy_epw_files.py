@@ -93,7 +93,7 @@ for idx, station_year in enumerate(station_list, start=1):
         start_timestamp = noaa_df.index[0]
 
         # Read in the corresponding TMY3 EPW file.
-        tmy = diyepw.TypicalMeteorologicalYear.from_tmy3_file(tmy3_epw_file_path)
+        tmy = diyepw.Meteorology.from_tmy3_file(tmy3_epw_file_path)
 
         # Identify the time zone shift as an integer.
         tz_shift = tmy.timezone_gmt_offset

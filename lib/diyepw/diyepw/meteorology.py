@@ -13,10 +13,9 @@ _RANGES = {
     'Wdir': (0, 360)
 }
 
-class TypicalMeteorologicalYear:
+class Meteorology:
     """
-    Represents a Typical Meteorological Year (TMY) file; a dataset made up of a year of
-    typical hourly meteorological measurements at a given location.
+    Represents a time series of meteorological measurements at a given location.
 
     Attributes:
         _station_number The identification number of the weather station that made the observations
@@ -185,7 +184,7 @@ class TypicalMeteorologicalYear:
         see https://www.nrel.gov/docs/fy08osti/43156.pdf
         :return:
         """
-        instance = TypicalMeteorologicalYear()
+        instance = Meteorology()
         tmy3_file = open(file_path)
 
         ############################

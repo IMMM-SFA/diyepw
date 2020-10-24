@@ -1,4 +1,4 @@
-from .typical_meteorological_year import TypicalMeteorologicalYear
+from .meteorology import Meteorology
 from .functions import clean_noaa_df, \
     convert_to_station_pressure, \
     handle_missing_values, \
