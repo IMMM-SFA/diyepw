@@ -1,7 +1,3 @@
-# Run unpack_noaa_data.py before running this.
-# Data must be located in file path indicated by noaa_amy_files_path directory.
-# Will ignore NOAA files for the current year (which will be incomplete).
-
 import os
 import argparse
 import pandas as pd
