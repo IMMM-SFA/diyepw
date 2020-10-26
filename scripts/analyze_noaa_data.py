@@ -6,6 +6,7 @@ import os
 import argparse
 import pandas as pd
 from datetime import datetime
+from glob import iglob
 
 output_dir_path = '../outputs/analyze_noaa_data_output'
 files_to_convert_csv_path = os.path.join(output_dir_path, 'files_to_convert.csv')
@@ -42,47 +43,31 @@ files_skipped = 0
 if not os.path.exists(output_dir_path):
     os.makedirs(output_dir_path)
 
-# Obtain path to the unpacked files with NOAA ISD Lite AMY information.
-noaa_amy_files_path= '../outputs/NOAA_AMY'
-
-files = os.listdir(noaa_amy_files_path)
-
-# Loop through files in noaa_amy_files_path
-for file in files:
-    skip_reason = None
-
-    # Ignore files with file extensions (e.g. ".md")
-    if file.endswith(".*"):
-        skip_reason = "it has a file extension"
-    # make sure file starts with "7" for WMO station number.
-    elif not file.startswith("7"):
-        skip_reason = "its name does not start with a '7'"
+# Loop through all .gz files in the input directory - we filter on extension so that things like
+# README files can be in that path without causing any problems. We filter on files that begin
+# with 7 because all NOAA ISD Lite files for North America should start with 7, as all WMO indices
+# in North America do.
+for file in iglob('../inputs/NOAA_ISD_Lite_Raw/**/7*.gz'):
     # Skip current year's files because they are probably incomplete
-    elif file.endswith(current_year):
-        skip_reason = "it is from the current year"
-
-    if skip_reason is not None:
-        print(file + ": skipping file because " + skip_reason)
+    if file.endswith(current_year + ".gz"):
+        print(file + ": skipping file because it is from the current year")
         files_skipped += 1
         continue
     else:
         print(file + ": Processing")
         files_processed += 1
 
-    # Get the filepath to the current file.
-    AMY_NOAA_filepath = (os.path.join('../outputs/NOAA_AMY/', file))
-
     # Read the file into a Pandas dataframe.
-    df = pd.read_csv(AMY_NOAA_filepath,
+    df = pd.read_csv(file,
                      delim_whitespace=True,
-                     header=None)
+                     header=None,
+                     compression="gzip")
 
     # Assign column headings according to NOAA ISD Lite information.
-    list_of_columns = ["Year", "Month", "Day", "Hour", "Air_Temperature",
-                       "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
-                       "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
-                       "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
-    df.columns = list_of_columns
+    df.columns = ["Year", "Month", "Day", "Hour", "Air_Temperature",
+                  "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
+                  "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
+                  "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
 
     # Take year-month-day-hour columns and convert to datetime stamps.
     df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
@@ -164,6 +149,6 @@ if not missing_consec_entries_high.empty:
 
 files_to_convert.to_csv(os.path.join(output_dir_path, 'files_to_convert.csv'), index=False)
 
-print('total files: ', len(files))
+print('total files: ', files_processed + files_skipped)
 print('files processed: ', str(files_processed))
 print('files skipped: ', str(files_skipped))
