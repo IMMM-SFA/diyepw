@@ -6,12 +6,7 @@ of scripts and as a package that allows EPW files to be generated via function c
 ## Scripts
 This section describes the scripts available as part of this project.
 
-## 1. unpack_noaa_data.py
-
-The script unpack_noaa_data.py takes .gz files containing NOAA ISD Lite data from the 
-`inputs/NOAA_ISD_Lite_Raw` directory and unpacks them into `outputs/NOAA_AMY`.
-
-## 2. analyze_noaa_data.py
+## 1. analyze_noaa_data.py
 
 The script analyze_noaa_data.py will assess the files in `outputs/NOAA_AMY` folder for:
 
@@ -31,7 +26,7 @@ and will produce the following files (as applicable) under `outputs/analyze_noaa
    it can be freely edited before running that script. Simply remove rows for any files that you do not want the 
    next script to process.
 
-# 3. Create AMY EPW file
+# 2. Create AMY EPW file
 
 The script create_amy_epw.py will create EPW files by using information for selected variables from the
 NOAA AMY files to replace the values for those same variables in a TMY3 file for the same station number. 
