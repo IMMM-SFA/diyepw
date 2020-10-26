@@ -48,6 +48,12 @@ if not os.path.exists(output_dir_path):
 # with 7 because all NOAA ISD Lite files for North America should start with 7, as all WMO indices
 # in North America do.
 for file in iglob('../inputs/NOAA_ISD_Lite_Raw/**/7*.gz'):
+
+    # It's nicer to work with absolute paths, especially since we are going to put this path in a
+    # file to share with another script - otherwise that other script needs to know where this
+    # script is located to make sense of the relative paths
+    file = os.path.abspath(file)
+
     # Skip current year's files because they are probably incomplete
     if file.endswith(current_year + ".gz"):
         print(file + ": skipping file because it is from the current year")
