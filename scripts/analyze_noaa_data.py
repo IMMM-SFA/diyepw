@@ -77,51 +77,52 @@ for file in iglob('../inputs/NOAA_ISD_Lite_Raw/**/7*.gz'):
     # Remove unnecessary year, month, day, hour columns
     df = df.drop(columns=['Year', 'Month', 'Day', 'Hour'])
 
-    # Identify files with 5% or more of data missing.
+    # Identify files with too many total rows missing.
     rows_present = df.shape[0]
     rows_missing = 8760 - rows_present
-
     if rows_missing > args.max_missing_rows:
         missing_total_entries_high = missing_total_entries_high.append(
             {'file': file, 'total_rows_missing' : rows_missing}, ignore_index=True)
 
-    # Identify files with more than 4 consecutive rows missing.
-
+    # Identify files with too many consecutive rows missing.
     else:
-        # Create series of continuous timestamp values for that year
-        all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], periods=8760, freq='H')
-
-        # Merge to one dataframe containing all continuous timestamp values.
-        all_times = pd.DataFrame(all_timestamps, columns=['all_timestamps'])
-        df_all_times = pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on='obs_timestamps')
-
-        # Create series of only the missing timestamp values
-
-        missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
-        missing_times = missing_times['all_timestamps']
-
-        # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
-        missing_times_diff = missing_times.diff()
-
-        # Count the maximum number of consecutive missing time steps.
-        counter = 1
         maxcounter = 0
 
-        for step in missing_times_diff:
-            if step == pd.Timedelta('1h'):
-                counter += 1
-                if counter > maxcounter:
-                    maxcounter = counter
-            elif step > pd.Timedelta('1h'):
-                counter = 0
+        # Skip all this work if the total number of missing rows isn't at least as much as the maximum number of
+        # consecutive missing rows: You can't be missing 10 consecutive rows if you're not missing 10 total
+        if rows_missing > args.max_consecutive_missing_rows:
+            # Create series of continuous timestamp values for that year
+            all_timestamps = pd.date_range(df['obs_timestamps'].iloc[0], periods=8760, freq='H')
+
+            # Merge to one dataframe containing all continuous timestamp values.
+            all_times = pd.DataFrame(all_timestamps, columns=['all_timestamps'])
+            df_all_times = pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on='obs_timestamps')
+
+            # Create series of only the missing timestamp values
+            missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
+            missing_times = missing_times['all_timestamps']
+
+            # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
+            missing_times_diff = missing_times.diff()
+
+            # Count the maximum number of consecutive missing time steps.
+            counter = 1
+
+            for step in missing_times_diff:
+                if step == pd.Timedelta('1h'):
+                    counter += 1
+                    if counter > maxcounter:
+                        maxcounter = counter
+                elif step > pd.Timedelta('1h'):
+                    counter = 0
 
         if maxcounter > args.max_consecutive_missing_rows:
             missing_consec_entries_high = missing_consec_entries_high.append(
                 {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
                 ignore_index=True)
 
-        # Capture the names of files to be converted to AMY EPWs.
-
+        # The file is not missing too many rows total or too many in a row: Add it to the set of files to
+        # be converted to AMY EPWs.
         else:
             files_to_convert = files_to_convert.append(
                 {'file': file, 'total_rows_missing' : rows_missing, 'max_consec_rows_missing': maxcounter},
