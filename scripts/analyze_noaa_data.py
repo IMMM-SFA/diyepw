@@ -61,13 +61,12 @@ for file in iglob('../inputs/NOAA_ISD_Lite_Raw/**/7*.gz'):
     df = pd.read_csv(file,
                      delim_whitespace=True,
                      header=None,
-                     compression="gzip")
-
-    # Assign column headings according to NOAA ISD Lite information.
-    df.columns = ["Year", "Month", "Day", "Hour", "Air_Temperature",
-                  "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
-                  "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
-                  "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
+                     compression="gzip",
+                     names=["Year", "Month", "Day", "Hour", "Air_Temperature",
+                            "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
+                            "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
+                            "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
+    )
 
     # Take year-month-day-hour columns and convert to datetime stamps.
     df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
