@@ -147,7 +147,7 @@ if not missing_consec_entries_high.empty:
     )
     missing_consec_entries_high.to_csv(missing_consec_entries_high_file_path, index=False)
 
-files_to_convert.to_csv(os.path.join(output_dir_path, 'files_to_convert.csv'), index=False)
+files_to_convert.to_csv(files_to_convert_csv_path, index=False)
 
 print('total files: ', files_processed + files_skipped)
 print('files processed: ', str(files_processed))
