@@ -104,18 +104,18 @@ for idx, amy_file_path in enumerate(station_list, start=1):
         noaa_amy_s_info_path = noaa_amy_s_info_path[0]
 
         # Read in the NOAA AMY file for the station for the subsequent year.
-        noaa_df_s = pd.read_csv(noaa_amy_s_info_path,
-                              delim_whitespace=True,
-                              header=None)
+        amy_df_s = pd.read_csv(noaa_amy_s_info_path,
+                               delim_whitespace=True,
+                               header=None)
 
         # Clean the NOAA AMY data frame for the subsequent year.
-        noaa_df_s = diyepw.clean_noaa_df(noaa_df_s)
+        amy_df_s = diyepw.clean_noaa_df(amy_df_s)
 
         # Grab the appropriate number of time steps for the subsequent year.
-        noaa_df_s = noaa_df_s.head(abs_time_steps)
+        amy_df_s = amy_df_s.head(abs_time_steps)
 
         # Append the NOAA dataframe for the subsequent year to the dataframe for the year of interest.
-        amy_df = amy_df.append(noaa_df_s)
+        amy_df = amy_df.append(amy_df_s)
 
         # Shift the timestamp (index) to match the time zone of the WMO station.
         amy_df = amy_df.shift(periods=tz_shift, freq='H')
