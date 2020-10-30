@@ -95,8 +95,6 @@ for idx, amy_file_path in enumerate(station_list, start=1):
 
         # Identify the name of the subsequent year's NOAA file.
         year_s_string = str(int(year) + 1)
-
-        # Grab the relative path to the NOAA AMY file for the subsequent year.
         glob_string = '../outputs/NOAA_AMY/' + wmo_station_id + '*' + year_s_string
         noaa_amy_s_info_path = glob.glob(glob_string)
         if len(noaa_amy_s_info_path) == 0:
