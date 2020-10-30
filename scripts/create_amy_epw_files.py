@@ -61,20 +61,20 @@ no_epw = pd.DataFrame(columns=['file'])
 no_counter = 0
 
 # Iterate through stations in the list.
-for idx, station_year in enumerate(station_list, start=1):
+for idx, file_path in enumerate(station_list, start=1):
 
-    print("Processing", station_year, "(", idx, "/", len(station_list),  ")")
+    print("Processing", file_path, "(", idx, "/", len(station_list), ")")
 
     try:
 
         # Grab the relative path to the unpacked NOAA AMY file for the station.
-        noaa_amy_info_path = os.path.join('../outputs/NOAA_AMY', station_year)
+        noaa_amy_info_path = os.path.join('../outputs/NOAA_AMY', file_path)
 
         # Grab the station number from the station_year string.
-        station_number_string = station_year.split("-")[0]
+        station_number_string = file_path.split("-")[0]
 
         # Grab the year from the station_year string.
-        year = int(station_year.split("-")[-1])
+        year = int(file_path.split("-")[-1])
 
         # Grab the relative path to the EPW file corresponding to that station.
         tmy3_epw_file_path = glob.glob('../inputs/Energy_Plus_TMY3_EPW/*.'
@@ -172,7 +172,7 @@ for idx, station_year in enumerate(station_list, start=1):
                     violation = [str(i) for i in violation.values()]
 
                     # Add the AMY file name to the row to be written to the file
-                    violation.insert(0, station_year)
+                    violation.insert(0, file_path)
 
                     f.write(",".join(violation) + "\n")
 
@@ -182,9 +182,9 @@ for idx, station_year in enumerate(station_list, start=1):
     except Exception as e:
         # Do the following if unable to complete the above process and convert to CSV.
         # TODO add in something to return the error
-        no_epw.loc[no_counter, 'file'] = station_year
+        no_epw.loc[no_counter, 'file'] = file_path
         no_counter += 1
-        print('Problem processing: ' + station_year + ': ' + str(e))
+        print('Problem processing: ' + file_path + ': ' + str(e))
 
 # Write CSV of any NOAA files that were not processed into an EPW file.
 if not no_epw.empty:
