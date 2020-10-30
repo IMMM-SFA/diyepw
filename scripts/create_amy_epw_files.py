@@ -50,9 +50,9 @@ parser.add_argument('--max-records-to-impute',
                             {errors_path}""")
 args = parser.parse_args()
 
-# Read in list of WMO stations for which new AMY EPW files should be created.
-station_list = pd.read_csv(path_to_station_list)
-station_list = station_list[station_list.columns[0]]
+# Read in list of AMY files that should be used to create EPW files.
+amy_file_list = pd.read_csv(path_to_station_list)
+amy_file_list = amy_file_list[amy_file_list.columns[0]]
 
 epw_rule_violations_found = False
 
@@ -64,9 +64,9 @@ with open(epw_file_violations_path, 'w'):
 amy_files_with_errors = pd.DataFrame(columns=['file', 'error'])
 
 # Iterate through stations in the list.
-for idx, amy_file_path in enumerate(station_list, start=1):
+for idx, amy_file_path in enumerate(amy_file_list, start=1):
 
-    print("Processing", amy_file_path, "(", idx, "/", len(station_list), ")")
+    print("Processing", amy_file_path, "(", idx, "/", len(amy_file_list), ")")
 
     try:
         amy_file_name = os.path.basename(amy_file_path)
