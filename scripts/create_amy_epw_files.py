@@ -61,36 +61,28 @@ no_epw = pd.DataFrame(columns=['file'])
 no_counter = 0
 
 # Iterate through stations in the list.
-for idx, file_path in enumerate(station_list, start=1):
+for idx, amy_file_path in enumerate(station_list, start=1):
 
-    print("Processing", file_path, "(", idx, "/", len(station_list), ")")
+    print("Processing", amy_file_path, "(", idx, "/", len(station_list), ")")
 
     try:
+        amy_file_name = os.path.basename(amy_file_path)
+        amy_file_name_without_ext = os.path.splitext(amy_file_name)[0]
 
-        # Grab the relative path to the unpacked NOAA AMY file for the station.
-        noaa_amy_info_path = os.path.join('../outputs/NOAA_AMY', file_path)
+        # Get the station number and year from the AMY file name
+        wmo_station_id = amy_file_name_without_ext.split("-")[0]
+        year = int(amy_file_name_without_ext.split("-")[-1])
 
-        # Grab the station number from the station_year string.
-        station_number_string = file_path.split("-")[0]
+        # Get path to the TMY EPW file corresponding to that station.
+        tmy3_epw_file_path = glob.glob(f'../inputs/Energy_Plus_TMY3_EPW/*.{wmo_station_id}_TMY3.epw')[0]
 
-        # Grab the year from the station_year string.
-        year = int(file_path.split("-")[-1])
+        # Read in the NOAA AMY file for the station
+        amy_df = pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
+        amy_df = diyepw.clean_noaa_df(amy_df)
 
-        # Grab the relative path to the EPW file corresponding to that station.
-        tmy3_epw_file_path = glob.glob('../inputs/Energy_Plus_TMY3_EPW/*.'
-                                       + station_number_string + '_TMY3.epw')
-        tmy3_epw_file_path = tmy3_epw_file_path[0]
-
-        # Read in the NOAA AMY file for the station.
-        noaa_df = pd.read_csv(noaa_amy_info_path,
-                              delim_whitespace=True,
-                              header=None)
-
-        # Clean the NOAA AMY data frame for the year of interest.
-        noaa_df = diyepw.clean_noaa_df(noaa_df)
-
-        # Save the first timestamp for that year.
-        start_timestamp = noaa_df.index[0]
+        # Save the first timestamp for that year; we will need it later after we time-shift so that we can trim
+        # the data to only values after this time
+        start_timestamp = amy_df.index[0]
 
         # Read in the corresponding TMY3 EPW file.
         tmy = diyepw.Meteorology.from_tmy3_file(tmy3_epw_file_path)
@@ -105,7 +97,7 @@ for idx, file_path in enumerate(station_list, start=1):
         year_s_string = str(int(year) + 1)
 
         # Grab the relative path to the NOAA AMY file for the subsequent year.
-        glob_string = '../outputs/NOAA_AMY/' + station_number_string + '*' + year_s_string
+        glob_string = '../outputs/NOAA_AMY/' + wmo_station_id + '*' + year_s_string
         noaa_amy_s_info_path = glob.glob(glob_string)
         if len(noaa_amy_s_info_path) == 0:
             raise Exception("Couldn't load subsequent year's data: no file was found matching '" + glob_string + "'")
@@ -124,16 +116,16 @@ for idx, file_path in enumerate(station_list, start=1):
         noaa_df_s = noaa_df_s.head(abs_time_steps)
 
         # Append the NOAA dataframe for the subsequent year to the dataframe for the year of interest.
-        noaa_df = noaa_df.append(noaa_df_s)
+        amy_df = amy_df.append(noaa_df_s)
 
         # Shift the timestamp (index) to match the time zone of the WMO station.
-        noaa_df = noaa_df.shift(periods=tz_shift, freq='H')
+        amy_df = amy_df.shift(periods=tz_shift, freq='H')
 
         # Remove time steps that aren't applicable to the year of interest
-        noaa_df = noaa_df[noaa_df.index >= start_timestamp]
+        amy_df = amy_df[amy_df.index >= start_timestamp]
 
         diyepw.handle_missing_values(
-            noaa_df,
+            amy_df,
             step=pd.Timedelta("1h"),
             max_to_interpolate=args.max_records_to_interpolate,
             max_to_impute=args.max_records_to_impute,
@@ -143,20 +135,20 @@ for idx, file_path in enumerate(station_list, start=1):
         )
 
         # Initialize new column for station pressure (not strictly necessary)
-        noaa_df['Station_Pressure'] = None
+        amy_df['Station_Pressure'] = None
 
         # Convert sea level pressure in NOAA df to atmospheric station pressure in Pa.
-        for index in noaa_df.index:
-            stp = diyepw.convert_to_station_pressure(noaa_df['Sea_Level_Pressure'][index], tmy.elevation)
-            noaa_df.loc[index, 'Station_Pressure'] = stp
+        for index in amy_df.index:
+            stp = diyepw.convert_to_station_pressure(amy_df['Sea_Level_Pressure'][index], tmy.elevation)
+            amy_df.loc[index, 'Station_Pressure'] = stp
 
         # Change observation values to the values taken from the AMY data
         tmy.set('year', year)
-        tmy.set('Tdb',  [i / 10 for i in noaa_df['Air_Temperature']]) # Convert AMY value to degrees C
-        tmy.set('Tdew', [i / 10 for i in noaa_df['Dew_Point_Temperature']]) # Convert AMY value to degrees C
-        tmy.set('Patm', noaa_df['Station_Pressure'])
-        tmy.set('Wdir', noaa_df['Wind_Direction'])
-        tmy.set('Wspeed', [i / 10 for i in noaa_df['Wind_Speed']]) # Convert AMY value to m/sec
+        tmy.set('Tdb', [i / 10 for i in amy_df['Air_Temperature']]) # Convert AMY value to degrees C
+        tmy.set('Tdew', [i / 10 for i in amy_df['Dew_Point_Temperature']]) # Convert AMY value to degrees C
+        tmy.set('Patm', amy_df['Station_Pressure'])
+        tmy.set('Wdir', amy_df['Wind_Direction'])
+        tmy.set('Wspeed', [i / 10 for i in amy_df['Wind_Speed']]) # Convert AMY value to m/sec
 
         # Check for violations of EPW file standards, and if any exist, append them to the violations file
         epw_rule_violations = tmy.validate_against_epw_rules()
@@ -172,7 +164,7 @@ for idx, file_path in enumerate(station_list, start=1):
                     violation = [str(i) for i in violation.values()]
 
                     # Add the AMY file name to the row to be written to the file
-                    violation.insert(0, file_path)
+                    violation.insert(0, amy_file_path)
 
                     f.write(",".join(violation) + "\n")
 
@@ -182,9 +174,9 @@ for idx, file_path in enumerate(station_list, start=1):
     except Exception as e:
         # Do the following if unable to complete the above process and convert to CSV.
         # TODO add in something to return the error
-        no_epw.loc[no_counter, 'file'] = file_path
+        no_epw.loc[no_counter, 'file'] = amy_file_path
         no_counter += 1
-        print('Problem processing: ' + file_path + ': ' + str(e))
+        print('Problem processing: ' + amy_file_path + ': ' + str(e))
 
 # Write CSV of any NOAA files that were not processed into an EPW file.
 if not no_epw.empty:
