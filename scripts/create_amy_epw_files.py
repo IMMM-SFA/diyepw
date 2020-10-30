@@ -6,14 +6,19 @@ import argparse
 import diyepw
 import math
 
-# Set relative path for where new EPW files should be saved.
-amy_epw_file_out_path = '../outputs/AMY_combined_NOAA_TMY3_EPW'
+# Set path to outputs produced by this script.
+create_out_path  = os.path.join('..', 'outputs', 'create_amy_epw_files_output')
 
-# Set relative path for non-EPW output items produced by this script.
-create_out_path  = '../outputs/create_amy_epw_files_output'
+# Set path to where new EPW files should be saved.
+amy_epw_file_out_path = os.path.join(create_out_path, 'epw')
+if not os.path.exists(amy_epw_file_out_path):
+    os.mkdir(amy_epw_file_out_path)
 
-# Provide the relative path to list of WMO stations for which new AMY EPW files should be created.
-path_to_station_list = '../outputs/analyze_noaa_data_output/files_to_convert.csv'
+# Provide the path to the list of WMO stations for which new AMY EPW files should be created.
+path_to_station_list = os.path.join('..', 'outputs', 'analyze_noaa_data_output', 'files_to_convert.csv')
+
+epw_file_violations_path = os.path.join(create_out_path, 'epw_validation_errors.csv')
+errors_path = os.path.join(create_out_path, 'errors.csv')
 
 parser = argparse.ArgumentParser(
     description=f"""
@@ -36,29 +41,27 @@ parser.add_argument('--max-records-to-interpolate',
 parser.add_argument('--max-records-to-impute',
                     default=48,
                     type=int,
-                    help="""The maximum number of records to impute. For groups of missing records larger than the
+                    help=f"""The maximum number of records to impute. For groups of missing records larger than the
                             limit set by --max-records-to-interpolate, we replace the missing values using the
                             average of the values two weeks prior and two weeks after the missing value. However, if
                             there are more missing records after interpolation than this limit (i.e. if a group of
                             missing records is larger than --max-records-to-interpolate PLUS --max-records-to-impute)
                             then the file will be discarded. Information about discarded files can be found in
-                            outputs/create_amy_epw_files/no_epw_created.csv""")
+                            {errors_path}""")
 args = parser.parse_args()
 
 # Read in list of WMO stations for which new AMY EPW files should be created.
 station_list = pd.read_csv(path_to_station_list)
 station_list = station_list[station_list.columns[0]]
 
-epw_file_violations_path = create_out_path + '/no_epw_created.csv'
 epw_rule_violations_found = False
 
 # Truncate the contents of the EPW violations file so that it only contains entries from this run
 with open(epw_file_violations_path, 'w'):
     pass # We don't have to do anything but open the file, because 'w' mode truncates the file contents
 
-# Initialize the df to hold station-years for NOAA files that were not converted to an EPW.
-no_epw = pd.DataFrame(columns=['file'])
-no_counter = 0
+# Initialize the df to hold paths of AMY files that could not be converted to an EPW.
+amy_files_with_errors = pd.DataFrame(columns=['file', 'error'])
 
 # Iterate through stations in the list.
 for idx, amy_file_path in enumerate(station_list, start=1):
@@ -74,7 +77,9 @@ for idx, amy_file_path in enumerate(station_list, start=1):
         year = int(amy_file_name_without_ext.split("-")[-1])
 
         # Get path to the TMY EPW file corresponding to that station.
-        tmy3_epw_file_path = glob.glob(f'../inputs/Energy_Plus_TMY3_EPW/*.{wmo_station_id}_TMY3.epw')[0]
+        tmy3_epw_file_path = glob.glob(
+            os.path.join('..', 'inputs', 'Energy_Plus_TMY3_EPW', f'*.{wmo_station_id}_TMY3.epw')
+        )[0]
 
         # Read in the NOAA AMY file for the station
         amy_df = pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
@@ -95,7 +100,9 @@ for idx, amy_file_path in enumerate(station_list, start=1):
 
         # Identify the name of the subsequent year's NOAA file.
         year_s_string = str(int(year) + 1)
-        glob_string = '../outputs/NOAA_AMY/' + wmo_station_id + '*' + year_s_string
+        glob_string = os.path.abspath(
+            os.path.join('..', 'inputs', 'NOAA_ISD_Lite_Raw', '**', wmo_station_id + '*' + year_s_string + '*')
+        )
         noaa_amy_s_info_path = glob.glob(glob_string)
         if len(noaa_amy_s_info_path) == 0:
             raise Exception("Couldn't load subsequent year's data: no file was found matching '" + glob_string + "'")
@@ -169,15 +176,13 @@ for idx, amy_file_path in enumerate(station_list, start=1):
         tmy.write_epw(amy_epw_file_out_path)
 
     except Exception as e:
-        # Do the following if unable to complete the above process and convert to CSV.
-        # TODO add in something to return the error
-        no_epw.loc[no_counter, 'file'] = amy_file_path
-        no_counter += 1
+        amy_files_with_errors = amy_files_with_errors.append({"file": amy_file_path, "error": str(e)}, ignore_index=True)
         print('Problem processing: ' + amy_file_path + ': ' + str(e))
 
 # Write CSV of any NOAA files that were not processed into an EPW file.
-if not no_epw.empty:
-    no_epw.to_csv(create_out_path + '/no_epw_created.csv', index=False)
+if not amy_files_with_errors.empty:
+    # Set mode='a' so that the error is appended
+    amy_files_with_errors.to_csv(errors_path, mode='a', index=False)
 else:
     print('All files were converted to EPWs.')
 
