@@ -341,18 +341,21 @@ def _get_max_missing_rows_from_hourly_dataframe(df:_pd.DataFrame, timestamp_col_
     missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
     missing_times = missing_times['all_timestamps']
 
+    if missing_times.empty:
+        return 0
+
     # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
     missing_times_diff = missing_times.diff()
 
     # Count the maximum number of consecutive missing time steps.
     counter = 1
-    max_missing_rows = 0
+    max_missing_rows = 1
     for step in missing_times_diff:
         if step == _pd.Timedelta('1h'):
             counter += 1
             if counter > max_missing_rows:
                 max_missing_rows = counter
         elif step > _pd.Timedelta('1h'):
-            counter = 0
+            counter = 1
 
     return max_missing_rows
