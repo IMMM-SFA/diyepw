@@ -330,6 +330,14 @@ def analyze_noaa_isd_lite_files(
     }
 
 def _get_max_missing_rows_from_hourly_dataframe(df:_pd.DataFrame, timestamp_col_name:str) ->int:
+    """
+    Given a DataFrame containing hourly timestamps over a year, determine the longest sequence of timestamps
+    missing from that DataFrame.
+
+    :param df:
+    :param timestamp_col_name:
+    :return:
+    """
     # Create series of continuous timestamp values for that year
     all_timestamps = _pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='H')
 
