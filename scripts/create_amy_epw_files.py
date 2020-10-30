@@ -112,7 +112,6 @@ for idx, amy_file_path in enumerate(station_list, start=1):
         noaa_df_s = diyepw.clean_noaa_df(noaa_df_s)
 
         # Grab the appropriate number of time steps for the subsequent year.
-        # TODO: Don't need to process all of these time steps in clean_noaa_df function.
         noaa_df_s = noaa_df_s.head(abs_time_steps)
 
         # Append the NOAA dataframe for the subsequent year to the dataframe for the year of interest.
