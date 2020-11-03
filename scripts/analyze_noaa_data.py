@@ -70,7 +70,7 @@ if num_good_files > 0:
     )
     pd.DataFrame(analysis_results['good']).to_csv(path, index=False)
 
-print('Done! {count} files processed: '.format(count=sum([
+print('Done! {count} files processed.'.format(count=sum([
     num_good_files,
     num_files_with_too_many_consec_rows_missing,
     num_files_with_too_many_rows_missing
