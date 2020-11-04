@@ -142,14 +142,6 @@ class Meteorology:
     def write_epw(self, save_path):
         first_observation = {k:v[0] for (k, v) in self._observations[0:1].items()}
 
-        filename_epw = "{country}_{state}_{city}.{station}_AMY_{year}.epw".format(
-            country=self._country,
-            state=self._state,
-            city=self._city,
-            station=self._station_number,
-            year=int(first_observation["year"])
-        ).replace(' ', '-')
-
         location_header = ",".join([str(i) for i in [
             'LOCATION', self._city, self._state, self._country, 'customized weather file', self._station_number,
             self._latitude, self._longitude, self._timezone_gmt_offset, self._elevation
@@ -161,7 +153,7 @@ class Meteorology:
         )
         first_day_of_week = calendar.day_name[first_observation_date.weekday()]
 
-        with open(os.path.join(save_path, filename_epw), 'w') as epw_file:
+        with open(save_path, 'w') as epw_file:
             epw_file.write("\n".join([
                 location_header,
                 "\n".join(self._headers[1:5]),
@@ -251,23 +243,21 @@ class Meteorology:
 
         return instance
 
-    def validate_against_epw_rules(self) -> dict:
+    def validate_against_epw_rules(self) -> list:
         """
         Check all observations to see whether they violate any restrictions that would prevent them
         from being used in an EPW file
 
-        :return: A dict in the form {
-            <field_name>: <validation error>
-        }
+        :return: A list of validation errors
         """
-        violations = {}
+        violations = []
 
         for col_name in _RANGES:
             min_allowed, max_allowed = _RANGES[col_name]
             min_observed = self._observations[col_name].min()
             max_observed = self._observations[col_name].max()
             if min_observed < min_allowed or max_observed > max_allowed:
-                violations[col_name] = f"Values of field '{col_name}' must be in the range {min_allowed}-{max_allowed}, " \
-                                       f"but this set of observations includes values in the range {min_observed}-{max_observed}"
+                violations.append(f"{col_name} must be in the range {min_allowed}-{max_allowed}, but this set"
+                                  f"of observations includes values in the range {min_observed}-{max_observed}")
 
         return violations
