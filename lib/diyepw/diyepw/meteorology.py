@@ -251,34 +251,23 @@ class Meteorology:
 
         return instance
 
-    def validate_against_epw_rules(self) -> list:
+    def validate_against_epw_rules(self) -> dict:
         """
         Check all observations to see whether they violate any restrictions that would prevent them
         from being used in an EPW file
 
-        :return: A list of dicts in the form {
-            'weather_variable': The name of the column that contains the invalid value
-            'allowed_range': (min, max) The min and max values permitted
-            'extreme_observed_value': The value found to be outside the permitted range for this column
+        :return: A dict in the form {
+            <field_name>: <validation error>
         }
         """
-        violations = []
+        violations = {}
 
         for col_name in _RANGES:
             min_allowed, max_allowed = _RANGES[col_name]
-            min_observation = self._observations[col_name].min()
-            max_observation = self._observations[col_name].max()
-            if min_observation < min_allowed:
-                violations.append({
-                    'weather_variable': col_name,
-                    'allowed_range': _RANGES[col_name],
-                    'extreme_observed_value': min_observation
-                })
-            if self._observations[col_name].max() > max_allowed:
-                violations.append({
-                    'weather_variable': col_name,
-                    'allowed_range': _RANGES[col_name],
-                    'extreme_observed_value': max_observation
-                })
+            min_observed = self._observations[col_name].min()
+            max_observed = self._observations[col_name].max()
+            if min_observed < min_allowed or max_observed > max_allowed:
+                violations[col_name] = f"Values of field '{col_name}' must be in the range {min_allowed}-{max_allowed}, " \
+                                       f"but this set of observations includes values in the range {min_observed}-{max_observed}"
 
         return violations
