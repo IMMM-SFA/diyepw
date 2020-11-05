@@ -69,6 +69,8 @@ amy_epw_files, errors = diyepw.convert_noaa_isd_lite_to_amy_epw_files(
     output_dir=amy_epw_file_out_path
 )
 
+print("\nDone!")
+
 if not errors.empty:
     print(len(errors), f"files encountered errors - see {errors_path} for more information")
     errors.to_csv(errors_path, mode='w', index=False)
