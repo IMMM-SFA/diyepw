@@ -258,6 +258,6 @@ class Meteorology:
             max_observed = self._observations[col_name].max()
             if min_observed < min_allowed or max_observed > max_allowed:
                 violations.append(f"{col_name} must be in the range {min_allowed}-{max_allowed}, but this set"
-                                  f"of observations includes values in the range {min_observed}-{max_observed}")
+                                  f" of observations includes values in the range {min_observed}-{max_observed}")
 
         return violations
