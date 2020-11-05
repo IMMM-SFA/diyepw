@@ -531,6 +531,6 @@ def convert_noaa_isd_lite_to_amy_epw_files(
 
         except Exception as e:
             errors = errors.append({"file": amy_file_path, "error": str(e)}, ignore_index=True)
-            print('Problem processing: ' + amy_file_path + ': ' + str(e))
+            print('Problem processing ' + amy_file_path + ': ' + str(e))
 
     return amy_epw_file_paths, errors
