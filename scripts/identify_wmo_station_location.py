@@ -6,8 +6,6 @@ def identify_wmo_station_location(wmo_station_number):
     """Return the WMO station number, state, and county as a list provided with WMO station number as an input."""
     wmo_station_info_filename = 'Weather_Stations_by_County.csv'
     wmo_station_info_filepath = (os.path.join('../inputs/', wmo_station_info_filename))
-    # TODO: Ask Benjamin why this file path needs to start at the home directory but the one for
-    # analyze_noaa_data.py starts with its current directory! (PyCharm)
 
     wmo_station_info = pd.read_csv(wmo_station_info_filepath)
 
