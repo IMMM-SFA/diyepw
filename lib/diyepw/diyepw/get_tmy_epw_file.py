@@ -4,6 +4,9 @@ import re as _re
 import os as _os
 from zipfile import ZipFile as _ZipFile
 
+# TODO: This and get_noaa_isd_lite_file() need to check whether the requested file is already present in output_id
+#       return that file instead of downloading it again if it is
+
 # Buffer for the EPW catalog, which is a large HTML file that we don't want to have to download anew every time
 # a new EPW file is requested
 _catalog_html = None
