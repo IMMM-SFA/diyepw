@@ -23,7 +23,7 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None) -> st
         html = response.read().decode('utf-8')
 
     # Find the filename in the catalog that matches the requested WMO index
-    match = _re.search(f'href="({wmo_index}-\d*-{year}.gz)"', html)
+    match = _re.search(f'href="({wmo_index}-\d*-{year}\.gz)"', html)
     if match is None:
         raise Exception(f"No ISD Lite file for WMO index {wmo_index} and year {year} could be found at {catalog_url}")
     file_name_gz = match.groups()[0]
