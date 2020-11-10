@@ -1,6 +1,8 @@
 import os as _os
 import pandas as _pd
 
+_this_dir = _os.path.dirname(_os.path.realpath(__file__))
+
 def get_wmo_station_location(wmo_station_number:int):
     """
         Get the state, and county associated with a WMO station
@@ -8,7 +10,7 @@ def get_wmo_station_location(wmo_station_number:int):
         :return: Either a dict with fields "state" and "county", or None if no information is available for
             the passed WMO Station ID
     """
-    wmo_station_info_filepath = _os.path.join('..', 'inputs', 'Weather_Stations_by_County.csv')
+    wmo_station_info_filepath = _os.path.join(_this_dir, '..', '..', '..', 'inputs', 'Weather_Stations_by_County.csv')
 
     if not _os.path.exists(wmo_station_info_filepath):
         raise Exception("Missing WMO station info file at " + wmo_station_info_filepath)
