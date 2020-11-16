@@ -2,7 +2,9 @@ import tempfile as _tempfile
 import urllib.request as _request
 import re as _re
 import os as _os
+import shutil as _shutil
 from zipfile import ZipFile as _ZipFile
+from urllib.error import URLError
 
 # TODO: This and get_noaa_isd_lite_file() need to check whether the requested file is already present in output_id
 #       return that file instead of downloading it again if it is
@@ -34,8 +36,11 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     global _catalog_html
     if _catalog_html is None:
         # Retrieve the TMY EPW catalog for the requested year.
-        with _request.urlopen(catalog_url) as response:
-            _catalog_html = response.read().decode('utf-8')
+        try:
+            with _request.urlopen(catalog_url) as response:
+                _catalog_html = response.read().decode('utf-8')
+        except URLError:
+            raise Exception(f"Failed to connect to {catalog_url} - are you connected to the internet?")
 
     # Find the filename in the catalog that matches the requested WMO index
     match = _re.search(f'href="([^"]*\.{wmo_index}_TMY3\.zip)"', _catalog_html)
@@ -60,6 +65,6 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
 
     # Delete the temporary files created in this call
     _os.unlink(tmp_file_path)
-    _os.unlink(tmp_dir)
+    _shutil.rmtree(tmp_dir)
 
     return epw_file_path
