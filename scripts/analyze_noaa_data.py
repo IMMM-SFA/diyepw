@@ -44,6 +44,7 @@ analysis_results = diyepw.analyze_noaa_isd_lite_files(
 num_files_with_too_many_rows_missing = len(analysis_results['too_many_total_rows_missing'])
 if num_files_with_too_many_rows_missing > 0:
     path = os.path.join(output_dir_path, 'missing_total_entries_high.csv')
+    path = os.path.abspath(path) # Change to absolute path for readability
     print(
         num_files_with_too_many_rows_missing,
         "records excluded because they were missing more than", args.max_missing_rows,
@@ -54,6 +55,7 @@ if num_files_with_too_many_rows_missing > 0:
 num_files_with_too_many_consec_rows_missing = len(analysis_results['too_many_consecutive_rows_missing'])
 if num_files_with_too_many_consec_rows_missing > 0:
     path = os.path.join(output_dir_path, 'missing_consec_entries_high.csv')
+    path = os.path.abspath(path) # Change to absolute path for readability
     print(
         num_files_with_too_many_consec_rows_missing,
         "records excluded because they were missing more than", args.max_consecutive_missing_rows,
@@ -64,6 +66,7 @@ if num_files_with_too_many_consec_rows_missing > 0:
 num_good_files = len(analysis_results['good'])
 if num_good_files > 0:
     path = os.path.join(output_dir_path, 'files_to_convert.csv')
+    path = os.path.abspath(path) # Change to absolute path for readability
     print(
         num_good_files,
         "records are complete enough to be processed. Information about these files will be written to", path
