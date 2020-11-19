@@ -27,7 +27,7 @@ def create_amy_epw_file(
         amy_epw_dir:str=None,
         tmy_epw_dir:str=None,
         amy_dir:str=None
-):
+) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
     observed data to generate an AMY EPW file for a single calendar year at a given WMO.
