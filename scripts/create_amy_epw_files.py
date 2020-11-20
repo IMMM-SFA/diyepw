@@ -11,9 +11,10 @@ amy_epw_file_out_path = os.path.join(create_out_path, 'epw')
 if not os.path.exists(amy_epw_file_out_path):
     os.mkdir(amy_epw_file_out_path)
 
-# Provide the path to the list of WMO stations for which new AMY EPW files should be created.
+# Set path to the list of WMO stations for which new AMY EPW files should be created.
 path_to_station_list = os.path.join('..', 'outputs', 'analyze_noaa_data_output', 'files_to_convert.csv')
 
+# Set path to the files where errors should be written
 epw_file_violations_path = os.path.join(create_out_path, 'epw_validation_errors.csv')
 errors_path = os.path.join(create_out_path, 'errors.csv')
 
@@ -54,25 +55,45 @@ args = parser.parse_args()
 amy_file_list = pd.read_csv(path_to_station_list)
 amy_file_list = amy_file_list[amy_file_list.columns[0]]
 
-idx = 1
-num_files = len(amy_file_list)
-def handle_progress(amy_file_path):
-    global idx, num_files
-    print(f"Processing {amy_file_path} - file {idx} / {num_files}")
-    idx += 1
+# Initialize the df to hold paths of AMY files that could not be converted to an EPW.
+errors = pd.DataFrame(columns=['file', 'error'])
 
-amy_epw_files, errors = diyepw.convert_noaa_isd_lite_to_amy_epw_files(
-    amy_file_list,
-    progress_handler=handle_progress,
-    max_records_to_interpolate=args.max_records_to_interpolate,
-    max_records_to_impute=args.max_records_to_impute,
-    output_dir=amy_epw_file_out_path
-)
+num_files = len(amy_file_list)
+for idx, amy_file_path in enumerate(amy_file_list, start = 1):
+    print(f"Processing {amy_file_path} - file {idx} / {num_files}")
+
+    # The NOAA ISD Lite AMY files are stored in directories named the same as the year they describe, so we
+    # use that directory name to get the year
+    amy_file_dir = os.path.dirname(amy_file_path)
+    year = int(amy_file_dir.split(os.path.sep)[-1])
+    next_year = year + 1
+
+    # To get the WMO, we have to parse it out of the filename: it's the portion prior to the first hyphen
+    wmo_index = int(os.path.basename(amy_file_path).split('-')[0])
+
+    # Our NOAA ISD Lite input files are organized under inputs/NOAA_ISD_Lite_Raw/ in directories named after their
+    # years, and the files are named identically (<WMO>_<###>_<Year>.gz), so we can get the path to the subsequent
+    # year's file by switching directories and swapping the year in the file name.
+    s = os.path.sep
+    amy_subsequent_year_file_path = amy_file_path.replace(s + str(year) + s, s + str(next_year) + s)\
+                                                 .replace(f'-{year}.gz', f'-{next_year}.gz')
+    try:
+        diyepw.create_amy_epw_file(
+            wmo_index=wmo_index,
+            year=year,
+            max_records_to_impute=args.max_records_to_impute,
+            max_records_to_interpolate=args.max_records_to_interpolate,
+            amy_epw_dir=amy_epw_file_out_path,
+            amy_files=(amy_file_path, amy_subsequent_year_file_path)
+        )
+    except Exception as e:
+        errors = errors.append({"file": amy_file_path, "error": str(e)}, ignore_index=True)
+        print('Problem processing ' + amy_file_path + ': ' + str(e))
 
 print("\nDone!")
 
 if not errors.empty:
-    print(len(errors), f"files encountered errors - see {errors_path} for more information")
-    errors.to_csv(errors_path, mode='w', index=False)
+     print(len(errors), f"files encountered errors - see {errors_path} for more information")
+     errors.to_csv(errors_path, mode='w', index=False)
 
-print(len(amy_epw_files), f'files successfully processed and written to {amy_epw_file_out_path}.')
+print(num_files - len(errors), f'files successfully processed and written to {amy_epw_file_out_path}.')

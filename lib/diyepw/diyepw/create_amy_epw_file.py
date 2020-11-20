@@ -6,6 +6,7 @@ import tempfile as _tempfile
 import pandas as _pd
 import numpy as _np
 import os as _os
+from typing import Tuple
 
 from ._logging import _logger
 
@@ -28,7 +29,8 @@ def create_amy_epw_file(
         max_records_to_impute:int,
         amy_epw_dir:str=None,
         tmy_epw_dir:str=None,
-        amy_dir:str=None
+        amy_dir:str=None,
+        amy_files:Tuple[str, str]=None
 ) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
@@ -46,6 +48,10 @@ def create_amy_epw_file(
         is already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
         get_noaa_isd_lite_file() function for details). If no directory is given, a temporary directory will
         be created.
+    :param amy_files: Instead of specifying amy_dir an allowing this method to try to find the appropriate
+        file, you can use this argument to specify the actual files that should be used. There should be
+        two files - the first the AMY file for "year", and the second the AMY file for the subsequent year,
+        which is required to support shifting the timezone from GMT to the timezone of the observed meteorology.
     :param max_records_to_interpolate: The maximum length of sequence for which linear interpolation will be
         used to replace missing values. See the documentation of _handle_missing_values() below for details.
     :param max_records_to_impute: The maximum length of sequence for which imputation will be used to replace
@@ -60,19 +66,34 @@ def create_amy_epw_file(
             _tempdirs[key] = _tempfile.mkdtemp()
         return _tempdirs[key]
 
+    if amy_dir is not None and amy_files is not None:
+        raise Exception("It is not possible to specify both amy_dir and amy_files")
+
     if amy_epw_dir is None:
         amy_epw_dir = get_tempdir("amy_epw")
         _logger.debug(f"No amy_epw_dir was defined - AMY EPWs will be stored in {amy_epw_dir}")
     if tmy_epw_dir is None:
         tmy_epw_dir = get_tempdir("tmy_epw")
         _logger.debug(f"No tmy_epw_dir was defined - TMY EPWs will be stored in {tmy_epw_dir}")
-    if amy_dir is None:
-        amy_dir = get_tempdir("amy")
-        _logger.debug(f"No amy_dir was defined - AMY files will be stored in {amy_dir}")
+
+    # Either amy_files is specified, in which case we use the specified paths, or amy_dir is specified,
+    # in which case we will search that directory for AMY files, or neither is specified, in which case
+    # we will fall back to a generated temporary directory.
+    if amy_files is not None:
+        for p in amy_files:
+            if not _os.path.exists(p):
+                raise Exception(f'Path {p} does not exist')
+
+        amy_file_path, amy_next_year_file_path = amy_files
+    else:
+        if amy_dir is None:
+            amy_dir = get_tempdir("amy")
+            _logger.debug(f"No amy_dir was defined - AMY files will be stored in {amy_dir}")
+
+        amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
+        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, amy_dir)
 
     tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir)
-    amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
-    amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, amy_dir)
 
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
