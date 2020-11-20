@@ -3,6 +3,8 @@ import re as _re
 import os as _os
 import pandas as _pd
 
+from ._logging import _logger
+
 def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force_update = False) -> str:
     """
     Given a WMO index and a year, retrieve the corresponding NOAA ISD Lite AMY file
@@ -18,9 +20,11 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force
     if output_dir is None:
         this_dir = _os.path.dirname(_os.path.realpath(__file__))
         output_dir = _os.path.join(this_dir, 'files', 'noaa_isd_lite_files')
+        _logger.debug(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
 
     if not _os.path.exists(output_dir):
         _os.mkdir(output_dir)
+        _logger.debug(f"get_noaa_isd_lite_file() - {output_dir} did not exist, so has been created")
 
     # On the NOAA website, the ISD Lite files are named with a third number between WMO and year, but
     # since we don't use that third number for anything and it complicates identifying a file for a
@@ -59,21 +63,25 @@ def _get_noaa_isd_lite_file_catalog(year:int, catalog_dir=None, force_update=Fal
     if catalog_dir is None:
         this_dir = _os.path.dirname(_os.path.realpath(__file__))
         catalog_dir = _os.path.join(this_dir, 'files', 'noaa_isd_lite_catalogs')
+        _logger.debug(f"catalog_dir was not defined, using {catalog_dir}")
 
     if not _os.path.exists(catalog_dir):
         raise Exception(f"Directory {catalog_dir} does not exist")
 
     file_path = _os.path.join(catalog_dir, str(year))
 
-    # If the catalog file already exists, we'll read ient. If it doesn't, we'll download it, import it into a
+    # If the catalog file already exists, we'll read it. If it doesn't, we'll download it, import it into a
     # dataframe, and then save that so that it exists the next time we need it.
     if _os.path.exists(file_path) and not force_update:
+        _logger.debug(f"Catalog file exists at {file_path}, using it instead of downloading it from NOAA")
         catalog = _pd.read_csv(file_path)
     else:
-        catalog = _pd.DataFrame(columns=['wmo_index', 'file_name'])
+        catalog_url = f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/"
+        _logger.info(f"Downloading catalog file for year {year} from {catalog_url}")
 
         # Retrieve the NOAA ISD Lite catalog for the requested year
-        with _request.urlopen(f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/") as response:
+        catalog = _pd.DataFrame(columns=['wmo_index', 'file_name'])
+        with _request.urlopen(catalog_url) as response:
             # Process the file: Look for an href linking to a file that starts with "7" (indicating it is
             # a North American WMO) and put all such referenced file names into the catalog file
             html = response.read().decode('utf-8')
@@ -86,5 +94,6 @@ def _get_noaa_isd_lite_file_catalog(year:int, catalog_dir=None, force_update=Fal
                     catalog = catalog.append({'wmo_index': int(wmo_index), 'file_name': file_name}, ignore_index=True)
 
             catalog.to_csv(file_path, index=False)
+            _logger.info(f"Catalog file for year {year} saved to {file_path}")
 
     return catalog

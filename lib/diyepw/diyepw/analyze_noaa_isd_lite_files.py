@@ -1,6 +1,7 @@
 import pandas as _pd
 import os as _os
 from typing import Iterable as _Iterable
+from ._logging import _logger
 
 def analyze_noaa_isd_lite_files(
         files: _Iterable,
@@ -54,6 +55,8 @@ def analyze_noaa_isd_lite_files(
         # script is located to make sense of the relative paths
         file = _os.path.abspath(file)
 
+        _logger.info(f"analyze_noaa_isd_lite_files() - analyzing {file}")
+
         # Read the file into a Pandas dataframe.
         df = _pd.read_csv(file,
                          delim_whitespace=True,
@@ -87,10 +90,13 @@ def analyze_noaa_isd_lite_files(
         # Depending on how many total and consecutive rows are missing, add the current file to one of our
         # collections to be returned to the caller
         if file_description['total_rows_missing'] > max_missing_rows:
+            _logger.info(f"analyze_noaa_isd_lite_files() - {file} has too many total missing rows")
             too_many_missing_rows.append(file_description)
         elif file_description['max_consec_rows_missing'] > max_consecutive_missing_rows:
+            _logger.info(f"analyze_noaa_isd_lite_files() - {file} has too many consecutive missing rows")
             too_many_consecutive_missing_rows.append(file_description)
         else:
+            _logger.info(f"analyze_noaa_isd_lite_files() - {file} looks good!")
             good_files.append(file_description)
 
     return {

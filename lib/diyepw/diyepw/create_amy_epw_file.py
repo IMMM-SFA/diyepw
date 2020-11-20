@@ -7,6 +7,8 @@ import pandas as _pd
 import numpy as _np
 import os as _os
 
+from ._logging import _logger
+
 # Buffers for the temporary directories we create as needed for create_amy_epw_file(). We buffer
 # the paths so that we don't create tons of temporary directories if the function is called many
 # times, and so that calling it multiple times with the same WMO/year combination won't result in
@@ -60,10 +62,13 @@ def create_amy_epw_file(
 
     if amy_epw_dir is None:
         amy_epw_dir = get_tempdir("amy_epw")
+        _logger.debug(f"No amy_epw_dir was defined - AMY EPWs will be stored in {amy_epw_dir}")
     if tmy_epw_dir is None:
         tmy_epw_dir = get_tempdir("tmy_epw")
+        _logger.debug(f"No tmy_epw_dir was defined - TMY EPWs will be stored in {tmy_epw_dir}")
     if amy_dir is None:
         amy_dir = get_tempdir("amy")
+        _logger.debug(f"No amy_dir was defined - AMY files will be stored in {amy_dir}")
 
     tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir)
     amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
