@@ -35,7 +35,7 @@ if not os.path.exists(output_dir_path):
     os.makedirs(output_dir_path)
 
 analysis_results = diyepw.analyze_noaa_isd_lite_files(
-    iglob('../inputs/NOAA_ISD_Lite_Raw/**/7*'),
+    iglob(args.inputs),
     max_missing_rows=args.max_missing_rows,
     max_consecutive_missing_rows=args.max_consecutive_missing_rows
 )
