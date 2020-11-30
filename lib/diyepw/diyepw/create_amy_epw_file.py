@@ -2,6 +2,7 @@ from .get_tmy_epw_file import get_tmy_epw_file
 from .get_noaa_isd_lite_file import get_noaa_isd_lite_file
 from .meteorology import Meteorology
 from ._files_dir import _files_dir
+from .analyze_noaa_isd_lite_file import analyze_noaa_isd_lite_file
 
 import tempfile as _tempfile
 import pandas as _pd
@@ -23,6 +24,7 @@ def create_amy_epw_file(
         *,
         max_records_to_interpolate:int,
         max_records_to_impute:int,
+        max_missing_amy_rows:int = None,
         amy_epw_dir:str=None,
         tmy_epw_dir:str=None,
         amy_dir:str=None,
@@ -54,7 +56,8 @@ def create_amy_epw_file(
     :param max_records_to_interpolate: The maximum length of sequence for which linear interpolation will be
         used to replace missing values. See the documentation of _handle_missing_values() below for details.
     :param max_records_to_impute: The maximum length of sequence for which imputation will be used to replace
-         missing values. See the documentation of _handle_missing_values() below for details.
+        missing values. See the documentation of _handle_missing_values() below for details.
+    :param max_missing_amy_rows: The maximum total number of missing rows to permit in a year's AMY file.
     :return: The absolute path of the generated AMY EPW file
     """
 
@@ -85,6 +88,11 @@ def create_amy_epw_file(
 
         amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
         amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, amy_dir)
+
+    if max_missing_amy_rows is not None:
+        amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path)
+        if amy_file_analysis['total_rows_missing'] > max_missing_amy_rows:
+            raise Exception(f"File is missing {amy_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
 
     # Read in the corresponding TMY3 EPW file.
     tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir)
