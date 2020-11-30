@@ -1,6 +1,7 @@
 from .get_tmy_epw_file import get_tmy_epw_file
 from .get_noaa_isd_lite_file import get_noaa_isd_lite_file
 from .meteorology import Meteorology
+from ._files_dir import _files_dir
 
 import tempfile as _tempfile
 import pandas as _pd
@@ -10,15 +11,10 @@ from typing import Tuple
 
 from ._logging import _logger
 
-# Buffers for the temporary directories we create as needed for create_amy_epw_file(). We buffer
-# the paths so that we don't create tons of temporary directories if the function is called many
-# times, and so that calling it multiple times with the same WMO/year combination won't result in
-# the same file being generated multiple times.
-_tempdirs = {
-    "amy_epw": None,
-    "tmy_epw": None,
-    "amy": None
-}
+# We buffer this path so that we don't create tons of temporary directories if the function is called many
+# times, and so that calling it multiple times with the same WMO/year combination won't result in the same
+# file being generated multiple times.
+_tempdir_amy_epw = _tempfile.mkdtemp()
 
 def create_amy_epw_file(
         wmo_index:int,
@@ -42,12 +38,15 @@ def create_amy_epw_file(
         If not defined, a temporary directory will be created
     :param tmy_epw_dir: The source directory for TMY EPW files. If a file for the requested WMO Index is
         already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
-        get_tmy_epw_file() function for details). If no directory is given, a temporary directory will be
-        created.
+        get_tmy_epw_file() function for details). If no directory is given, the package's default
+        directory (in files/tmy_epw_files/ in the package's directory) will be used, which will allow AMY
+        files to be reused for future calls instead of downloading them repeatedly, which is quite time
+        consuming.
     :param amy_dir: The source directory for AMY files. If a file for the requested WMO Index and year
         is already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
-        get_noaa_isd_lite_file() function for details). If no directory is given, a temporary directory will
-        be created.
+        get_noaa_isd_lite_file() function for details). If no directory is given, the package's default
+        directory (in files/ in the package's directory) will be used, which will allow AMY files to be
+        reused for future calls instead of downloading them repeatedly, which is quite time consuming.
     :param amy_files: Instead of specifying amy_dir an allowing this method to try to find the appropriate
         file, you can use this argument to specify the actual files that should be used. There should be
         two files - the first the AMY file for "year", and the second the AMY file for the subsequent year,
@@ -59,22 +58,16 @@ def create_amy_epw_file(
     :return: The absolute path of the generated AMY EPW file
     """
 
-    def get_tempdir(key:str) -> str:
-        """Helper function to get a temporary directory for any of this function's optional directory paths"""
-        global _tempdirs
-        if _tempdirs[key] is None:
-            _tempdirs[key] = _tempfile.mkdtemp()
-        return _tempdirs[key]
-
     if amy_dir is not None and amy_files is not None:
         raise Exception("It is not possible to specify both amy_dir and amy_files")
 
     if amy_epw_dir is None:
-        amy_epw_dir = get_tempdir("amy_epw")
-        _logger.debug(f"No amy_epw_dir was defined - AMY EPWs will be stored in {amy_epw_dir}")
+        global _tempdir_amy_epw
+        amy_epw_dir = _tempdir_amy_epw
+        _logger.debug(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_dir}")
     if tmy_epw_dir is None:
-        tmy_epw_dir = get_tempdir("tmy_epw")
-        _logger.debug(f"No tmy_epw_dir was defined - TMY EPWs will be stored in {tmy_epw_dir}")
+        tmy_epw_dir = _os.path.join(_files_dir, "tmy_epw_files")
+        _logger.debug(f"No tmy_epw_dir was specified - downloaded TMY EPWs will be stored in {tmy_epw_dir}")
 
     # Either amy_files is specified, in which case we use the specified paths, or amy_dir is specified,
     # in which case we will search that directory for AMY files, or neither is specified, in which case
@@ -87,13 +80,23 @@ def create_amy_epw_file(
         amy_file_path, amy_next_year_file_path = amy_files
     else:
         if amy_dir is None:
-            amy_dir = get_tempdir("amy")
-            _logger.debug(f"No amy_dir was defined - AMY files will be stored in {amy_dir}")
+            amy_dir = _os.path.join(_files_dir, "noaa_isd_lite_files")
+            _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
 
         amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
         amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, amy_dir)
 
+    # Read in the corresponding TMY3 EPW file.
     tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir)
+    tmy = Meteorology.from_tmy3_file(tmy_epw_file_path)
+
+    amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
+    amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
+    amy_epw_file_path = _os.path.join(amy_epw_dir, amy_epw_file_name)
+
+    if _os.path.exists(amy_epw_file_path):
+        _logger.info(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
+        return amy_epw_file_path
 
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
@@ -105,9 +108,6 @@ def create_amy_epw_file(
 
     amy_df = _set_noaa_df_columns(amy_df)
     amy_df = _create_timestamp_index_for_noaa_df(amy_df)
-
-    # Read in the corresponding TMY3 EPW file.
-    tmy = Meteorology.from_tmy3_file(tmy_epw_file_path)
 
     # Shift the timestamp (index) to match the time zone of the WMO station.
     amy_df = amy_df.shift(periods= tmy.timezone_gmt_offset, freq='H')
@@ -147,9 +147,6 @@ def create_amy_epw_file(
         raise Exception("EPW validation failed:\n" + "\n".join(epw_rule_violations))
 
     # Write new EPW file if no validation errors were found.
-    amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
-    amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
-    amy_epw_file_path = _os.path.join(amy_epw_dir, amy_epw_file_name)
     tmy.write_epw(amy_epw_file_path)
 
     return amy_epw_file_path

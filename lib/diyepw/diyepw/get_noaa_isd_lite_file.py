@@ -35,9 +35,12 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force
     # Download the ISD Lite file if it's not already in the output directory
     if force_update or not _os.path.exists(file_path):
         url = _get_noaa_isd_lite_file_url(year, wmo_index)
-        with _request.urlopen(url) as response:
-            with open(file_path, 'wb') as downloaded_file:
-                downloaded_file.write(response.read())
+        try:
+            with _request.urlopen(url) as response:
+                with open(file_path, 'wb') as downloaded_file:
+                    downloaded_file.write(response.read())
+        except Exception as e:
+            raise Exception(f"Error downloading from {url}: {e}")
 
     return file_path
 

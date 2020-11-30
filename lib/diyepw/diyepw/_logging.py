@@ -12,7 +12,7 @@ _file_handler.setLevel(_logging.DEBUG)
 
 _stdout_handler = _logging.StreamHandler(_sys.stdout)
 _stdout_handler.setFormatter(_logging.Formatter("%(asctime)s %(message)s"))
-_stdout_handler.setLevel(_logging.INFO)
+_stdout_handler.setLevel(_logging.DEBUG)
 
 _logger = _logging.Logger('diyepw')
 _logger.addHandler(_stdout_handler)
