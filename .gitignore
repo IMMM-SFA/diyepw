@@ -15,5 +15,5 @@ __pycache__
 log
 
 # Directories with downloaded AMY and TMY EPW files
-lib/diyepw/diyepw/files/tmy_epw/*.epw
+lib/diyepw/diyepw/files/tmy_epw_files/*.epw
 lib/diyepw/diyepw/files/noaa_isd_lite_files/*.gz
