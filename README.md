@@ -15,7 +15,17 @@ python analyze_noaa_data.py --help"
 
 ## 1. analyze_noaa_data.py
 
-The script analyze_noaa_data.py will assess the files in `outputs/NOAA_AMY` folder for:
+The script analyze_noaa_data.py will assess a set of ISD Lite files, by default expecting them to be stored as
+compressed .gz files in subdirectories under `/inputs/NOAA_ISD_Lite_Raw/`.
+
+If you wish for a different set of ISD Lite files to be analyzed, you can specify the `--inputs` option:
+
+    `python analyze_noaa_data.py --inputs=/path/to/your/inputs/*`
+    
+Pass the `--help` option (`python analyze_noaa_data.py --help`) for more information on how ISD Lite files
+are expected to be named and what compressed formats are supported.
+
+The script is primarily checking that the ISD Lite files are in concordance with the following limits:
 
 1. Total number of rows missing
 1. Maximum number of consecutive rows missing
