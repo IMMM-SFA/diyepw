@@ -55,6 +55,14 @@ parser.add_argument('--max-records-to-impute',
                             the missing value. If there are more consecutive missing records than this limit, then the 
                             file will not be processed, and will be added to the error file at {errors_path}."""
 )
+parser.add_argument('--max-missing-amy-rows',
+                    default=700,
+                    type=int,
+                    help=f"""The AMY files corresponding to each requested WMO/year combination will be checked against
+                         this maximum - any file that is missing more than this number of total observations with
+                         more than this number of total missing rows will not be generated. Instead, an entry will
+                         be added to {errors_path}."""
+)
 args = parser.parse_args()
 
 
@@ -103,5 +111,6 @@ diyepw.create_amy_epw_files_for_years_and_wmos(
     wmo_indices=wmo_indices,
     max_records_to_impute=args.max_records_to_impute,
     max_records_to_interpolate=args.max_records_to_interpolate,
+    max_missing_amy_rows=args.max_missing_amy_rows,
     amy_epw_dir=output_path
 )

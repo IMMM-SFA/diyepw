@@ -11,6 +11,7 @@ def create_amy_epw_files_for_years_and_wmos(
         *,
         max_records_to_interpolate: int,
         max_records_to_impute: int,
+        max_missing_amy_rows: int,
         amy_epw_dir: str = None,
         tmy_epw_dir: str = None,
         amy_dir: str = None,
@@ -25,6 +26,7 @@ def create_amy_epw_files_for_years_and_wmos(
     :param years:
     :param max_records_to_interpolate:
     :param max_records_to_impute:
+    :param max_missing_amy_rows:
     :param amy_epw_dir: Note that, in addition to the generated AMY EPW files, an errors.csv file will be created in this
         directory if any errors were encountered, with error messages explaining which year/WMO Index combinations
         failed and why.
@@ -60,6 +62,7 @@ def create_amy_epw_files_for_years_and_wmos(
                     year,
                     max_records_to_interpolate=max_records_to_interpolate,
                     max_records_to_impute=max_records_to_impute,
+                    max_missing_amy_rows=max_missing_amy_rows,
                     amy_epw_dir=amy_epw_dir,
                     tmy_epw_dir=tmy_epw_dir,
                     amy_dir=amy_dir,
