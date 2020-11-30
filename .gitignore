@@ -10,3 +10,10 @@ outputs/*/*
 
 # Python cache files
 __pycache__
+
+# Log directory
+log
+
+# Directories with downloaded AMY and TMY EPW files
+lib/diyepw/files/noaa_isd_lite_files/*.gz
+lib/diyepw/files/tmy_epw/*.epw
