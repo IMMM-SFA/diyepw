@@ -1,7 +1,7 @@
-import pandas as _pd
 import os as _os
 from typing import Iterable as _Iterable
 from ._logging import _logger
+from .analyze_noaa_isd_lite_file import analyze_noaa_isd_lite_file
 
 def analyze_noaa_isd_lite_files(
         files: _Iterable,
@@ -14,11 +14,8 @@ def analyze_noaa_isd_lite_files(
     Performs an analysis of a set of NOAA ISD Lite files, determining which of them are suitable
     for conversion into AMY EPW files.
 
-    :param files: An collection of paths to the NOAA ISD Lite files to be analyzed. The files may be
-       uncompressed, or in any compression format permitted by pandas.read_csv(). If they are
-       compressed, they need to have a corresponding file extension, or the compression parameter
-       must be passed. File names must begin with the WMO index of the weather station at which the
-       observations in the file were recorded.
+    :param files: An collection of paths to the NOAA ISD Lite files to be analyzed. See this package's
+        analyze_noaa_isd_lite_file() function for more information.
     :param max_missing_rows: The maximum number of total missing rows to allow in a file.
     :param max_consecutive_missing_rows: The maximum number of consecutive missing rows to allow in a file.
     :param compression: If you pass compressed files that don't end in the typical extension for their
@@ -57,35 +54,7 @@ def analyze_noaa_isd_lite_files(
 
         _logger.info(f"analyze_noaa_isd_lite_files() - analyzing {file}")
 
-        # Read the file into a Pandas dataframe.
-        df = _pd.read_csv(file,
-                         delim_whitespace=True,
-                         header=None,
-                         compression=compression,
-                         names=["Year", "Month", "Day", "Hour", "Air_Temperature",
-                                "Dew_Point_Temperature", "Sea_Level_Pressure", "Wind_Direction",
-                                "Wind_Speed_Rate", "Sky_Condition_Total_Coverage_Code",
-                                "Liquid_Precipitation_Depth_Dimension_1H", "Liquid_Precipitation_Depth_Dimension_6H"]
-                         )
-
-        # Take year-month-day-hour columns and convert to datetime stamps.
-        df['obs_timestamps'] = _pd.to_datetime(_pd.DataFrame({'year': df['Year'],
-                                                            'month': df['Month'],
-                                                            'day': df['Day'],
-                                                            'hour': df['Hour']}))
-
-        # Remove unnecessary year, month, day, hour columns
-        df = df.drop(columns=['Year', 'Month', 'Day', 'Hour'])
-
-        rows_present = df.shape[0]
-        file_description = {
-            'file': file,
-            'total_rows_missing': 8760 - rows_present,
-            'max_consec_rows_missing': 0
-        }
-        # Skip the work of counting consecutive missing rows for files that have no missing rows
-        if file_description['total_rows_missing'] > 0:
-            file_description['max_consec_rows_missing'] = _get_max_missing_rows_from_hourly_dataframe(df, 'obs_timestamps')
+        file_description = analyze_noaa_isd_lite_file(file, compression)
 
         # Depending on how many total and consecutive rows are missing, add the current file to one of our
         # collections to be returned to the caller
@@ -104,43 +73,4 @@ def analyze_noaa_isd_lite_files(
         "too_many_total_rows_missing": too_many_missing_rows,
         "too_many_consecutive_rows_missing": too_many_consecutive_missing_rows
     }
-
-def _get_max_missing_rows_from_hourly_dataframe(df:_pd.DataFrame, timestamp_col_name:str) ->int:
-    """
-    Given a DataFrame containing hourly timestamps over a year, determine the longest sequence of timestamps
-    missing from that DataFrame.
-
-    :param df:
-    :param timestamp_col_name:
-    :return:
-    """
-    # Create series of continuous timestamp values for that year
-    all_timestamps = _pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='H')
-
-    # Merge to one dataframe containing all continuous timestamp values.
-    all_times = _pd.DataFrame(all_timestamps, columns=['all_timestamps'])
-    df_all_times = _pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on=timestamp_col_name)
-
-    # Create series of only the missing timestamp values
-    missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
-    missing_times = missing_times['all_timestamps']
-
-    if missing_times.empty:
-        return 0
-
-    # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
-    missing_times_diff = missing_times.diff()
-
-    # Count the maximum number of consecutive missing time steps.
-    counter = 1
-    max_missing_rows = 1
-    for step in missing_times_diff:
-        if step == _pd.Timedelta('1h'):
-            counter += 1
-            if counter > max_missing_rows:
-                max_missing_rows = counter
-        elif step > _pd.Timedelta('1h'):
-            counter = 1
-
-    return max_missing_rows
 
