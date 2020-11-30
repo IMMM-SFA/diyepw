@@ -68,9 +68,6 @@ def create_amy_epw_file(
         global _tempdir_amy_epw
         amy_epw_dir = _tempdir_amy_epw
         _logger.debug(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_dir}")
-    if tmy_epw_dir is None:
-        tmy_epw_dir = _os.path.join(_files_dir, "tmy_epw_files")
-        _logger.debug(f"No tmy_epw_dir was specified - downloaded TMY EPWs will be stored in {tmy_epw_dir}")
 
     # Either amy_files is specified, in which case we use the specified paths, or amy_dir is specified,
     # in which case we will search that directory for AMY files, or neither is specified, in which case

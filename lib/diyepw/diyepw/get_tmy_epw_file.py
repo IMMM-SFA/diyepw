@@ -7,6 +7,7 @@ from zipfile import ZipFile as _ZipFile
 from urllib.error import URLError
 
 from ._logging import _logger
+from ._files_dir import _files_dir
 
 # Buffer for the EPW catalog, which is a large HTML file that we don't want to have to download anew every time
 # a new EPW file is requested
@@ -25,7 +26,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     _logger.info(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
 
     if output_dir is None:
-        output_dir = _tempfile.mkdtemp()
+        output_dir = _os.path.join(_files_dir, "tmy_epw_files")
         _logger.debug(f"get_tmy_epw_file() - output_dir was not defined - TMY EPW will be written to {output_dir}")
 
     # The sources we know of for TMY EPW files are http://climate.onebuilding.org and https://energyplus.net/weather;
