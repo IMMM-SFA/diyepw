@@ -16,10 +16,11 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     """
     Given a WMO index, retrieve a TMY (typical meteorological year) EPW file for that location
     :param wmo_index:
-    :param output_dir: Optional output directory - if not specified, the file will be saved to a temporary directory.
-        If the directory already contains a TMY EWP file matching the requested WMO Index, then a new
-        file will not be downloaded, we will just return that file's path
-    :return: The path to the AMY EPW file
+    :param output_dir: Optional output directory - if not specified, the file will be saved to a directory in the
+        diyepw package so that it can be reused in the future if needed. If the directory already contains a TMY
+        EWP file matching the requested WMO Index, then a new file will not be downloaded, we will just return
+        that file's path
+    :return: The path to the TMY EPW file
     """
     _logger.info(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
 
