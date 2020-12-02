@@ -100,7 +100,7 @@ def create_amy_epw_file(
     amy_epw_file_path = _os.path.join(amy_epw_dir, amy_epw_file_name)
 
     if _os.path.exists(amy_epw_file_path):
-        _logger.info(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
+        _logger.debug(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
         return amy_epw_file_path
 
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient

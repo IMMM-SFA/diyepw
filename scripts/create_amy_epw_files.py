@@ -5,6 +5,8 @@ import diyepw
 
 # Set path to outputs produced by this script.
 create_out_path  = os.path.abspath(os.path.join('..', 'outputs', 'create_amy_epw_files_output'))
+if not os.path.exists(create_out_path):
+    os.mkdir(create_out_path)
 
 # Set path to where new EPW files should be saved.
 amy_epw_file_out_path = os.path.join(create_out_path, 'epw')
@@ -13,6 +15,9 @@ if not os.path.exists(amy_epw_file_out_path):
 
 # Set path to the list of WMO stations for which new AMY EPW files should be created.
 path_to_station_list = os.path.join('..', 'outputs', 'analyze_noaa_data_output', 'files_to_convert.csv')
+if not os.path.exists(path_to_station_list):
+    print(f"{path_to_station_list} does not exist. Please run analyze_noaa_isd_lite_files.py before running this script.")
+    exit(1);
 
 # Set path to the files where errors should be written
 epw_file_violations_path = os.path.join(create_out_path, 'epw_validation_errors.csv')
@@ -61,8 +66,6 @@ errors = pd.DataFrame(columns=['file', 'error'])
 
 num_files = len(amy_file_list)
 for idx, amy_file_path in enumerate(amy_file_list, start = 1):
-    print(f"Processing {amy_file_path} - file {idx} / {num_files}")
-
     # The NOAA ISD Lite AMY files are stored in directories named the same as the year they describe, so we
     # use that directory name to get the year
     amy_file_dir = os.path.dirname(amy_file_path)
@@ -79,7 +82,7 @@ for idx, amy_file_path in enumerate(amy_file_list, start = 1):
     amy_subsequent_year_file_path = amy_file_path.replace(s + str(year) + s, s + str(next_year) + s)\
                                                  .replace(f'-{year}.gz', f'-{next_year}.gz')
     try:
-        diyepw.create_amy_epw_file(
+        amy_epw_file_path = diyepw.create_amy_epw_file(
             wmo_index=wmo_index,
             year=year,
             max_records_to_impute=args.max_records_to_impute,
@@ -87,9 +90,11 @@ for idx, amy_file_path in enumerate(amy_file_list, start = 1):
             amy_epw_dir=amy_epw_file_out_path,
             amy_files=(amy_file_path, amy_subsequent_year_file_path)
         )
+
+        print(f"Success! {os.path.basename(amy_file_path)} => {os.path.basename(amy_epw_file_path)} ({idx} / {num_files})")
     except Exception as e:
         errors = errors.append({"file": amy_file_path, "error": str(e)}, ignore_index=True)
-        print('Problem processing ' + amy_file_path + ': ' + str(e))
+        print(f"\n*** Error! {amy_file_path} could not be processed, see {errors_path} for details ({idx} / {num_files})\n")
 
 print("\nDone!")
 
@@ -97,4 +102,4 @@ if not errors.empty:
      print(len(errors), f"files encountered errors - see {errors_path} for more information")
      errors.to_csv(errors_path, mode='w', index=False)
 
-print(num_files - len(errors), f'files successfully processed and written to {amy_epw_file_out_path}.')
+print(num_files - len(errors), f'files successfully processed. EPWs where written to {amy_epw_file_out_path}.')

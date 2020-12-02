@@ -22,22 +22,30 @@ parser = argparse.ArgumentParser(
         to {epw_file_violations_path} and {errors_path}.
     """
 )
-parser.add_argument('--years',
+
+# argparse by default puts all named arguments into a group called "optional arguments",
+# which is really confusing if it includes arguments that are actually required. So we
+# manually create a group named "required arguments" so that mandatory arguments will be
+# shown as such in the --help output.
+required_args_group = parser.add_argument_group('required arguments')
+required_args_group.add_argument('--years',
                     type=str,
                     help="""The years for which to generate AMY EPW files. This is a comma-separated list that can
                             include individual years (--years=2000,2003,2006), a range (--years=2000-2005), or
-                            a combination of both (--years=2000,2003-2005,2007)"""
+                            a combination of both (--years=2000,2003-2005,2007)""",
+                    required=True
 )
-parser.add_argument('--wmo-indices',
+required_args_group.add_argument('--wmo-indices',
                     type=str,
                     help="""The WMO indices (weather station IDs) for which to generate AMY EPW files. This is a 
                             comma-separated list (--wmo-indices=700023,723043,773212). Note that currently only WMO
-                            indices beginning with 7 (North America) are currently supported."""
+                            indices beginning with 7 (North America) are supported.""",
+                    required=True
 )
+
 parser.add_argument('--max-records-to-interpolate',
                     default=6,
                     type=int,
-
                     help="""The maximum number of consecutive records to interpolate. See the documentation of the
                             pandas.DataFrame.interpolate() method's "limit" argument for more details. Basically,
                             if a sequence of fields up to the length defined by this argument are missing, those 

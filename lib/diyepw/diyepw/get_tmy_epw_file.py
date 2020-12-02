@@ -23,7 +23,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
         that file's path
     :return: The path to the TMY EPW file
     """
-    _logger.info(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
+    _logger.debug(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
 
     if output_dir is None:
         output_dir = _os.path.join(_files_dir, "tmy_epw_files")
@@ -38,7 +38,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     # a set of TMY files for every WMO in the United States
     global _catalog_html
     if _catalog_html is None:
-        _logger.info(f"get_tmy_epw_file() - We don't have the catalog of EPW files for the USA yet. Downloading it from {catalog_url}")
+        _logger.debug(f"get_tmy_epw_file() - We don't have the catalog of EPW files for the USA yet. Downloading it from {catalog_url}")
 
         # Retrieve the TMY EPW catalog for the requested year.
         try:
