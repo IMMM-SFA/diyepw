@@ -41,18 +41,12 @@ def analyze_noaa_isd_lite_files(
     too_many_consecutive_missing_rows = []
     good_files = []
 
-    # Loop through all .gz files in the input directory - we filter on extension so that things like
-    # README files can be in that path without causing any problems. We filter on files that begin
-    # with 7 because all NOAA ISD Lite files for North America should start with 7, as all WMO indices
-    # in North America do.
     for file in files:
 
         # It's nicer to work with absolute paths, especially since we are going to put this path in a
         # file to share with another script - otherwise that other script needs to know where this
         # script is located to make sense of the relative paths
         file = _os.path.abspath(file)
-
-        _logger.info(f"analyze_noaa_isd_lite_files() - analyzing {file}")
 
         file_description = analyze_noaa_isd_lite_file(file, compression)
 
