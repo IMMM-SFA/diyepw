@@ -81,7 +81,7 @@ file corresponding to each.
 
 This workflow involves two steps:
 
-## 1. analyze_noaa_data.py
+#### 1. analyze_noaa_data.py
 
 The script analyze_noaa_data.py will check a set of ISD Lite files against a set of requirements,
 and generate a CSV file listing the ISD Lite files that are suitable for conversion to EPW. The
@@ -127,7 +127,7 @@ and will produce the following files (as applicable) under `outputs/analyze_noaa
    it can be freely edited before running that script. Simply remove rows for any files that you do not want the 
    next script to process.
 
-# 2. create_amy_epw_files.py
+#### 2. create_amy_epw_files.py
 
 The script create_amy_epw.py reads the files_to_convert.csv file generated in the previous step, and for each
 ISD Lite file listed, generates an AMY EPW file. It can be called like this:
@@ -140,7 +140,50 @@ Both `--max-records-to-interpolate` and `--max-records-to-impute` are optional a
 default size of the gaps that can be filled in observed data using the two strategies, which are described in more
 detail at the top of this document.
 
+## Package Functions
+All of the functionality of the DIYEPW project is available as a set of functions that underlie the scripts 
+described above. The functions offer much more granular access to the capabilities of the project, and allow
+DIYEPW capabilites to be incorporated into other software projects.
+
+In order to install the package, simply clone the DIYEPW Git project, then use the PIP utility included with
+Python (please make sure you are using Python 3) to install the package:
+
+```
+git clone git@github.com:IMMM-SFA/diyepw.git
+pip install diyepw/lib/diyepw
+```
+
+One you've installed the package, you can access any of the DIYEPW functions or classes by importing the package
+into your own Python scripts:
+
+```
+import diyepw
+diyepw.create_amy_epw_files_for_years_and_wmos([723154, 772104], [2010, 2011, 2012])
+```
+
+The functions provided by the package are as follows:
+
+`analyze_noaa_isd_lite_file()` - Performs an analysis of a single NOAA ISD Lite file to determine whether it is suitable
+    for use in generating an AMY EPW file.
+`analyze_noaa_isd_lite_files()` - Performs an analysis of a set of NOAA ISD Lite files to determine whether they are
+    suitable for use in generating AMY EPW files. This function is equivalent to the `analyze_noaa_data.py` script.
+`create_amy_epw_file()` - Creates a single AMY EPW file for a given year and WMO index.
+`create_amy_epw_files_for_years_and_wmos()` - Creates a set of AMY EPW files for a set of years and WMO indices. This
+    function is equivalent to the `create_amy_epw_files_for_years_and_wmos.py` script.
+`get_noaa_isd_lite_file()` - Downloads a NOAA ISD Lite file from the NOAA online catalog for a given year and WMO index
+`get_tmy_epw_file()` - Downloads a TMY EPW file from the EnergyPlus online catalog for a given WMO index
+`get_wmo_station_location()` - Retrieves the state and county associated with a weather station
+
+The classes provided by the package are as follows:
+
+`Meteorology` - Represents a collection of meteorological observations, supporting reading in and writing out those
+    observations in a number of formats. Currently TMY3 and ISD Lite are supported as input types and EPW is supported
+    as an output type, but there are plans for more input formats to be supported in upcoming releases.
+
+For more detailed documentation of all parameters, return types, and behaviors of the above functions and classes,
+please refer to the in-code documentation that heads each function's definition in the package.
+
 ## Reading in TMY3 files and writing EPW files
-Functions for reading TMY3 files and writing EPW files within this script were taken or adapted from the 
-[LAF.py script](https://github.com/SSESLab/laf/blob/master/LAF.py) by Carlo Bianchi at the Site-Specific Energy Systems 
-Lab repository.
+Functions for reading TMY3 files and writing EPW files within this script were adapted from the 
+[LAF.py script](https://github.com/SSESLab/laf/blob/master/LAF.py) by Carlo Bianchi at the Site-Specific 
+Energy Systems Lab repository.
