@@ -3,22 +3,96 @@ DIYEPW is a tool developed by Pacific Northwest National Laboratory that allows 
 generation of a set of EPW files for a given set of WMOs and years. It is provided as both a set
 of scripts and as a package that allows EPW files to be generated via function call.
 
-## Scripts
-This section describes the scripts available as part of this project.
+The project includes scripts that support two workflows, as well as a package that contains
+all of the functions used to implement those workflows. Thus, it can either be used as a 
+command-line tool, or as a package to incorporate EPW file generation into a custom script.
 
-Every script has a manual page that can be accessed by passing the "--help" option to the script.
-For example:
+Both workflows, and the functions provided by the package, are tools to achieve the same
+goal, which is the generation of AMY (actual meteorological year) EPW files, which is done
+by injecting AMY data into TMY (typical meteorological year) EPW files. The generated EPW files
+have the following fields replaced with observed data:
+
+1. dry bulb temperature
+1. dew point temperature
+1. pressure
+1. wind direction
+1. wind speed
+
+Because observed weather data commonly contains gaps, DIYEPW will attempt to fill in any such gaps to ensure that in 
+each record a value is present for all of the hourly timestamps for the variables shown above. To do so, it will use one 
+of two strategies to impute or interpolate values for any missing fields in the data set:
+
+#### Interpolation: Handling for small gaps
+Small gaps (by default up to 6 consecutive hours of consecutive missing data for a field), are handled by linear 
+interpolation, so that for example if the dry bulb temperature has a gap with neighboring observed values like 
+(20, X, X, X, X, 25), DIYEPW will replace the missing values to give (20, 21, 22, 23, 24, 25).
+
+#### Imputation: Handling for large gaps
+Large gaps (by default up to 48 consecutive hours of missing data for a field) are filled using an imputation strategy
+whereby each missing field is set to the average of the field's value two weeks in the past and in the future from
+the missing timestamp.
+
+If a gap exists in the data that is larger than the maximum allowed for the imputation strategy, that file will be
+rejected and no EPW file will be generated.
+
+The maximum number of missing values that the interpolation strategy will be used for, and the maximum number of
+missing values that can be imputed, can be changed from their defaults. In the scripts, `create_amy_epw_files.py`
+and `create_amy_epw_files_for_years_and_wmos.py`, that generate EPW files, the options `--max-records-to-interpolate`
+and `--max-records-to-impute` can be set to override the defaults. The related package functions, 
+`create_amy_epw_file()` and `create_amy_epw_files_for_years_and_wmos()`, both accept the optional arguments
+`max_records_to_interpolate` and `max_records_to_impute`, which likewise override the defaults of 6 and 48.
+  
+  
+## Scripts
+This section describes the scripts available as part of this project. The scripts are located
+in the `scripts/` directory. Every script has a manual page that can be accessed by passing 
+the "--help" option to the script. For example:
  
 ```
-python analyze_noaa_data.py --help"
+python analyze_noaa_data.py --help
 ```
+
+### Workflow 1: AMY EPW generation based on years and WMO indices
+This workflow uses only a single script, `create_amy_epw_files_for_years_and_wmos.py`, and
+generates AMY EPW files for a set of years and WMO indices. It accomplishes this by combining
+TMY (typical meteorological year) EPW files with AMY (actual meteorological year) data. The
+TMY EPW file for a given WMO is downloaded by the software as needed from energyplus.net. The
+AMY data comes from NOAA ISD Lite files that are likewise downloaded as needed, from 
+ncdc.noaa.gov.
+
+This script can be called like this:
+
+```
+python create_amy_epw_files_for_years_and_wmos.py --years=2010-2015, --wmo-indices=723403,7722780`
+```
+
+The options `--years` and `--wmo-indices` are required. There are a number of other optional
+options that can also be set. All available options, their effects, and the values they accept,
+can be seen by calling this script with the `--help` option:
+
+```
+python create_amy_epw_files_for_years_and_wmos.py --help
+```
+
+### Workflow 2: AMY EPW generation based on existing ISD Lite files
+This workflow is very similar to Workflow 1, but instead of downloading NOAA's ISD Lite files
+as needed, it reads in a set of ISD Lite files provided by the user and generates one AMY EPW
+file corresponding to each.
+
+This workflow involves two steps:
 
 ## 1. analyze_noaa_data.py
 
-The script analyze_noaa_data.py will assess a set of ISD Lite files, by default expecting them to be stored as
-compressed .gz files in subdirectories under `/inputs/NOAA_ISD_Lite_Raw/`.
+The script analyze_noaa_data.py will check a set of ISD Lite files against a set of requirements,
+and generate a CSV file listing the ISD Lite files that are suitable for conversion to EPW. The
+script is called like this:
 
-If you wish for a different set of ISD Lite files to be analyzed, you can specify the `--inputs` option:
+```
+python analyze_noaa_data.py
+```
+
+By default, the script looks for files in inputs/NOAA_ISD_Lite_Raw/. If you wish for a different 
+set of ISD Lite files to be analyzed, you can specify the `--inputs` option:
 
     `python analyze_noaa_data.py --inputs=/path/to/your/inputs/*`
     
@@ -53,43 +127,20 @@ and will produce the following files (as applicable) under `outputs/analyze_noaa
    it can be freely edited before running that script. Simply remove rows for any files that you do not want the 
    next script to process.
 
-# 2. Create AMY EPW file
+# 2. create_amy_epw_files.py
 
-The script create_amy_epw.py will create EPW files by using information for selected variables from the
-NOAA AMY files to replace the values for those same variables in a TMY3 file for the same station number. 
-That is, the following 5 variables will consist of AMY data taken from the NOAA ISD Lite dataset with the remainder
-of the file consisting of the corresponding WMO station's TMY3 EPW file, taken
-from the `inputs/EnergyPlus_TMY3_EPW` directory.
-
-1. dry bulb temperature
-1. dew point temperature
-1. pressure
-1. wind direction
-1. wind speed
-
-For each of the NOAA AMY files containing 8760 hourly records, this script will ensure that in each record a value is 
-present for all of the hourly timestamps for the variables shown above. To do so, it will use one of two strategies to
-impute or interpolate values for any missing fields in the data set. For more information on these strategies, pass the 
---help option to this script:
+The script create_amy_epw.py reads the files_to_convert.csv file generated in the previous step, and for each
+ISD Lite file listed, generates an AMY EPW file. It can be called like this:
 
 ```
-python create_amy_epw.py --help
+python create_amy_epw_files.py --max-records-to-interpolate=6 --max-records-to-impute=48
 ```
 
-The maximum number of rows that may be imputed or interpolated can also be set by passing options to the script:
+Both `--max-records-to-interpolate` and `--max-records-to-impute` are optional and can be used to override the
+default size of the gaps that can be filled in observed data using the two strategies, which are described in more
+detail at the top of this document.
 
-```
-python create_amy_epw.py --max-records-to-interpolate=6 --max-records-to-impute=48
-```
-
-This script will also convert these quantities from NOAA units to units consistent with those expected in an EPW file, 
-as shown in [the EPW data dictionary](https://bigladdersoftware.com/epx/docs/8-3/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html).
-  
 ## Reading in TMY3 files and writing EPW files
 Functions for reading TMY3 files and writing EPW files within this script were taken or adapted from the 
 [LAF.py script](https://github.com/SSESLab/laf/blob/master/LAF.py) by Carlo Bianchi at the Site-Specific Energy Systems 
 Lab repository.
-
-# Optional: Look up station location
-The script identify_wmo_station_location.py contains a function of the same name that accepts a WMO station number 
-(as an integer) and returns the state and county of that WMO station.
