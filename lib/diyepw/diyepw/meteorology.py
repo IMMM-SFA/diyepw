@@ -66,7 +66,7 @@ class Meteorology:
         return self._city
     @city.setter
     def city(self, city:str):
-        self.city = city
+        self._city = city
 
     @property
     def state(self):
