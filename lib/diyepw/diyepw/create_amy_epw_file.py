@@ -25,10 +25,10 @@ def create_amy_epw_file(
         max_records_to_interpolate:int,
         max_records_to_impute:int,
         max_missing_amy_rows:int = None,
-        amy_epw_dir:str=None,
-        tmy_epw_dir:str=None,
-        amy_dir:str=None,
-        amy_files:Tuple[str, str]=None
+        amy_epw_output_dir:str=None,
+        tmy_epw_input_dir:str=None,
+        amy_input_dir:str=None,
+        amy_input_files:Tuple[str, str]=None
 ) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
@@ -36,20 +36,20 @@ def create_amy_epw_file(
     :param wmo_index: The WMO Index of the weather station for which the EPW file should be generated.
         Currently only weather stations in the United States are supported.
     :param year: The year for which the EPW should be generated
-    :param amy_epw_dir: The directory into which the generated AMY EPW file should be written.
+    :param amy_epw_output_dir: The directory into which the generated AMY EPW file should be written.
         If not defined, a temporary directory will be created
-    :param tmy_epw_dir: The source directory for TMY EPW files. If a file for the requested WMO Index is
+    :param tmy_epw_input_dir: The source directory for TMY EPW files. If a file for the requested WMO Index is
         already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
         get_tmy_epw_file() function for details). If no directory is given, the package's default
         directory (in files/tmy_epw_files/ in the package's directory) will be used, which will allow AMY
         files to be reused for future calls instead of downloading them repeatedly, which is quite time
         consuming.
-    :param amy_dir: The source directory for AMY files. If a file for the requested WMO Index and year
+    :param amy_input_dir: The source directory for AMY files. If a file for the requested WMO Index and year
         is already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
         get_noaa_isd_lite_file() function for details). If no directory is given, the package's default
         directory (in files/ in the package's directory) will be used, which will allow AMY files to be
         reused for future calls instead of downloading them repeatedly, which is quite time consuming.
-    :param amy_files: Instead of specifying amy_dir an allowing this method to try to find the appropriate
+    :param amy_input_files: Instead of specifying amy_dir an allowing this method to try to find the appropriate
         file, you can use this argument to specify the actual files that should be used. There should be
         two files - the first the AMY file for "year", and the second the AMY file for the subsequent year,
         which is required to support shifting the timezone from GMT to the timezone of the observed meteorology.
@@ -61,30 +61,30 @@ def create_amy_epw_file(
     :return: The absolute path of the generated AMY EPW file
     """
 
-    if amy_dir is not None and amy_files is not None:
+    if amy_input_dir is not None and amy_input_files is not None:
         raise Exception("It is not possible to specify both amy_dir and amy_files")
 
-    if amy_epw_dir is None:
+    if amy_epw_output_dir is None:
         global _tempdir_amy_epw
-        amy_epw_dir = _tempdir_amy_epw
-        _logger.debug(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_dir}")
+        amy_epw_output_dir = _tempdir_amy_epw
+        _logger.debug(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_output_dir}")
 
     # Either amy_files is specified, in which case we use the specified paths, or amy_dir is specified,
     # in which case we will search that directory for AMY files, or neither is specified, in which case
     # we will fall back to a generated temporary directory.
-    if amy_files is not None:
-        for p in amy_files:
+    if amy_input_files is not None:
+        for p in amy_input_files:
             if not _os.path.exists(p):
                 raise Exception(f'Path {p} does not exist')
 
-        amy_file_path, amy_next_year_file_path = amy_files
+        amy_file_path, amy_next_year_file_path = amy_input_files
     else:
-        if amy_dir is None:
-            amy_dir = _os.path.join(_files_dir, "noaa_isd_lite_files")
-            _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
+        if amy_input_dir is None:
+            amy_input_dir = _os.path.join(_files_dir, "noaa_isd_lite_files")
+            _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_input_dir}")
 
-        amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
-        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, amy_dir)
+        amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_input_dir)
+        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year + 1, amy_input_dir)
 
     if max_missing_amy_rows is not None:
         amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path)
@@ -92,16 +92,18 @@ def create_amy_epw_file(
             raise Exception(f"File is missing {amy_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
 
     # Read in the corresponding TMY3 EPW file.
-    tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir)
+    tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_input_dir)
     tmy = Meteorology.from_tmy3_file(tmy_epw_file_path)
 
     amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
     amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
-    amy_epw_file_path = _os.path.join(amy_epw_dir, amy_epw_file_name)
+    amy_epw_file_path = _os.path.join(amy_epw_output_dir, amy_epw_file_name)
 
     if _os.path.exists(amy_epw_file_path):
         _logger.debug(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
         return amy_epw_file_path
+
+    amy_df = _get_amy_df()
 
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
