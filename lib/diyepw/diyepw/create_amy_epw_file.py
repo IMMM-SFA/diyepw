@@ -77,47 +77,45 @@ def create_amy_epw_file(
             if not _os.path.exists(p):
                 raise Exception(f'Path {p} does not exist')
 
-        amy_file_path, amy_next_year_file_path = amy_input_files
+        amy_input_file_path, amy_input_next_year_file_path = amy_input_files
     else:
         if amy_input_dir is None:
             amy_input_dir = _os.path.join(_files_dir, "noaa_isd_lite_files")
             _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_input_dir}")
 
-        amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_input_dir)
-        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year + 1, amy_input_dir)
+        amy_input_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_input_dir)
+        amy_input_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year + 1, amy_input_dir)
 
     if max_missing_amy_rows is not None:
-        amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path)
-        if amy_file_analysis['total_rows_missing'] > max_missing_amy_rows:
-            raise Exception(f"File is missing {amy_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
+        amy_input_file_analysis = analyze_noaa_isd_lite_file(amy_input_file_path)
+        if amy_input_file_analysis['total_rows_missing'] > max_missing_amy_rows:
+            raise Exception(f"File is missing {amy_input_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
 
     # Read in the corresponding TMY3 EPW file.
-    tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_input_dir)
-    tmy = Meteorology.from_tmy3_file(tmy_epw_file_path)
+    tmy_input_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_input_dir)
+    meteorology = Meteorology.from_tmy3_file(tmy_input_epw_file_path)
 
-    amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
-    amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
-    amy_epw_file_path = _os.path.join(amy_epw_output_dir, amy_epw_file_name)
+    amy_epw_output_file_name = f"{meteorology.country}_{meteorology.state}_{meteorology.city}.{meteorology.station_number}_AMY_{year}.epw"
+    amy_epw_output_file_name = amy_epw_output_file_name.replace(" ", "-")
+    amy_epw_output_file_path = _os.path.join(amy_epw_output_dir, amy_epw_output_file_name)
 
-    if _os.path.exists(amy_epw_file_path):
-        _logger.debug(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
-        return amy_epw_file_path
-
-    amy_df = _get_amy_df()
+    if _os.path.exists(amy_epw_output_file_path):
+        _logger.debug(f"File already exists at {amy_epw_output_file_path}, so a new one won't be generated.")
+        return amy_epw_output_file_path
 
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
     # used to populate the last hours of the year because of the time shift that we perform, which moves the first
     # hours of January 1 into the final hours of December 31.
-    amy_df = _pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
-    amy_next_year_df = _pd.read_csv(amy_next_year_file_path, delim_whitespace=True, header=None, nrows=23)
+    amy_df = _pd.read_csv(amy_input_file_path, delim_whitespace=True, header=None)
+    amy_next_year_df = _pd.read_csv(amy_input_next_year_file_path, delim_whitespace=True, header=None, nrows=23)
     amy_df = _pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
 
     amy_df = _set_noaa_df_columns(amy_df)
     amy_df = _create_timestamp_index_for_noaa_df(amy_df)
 
     # Shift the timestamp (index) to match the time zone of the WMO station.
-    amy_df = amy_df.shift(periods= tmy.timezone_gmt_offset, freq='H')
+    amy_df = amy_df.shift(periods= meteorology.timezone_gmt_offset, freq='H')
 
     # Remove time steps that aren't applicable to the year of interest
     amy_df = _map_noaa_df_to_year(amy_df, year)
@@ -137,26 +135,26 @@ def create_amy_epw_file(
 
     # Convert sea level pressure in NOAA df to atmospheric station pressure in Pa.
     for index in amy_df.index:
-        stp = _convert_sea_level_pressure_to_station_pressure(amy_df['Sea_Level_Pressure'][index], tmy.elevation)
+        stp = _convert_sea_level_pressure_to_station_pressure(amy_df['Sea_Level_Pressure'][index], meteorology.elevation)
         amy_df.loc[index, 'Station_Pressure'] = stp
 
     # Change observation values to the values taken from the AMY data
-    tmy.set('year', year)
-    tmy.set('Tdb', [i / 10 for i in amy_df['Air_Temperature']])  # Convert AMY value to degrees C
-    tmy.set('Tdew', [i / 10 for i in amy_df['Dew_Point_Temperature']])  # Convert AMY value to degrees C
-    tmy.set('Patm', amy_df['Station_Pressure'])
-    tmy.set('Wdir', amy_df['Wind_Direction'])
-    tmy.set('Wspeed', [i / 10 for i in amy_df['Wind_Speed']])  # Convert AMY value to m/sec
+    meteorology.set('year', year)
+    meteorology.set('Tdb', [i / 10 for i in amy_df['Air_Temperature']])  # Convert AMY value to degrees C
+    meteorology.set('Tdew', [i / 10 for i in amy_df['Dew_Point_Temperature']])  # Convert AMY value to degrees C
+    meteorology.set('Patm', amy_df['Station_Pressure'])
+    meteorology.set('Wdir', amy_df['Wind_Direction'])
+    meteorology.set('Wspeed', [i / 10 for i in amy_df['Wind_Speed']])  # Convert AMY value to m/sec
 
     # Check for violations of EPW file standards
-    epw_rule_violations = tmy.validate_against_epw_rules()
+    epw_rule_violations = meteorology.validate_against_epw_rules()
     if len(epw_rule_violations) > 0:
         raise Exception("EPW validation failed:\n" + "\n".join(epw_rule_violations))
 
     # Write new EPW file if no validation errors were found.
-    tmy.write_epw(amy_epw_file_path)
+    meteorology.write_epw(amy_epw_output_file_path)
 
-    return amy_epw_file_path
+    return amy_epw_output_file_path
 
 def _set_noaa_df_columns(df:_pd.DataFrame) -> _pd.DataFrame:
     """Add headings to a NOAA ISD Lite formatted dataframe, and Drop columns for observations
