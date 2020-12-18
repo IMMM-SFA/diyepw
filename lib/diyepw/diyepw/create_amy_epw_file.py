@@ -2,10 +2,10 @@ from .get_tmy_epw_file import get_tmy_epw_file
 from .get_noaa_isd_lite_file import get_noaa_isd_lite_file
 from .meteorology import Meteorology
 
-import tempfile as _tempfile
-import pandas as _pd
-import numpy as _np
-import os as _os
+import tempfile
+import pandas as pd
+import numpy as np
+import os
 
 # Buffers for the temporary directories we create as needed for create_amy_epw_file(). We buffer
 # the paths so that we don't create tons of temporary directories if the function is called many
@@ -55,7 +55,7 @@ def create_amy_epw_file(
         """Helper function to get a temporary directory for any of this function's optional directory paths"""
         global _tempdirs
         if _tempdirs[key] is None:
-            _tempdirs[key] = _tempfile.mkdtemp()
+            _tempdirs[key] = tempfile.mkdtemp()
         return _tempdirs[key]
 
     if amy_epw_dir is None:
@@ -73,9 +73,9 @@ def create_amy_epw_file(
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
     # used to populate the last hours of the year because of the time shift that we perform, which moves the first
     # hours of January 1 into the final hours of December 31.
-    amy_df = _pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
-    amy_next_year_df = _pd.read_csv(amy_next_year_file_path, delim_whitespace=True, header=None, nrows=23)
-    amy_df = _pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
+    amy_df = pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
+    amy_next_year_df = pd.read_csv(amy_next_year_file_path, delim_whitespace=True, header=None, nrows=23)
+    amy_df = pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
 
     amy_df = _set_noaa_df_columns(amy_df)
     amy_df = _create_timestamp_index_for_noaa_df(amy_df)
@@ -91,12 +91,12 @@ def create_amy_epw_file(
 
     _handle_missing_values(
         amy_df,
-        step=_pd.Timedelta("1h"),
+        step=pd.Timedelta("1h"),
         max_to_interpolate=max_records_to_interpolate,
         max_to_impute=max_records_to_impute,
-        imputation_range=_pd.Timedelta("2w"),
-        imputation_step=_pd.Timedelta("1d"),
-        missing_values=[_np.nan, -9999.]
+        imputation_range=pd.Timedelta("2w"),
+        imputation_step=pd.Timedelta("1d"),
+        missing_values=[np.nan, -9999.]
     )
 
     # Initialize new column for station pressure (not strictly necessary)
@@ -123,12 +123,12 @@ def create_amy_epw_file(
     # Write new EPW file if no validation errors were found.
     amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
     amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
-    amy_epw_file_path = _os.path.join(amy_epw_dir, amy_epw_file_name)
+    amy_epw_file_path = os.path.join(amy_epw_dir, amy_epw_file_name)
     tmy.write_epw(amy_epw_file_path)
 
     return amy_epw_file_path
 
-def _set_noaa_df_columns(df:_pd.DataFrame) -> _pd.DataFrame:
+def _set_noaa_df_columns(df:pd.DataFrame) -> pd.DataFrame:
     """Add headings to a NOAA ISD Lite formatted dataframe, and Drop columns for observations
     that won't be used in populating the EPW files.
     """
@@ -147,13 +147,13 @@ def _set_noaa_df_columns(df:_pd.DataFrame) -> _pd.DataFrame:
 
     return df
 
-def _create_timestamp_index_for_noaa_df(df:_pd.DataFrame) -> _pd.DataFrame:
+def _create_timestamp_index_for_noaa_df(df:pd.DataFrame) -> pd.DataFrame:
     """Convert the year, month, day fields of a NOAA ISD Lite DataFrame into
     a timestamp and make that timestamp the index of the DataFrame
     :param df:
     :return:
     """
-    df['timestamp'] = _pd.to_datetime(_pd.DataFrame({'year': df['Year'],
+    df['timestamp'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
                                                      'month': df['Month'],
                                                      'day': df['Day'],
                                                      'hour': df['Hour']}))
@@ -173,17 +173,17 @@ def _map_noaa_df_to_year(df, year):
     The assumption of this function is that the dataframe ranges from the beginning of the year to some
     """
     # Create series of continuous timestamp values for that year
-    all_timestamps = _pd.date_range(str(year) + '-01-01 00:00:00', str(year) + '-12-31 23:00:00', freq='H')
-    all_timestamps = _pd.DataFrame(all_timestamps, columns=['timestamp'])
+    all_timestamps = pd.date_range(str(year) + '-01-01 00:00:00', str(year) + '-12-31 23:00:00', freq='H')
+    all_timestamps = pd.DataFrame(all_timestamps, columns=['timestamp'])
 
     # Merge to one dataframe containing all continuous timestamp values.
-    df = _pd.merge(all_timestamps, df, how='left', left_on='timestamp', right_index=True)
+    df = pd.merge(all_timestamps, df, how='left', left_on='timestamp', right_index=True)
     df = df.set_index('timestamp')
 
     return df
 
 def _handle_missing_values(
-        df:_pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
+        df:pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
         imputation_range, imputation_step, missing_values:list=None
 ):
     """
@@ -223,7 +223,7 @@ def _handle_missing_values(
     """
 
     if missing_values is None:
-        missing_values = [_np.nan]
+        missing_values = [np.nan]
 
     def get_indices_to_replace(df, col_name):
         indices_to_replace = df.index[df[col_name].isna()].tolist()
@@ -235,7 +235,7 @@ def _handle_missing_values(
 
     # For simplicity's sake, set all missing values to NAN up front
     for col_name in df:
-        df[col_name][df[col_name].isin(missing_values)] = _np.nan
+        df[col_name][df[col_name].isin(missing_values)] = np.nan
 
     for col_name in df:
         indices_to_replace = get_indices_to_replace(df, col_name)
@@ -282,7 +282,7 @@ def _handle_missing_values(
                     replacement_value_index += imputation_step
 
                 # Take the mean of the values pulled. Will ignore NaNs.
-                df[col_name][index_to_impute] = _pd.Series(replacement_values, dtype=_np.float64).mean()
+                df[col_name][index_to_impute] = pd.Series(replacement_values, dtype=np.float64).mean()
 
     # Perform interpolation on any remaining missing values. At this point we know that there are no
     # sequences larger than the max permitted for interpolation, because they would have been imputed

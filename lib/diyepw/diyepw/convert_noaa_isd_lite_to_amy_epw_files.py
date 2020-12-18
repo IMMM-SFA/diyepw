@@ -1,20 +1,19 @@
-import pandas as _pd
-import os as _os
-import tempfile as _tempfile
-import math as _math
-import numpy as _np
-from glob import glob as _glob
-from typing import Callable as _Callable
-from typing import Iterable as _Iterable
+import pandas as pd
+import os
+import tempfile
+import math
+import numpy as np
+from glob import glob
+from typing import Callable, Iterable
 from diyepw.meteorology import Meteorology
 
 def convert_noaa_isd_lite_to_amy_epw_files(
-        amy_file_paths:_Iterable,
+        amy_file_paths:Iterable,
         *,
         max_records_to_interpolate:int,
         max_records_to_impute:int,
         output_dir:str = None,
-        progress_handler:_Callable[[str], None] = None
+        progress_handler:Callable[[str], None] = None
 ):
     """
     Given a set of NOAA ISD Lite files, will generate a corresponding set of EPW files by substituting observed values
@@ -44,14 +43,14 @@ def convert_noaa_isd_lite_to_amy_epw_files(
         - A Dataframe with the columns "file" and "error" describing all files that could not be generated due to errors
     """
     # Initialize the df to hold paths of AMY files that could not be converted to an EPW.
-    errors = _pd.DataFrame(columns=['file', 'error'])
+    errors = pd.DataFrame(columns=['file', 'error'])
 
     # Initialize the list of paths of successfully generated EPW files
     amy_epw_file_paths = []
 
     # If no output directory was specified, create a temporary directory
     if output_dir is None:
-        output_dir = _tempfile.mkdtemp()
+        output_dir = tempfile.mkdtemp()
 
     # Iterate through the set of AMY files, attempting to convert each one to an EPW file based on the
     # corresponding TMY file
@@ -60,20 +59,20 @@ def convert_noaa_isd_lite_to_amy_epw_files(
             progress_handler(amy_file_path)
 
         try:
-            amy_file_name = _os.path.basename(amy_file_path)
-            amy_file_name_without_ext = _os.path.splitext(amy_file_name)[0]
+            amy_file_name = os.path.basename(amy_file_path)
+            amy_file_name_without_ext = os.path.splitext(amy_file_name)[0]
 
             # Get the station number and year from the AMY file name
             wmo_station_id = amy_file_name_without_ext.split("-")[0]
             year = int(amy_file_name_without_ext.split("-")[-1])
 
             # Get path to the TMY EPW file corresponding to that station.
-            tmy3_epw_file_path = _glob(
-                _os.path.join('..', 'inputs', 'Energy_Plus_TMY3_EPW', f'*.{wmo_station_id}_TMY3.epw')
+            tmy3_epw_file_path = glob(
+                os.path.join('..', 'inputs', 'Energy_Plus_TMY3_EPW', f'*.{wmo_station_id}_TMY3.epw')
             )[0]
 
             # Read in the NOAA AMY file for the station
-            amy_df = _pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
+            amy_df = pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
             amy_df = _clean_noaa_df(amy_df)
 
             # Save the first timestamp for that year; we will need it later after we time-shift so that we can trim
@@ -87,7 +86,7 @@ def convert_noaa_isd_lite_to_amy_epw_files(
             tz_shift = tmy.timezone_gmt_offset
 
             # Identify the number of time steps to be obtained from the subsequent year's NOAA file.
-            abs_time_steps = _math.ceil(abs(tz_shift))
+            abs_time_steps = math.ceil(abs(tz_shift))
 
             # Identify the name of the subsequent year's NOAA file.
             # TODO: This is still dependent on a specific path. We need to rewrite the function such that we aren't
@@ -96,16 +95,16 @@ def convert_noaa_isd_lite_to_amy_epw_files(
             #     specification unnecessary, and takes us one step closer to offering generic functionality to generate
             #     AMY EPW files for arbitrary year/WMO combinations
             year_s_string = str(int(year) + 1)
-            glob_string = _os.path.abspath(
-                _os.path.join('..', 'inputs', 'NOAA_ISD_Lite_Raw', '**', wmo_station_id + '*' + year_s_string + '*')
+            glob_string = os.path.abspath(
+                os.path.join('..', 'inputs', 'NOAA_ISD_Lite_Raw', '**', wmo_station_id + '*' + year_s_string + '*')
             )
-            noaa_amy_s_info_path = _glob(glob_string)
+            noaa_amy_s_info_path = glob(glob_string)
             if len(noaa_amy_s_info_path) == 0:
                 raise Exception("Couldn't load subsequent year's data: no file was found matching '" + glob_string + "'")
             noaa_amy_s_info_path = noaa_amy_s_info_path[0]
 
             # Read in the NOAA AMY file for the station for the subsequent year.
-            amy_df_s = _pd.read_csv(noaa_amy_s_info_path,
+            amy_df_s = pd.read_csv(noaa_amy_s_info_path,
                                    delim_whitespace=True,
                                    header=None)
 
@@ -129,12 +128,12 @@ def convert_noaa_isd_lite_to_amy_epw_files(
 
             _handle_missing_values(
                 amy_df,
-                step=_pd.Timedelta("1h"),
+                step=pd.Timedelta("1h"),
                 max_to_interpolate=max_records_to_interpolate,
                 max_to_impute=max_records_to_impute,
-                imputation_range=_pd.Timedelta("2w"),
-                imputation_step=_pd.Timedelta("1d"),
-                missing_values=[_np.nan, -9999.]
+                imputation_range=pd.Timedelta("2w"),
+                imputation_step=pd.Timedelta("1d"),
+                missing_values=[np.nan, -9999.]
             )
 
             # Initialize new column for station pressure (not strictly necessary)
@@ -161,7 +160,7 @@ def convert_noaa_isd_lite_to_amy_epw_files(
             # Write new EPW file if no validation errors were found.
             amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
             amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
-            amy_epw_file_path = _os.path.join(output_dir, amy_epw_file_name)
+            amy_epw_file_path = os.path.join(output_dir, amy_epw_file_name)
             tmy.write_epw(amy_epw_file_path)
             amy_epw_file_paths.append(amy_epw_file_path)
 

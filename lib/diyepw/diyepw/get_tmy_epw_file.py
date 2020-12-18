@@ -1,9 +1,9 @@
-import tempfile as _tempfile
-import urllib.request as _request
-import re as _re
-import os as _os
-import shutil as _shutil
-from zipfile import ZipFile as _ZipFile
+import tempfile
+import urllib.request as request
+import re
+import os
+import shutil
+from zipfile import ZipFile
 from urllib.error import URLError
 
 # Buffer for the EPW catalog, which is a large HTML file that we don't want to have to download anew every time
@@ -20,7 +20,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     :return: The path to the AMY EPW file
     """
     if output_dir is None:
-        output_dir = _tempfile.mkdtemp()
+        output_dir = tempfile.mkdtemp()
 
     # The sources we know of for TMY EPW files are http://climate.onebuilding.org and https://energyplus.net/weather;
     # we use the climate.onebuilding.org source here because it has all of the EPW files linked
@@ -34,34 +34,34 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     if _catalog_html is None:
         # Retrieve the TMY EPW catalog for the requested year.
         try:
-            with _request.urlopen(catalog_url) as response:
+            with request.urlopen(catalog_url) as response:
                 _catalog_html = response.read().decode('utf-8')
         except URLError:
             raise Exception(f"Failed to connect to {catalog_url} - are you connected to the internet?")
 
     # Find the filename in the catalog that matches the requested WMO index
-    match = _re.search(f'href="([^"]*\.{wmo_index}_TMY3\.zip)"', _catalog_html)
+    match = re.search(f'href="([^"]*\.{wmo_index}_TMY3\.zip)"', _catalog_html)
     if match is None:
         raise Exception(f"No file for WMO index {wmo_index} could be found at {catalog_url}")
     file_url = catalog_url + match.groups()[0]
 
     # Download the ZIP file and decompress it. It contains a number of files including the EPW that we are looking for.
-    tmp_file_handle, tmp_file_path = _tempfile.mkstemp()
-    tmp_dir = _tempfile.mkdtemp()
-    with _request.urlopen(file_url) as response:
+    tmp_file_handle, tmp_file_path = tempfile.mkstemp()
+    tmp_dir = tempfile.mkdtemp()
+    with request.urlopen(file_url) as response:
         with open(tmp_file_handle, 'wb') as downloaded_file:
             downloaded_file.write(response.read())
-    with _ZipFile(tmp_file_path, 'r') as zip_file:
+    with ZipFile(tmp_file_path, 'r') as zip_file:
         zip_file.extractall(tmp_dir)
 
     # Move the EPW file from the temporary directory into which we extracted the ZIP file into the directory storing
     # our EPWs
     epw_file_name = file_url.split("/")[-1].replace(".zip", ".epw")
-    epw_file_path = _os.path.join(output_dir, epw_file_name)
-    _os.rename(_os.path.join(tmp_dir, epw_file_name), epw_file_path)
+    epw_file_path = os.path.join(output_dir, epw_file_name)
+    os.rename(os.path.join(tmp_dir, epw_file_name), epw_file_path)
 
     # Delete the temporary files created in this call
-    _os.unlink(tmp_file_path)
-    _shutil.rmtree(tmp_dir)
+    os.unlink(tmp_file_path)
+    shutil.rmtree(tmp_dir)
 
     return epw_file_path
