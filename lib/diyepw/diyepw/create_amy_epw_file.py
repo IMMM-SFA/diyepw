@@ -86,11 +86,6 @@ def create_amy_epw_file(
         amy_input_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_input_dir)
         amy_input_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year + 1, amy_input_dir)
 
-    if max_missing_amy_rows is not None:
-        amy_input_file_analysis = analyze_noaa_isd_lite_file(amy_input_file_path)
-        if amy_input_file_analysis['total_rows_missing'] > max_missing_amy_rows:
-            raise Exception(f"File is missing {amy_input_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
-
     # Read in the corresponding TMY3 EPW file.
     tmy_input_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_input_dir)
     meteorology = Meteorology.from_tmy3_file(tmy_input_epw_file_path)
@@ -103,22 +98,19 @@ def create_amy_epw_file(
         _logger.debug(f"File already exists at {amy_epw_output_file_path}, so a new one won't be generated.")
         return amy_epw_output_file_path
 
-    # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
-    # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
-    # used to populate the last hours of the year because of the time shift that we perform, which moves the first
-    # hours of January 1 into the final hours of December 31.
-    amy_df = _pd.read_csv(amy_input_file_path, delim_whitespace=True, header=None)
-    amy_next_year_df = _pd.read_csv(amy_input_next_year_file_path, delim_whitespace=True, header=None, nrows=23)
-    amy_df = _pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
+    amy_df = _get_amy_df(
+        amy_input_file_path,
+        amy_input_next_year_file_path,
+        meteorology.elevation,
+        meteorology.timezone_gmt_offset,
+        year
+    )
 
-    amy_df = _set_noaa_df_columns(amy_df)
-    amy_df = _create_timestamp_index_for_noaa_df(amy_df)
-
-    # Shift the timestamp (index) to match the time zone of the WMO station.
-    amy_df = amy_df.shift(periods= meteorology.timezone_gmt_offset, freq='H')
-
-    # Remove time steps that aren't applicable to the year of interest
-    amy_df = _map_noaa_df_to_year(amy_df, year)
+    # TODO: analyze_noaa_isd_lite_file() needs to be rewritten to take the amy_df as an argument instead
+    if max_missing_amy_rows is not None:
+        amy_input_file_analysis = analyze_noaa_isd_lite_file(amy_input_file_path)
+        if amy_input_file_analysis['total_rows_missing'] > max_missing_amy_rows:
+            raise Exception(f"File is missing {amy_input_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
 
     _handle_missing_values(
         amy_df,
@@ -129,14 +121,6 @@ def create_amy_epw_file(
         imputation_step=_pd.Timedelta("1d"),
         missing_values=[_np.nan, -9999.]
     )
-
-    # Initialize new column for station pressure (not strictly necessary)
-    amy_df['Station_Pressure'] = None
-
-    # Convert sea level pressure in NOAA df to atmospheric station pressure in Pa.
-    for index in amy_df.index:
-        stp = _convert_sea_level_pressure_to_station_pressure(amy_df['Sea_Level_Pressure'][index], meteorology.elevation)
-        amy_df.loc[index, 'Station_Pressure'] = stp
 
     # Change observation values to the values taken from the AMY data
     meteorology.set('year', year)
@@ -155,6 +139,66 @@ def create_amy_epw_file(
     meteorology.write_epw(amy_epw_output_file_path)
 
     return amy_epw_output_file_path
+
+def _get_amy_df(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int) -> _pd.DataFrame:
+    """
+    Generate a DataFrame that contains a set of values to be substituted into a TMY EPW file in order to
+    generate an AMY EPW file. Currently supports the following file types, which must have the indicated
+    extensions:
+
+        .nc or .nc4: A WRF NetCDF file
+        .epw: A TMY3 EPW file
+
+    :param file_paths: The paths to the AMY file to be opened. The first path must point to the AMY file for the year
+        to be examined, and the second path to the AMY file for the subsequent year. This is necessary because we
+        retrieve data from January 1 of the subsequent year to allow for time-zone shifting without leaving empty
+        hours the evening of December 31.
+    :return: A DataFrame with the following fields:
+    """
+    extensions = [_os.path.splitext(fp)[1] for fp in file_paths]
+    if extensions[0] != extensions[1]:
+        raise Exception(f"File paths do not have the same extension: {file_paths}")
+
+    extension = extensions[0]
+    if extension in ["nc", "nc4"]:
+        # Treat file as a WRF NetCDF file
+        return _get_amy_df_for_wrf_netcdf(file_paths)
+
+    elif extension == "epw":
+        # Treat file as a TMY3 EPW file
+        return _get_amy_df_for_tmy3_epw(file_paths, elevation, timezone_gmt_offset, year)
+
+    raise Exception(f"Unexpected file extension for files {file_paths}, expected .nc, .nc4, or .epw")
+
+def _get_amy_df_for_tmy3_epw(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int):
+    # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
+    # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
+    # used to populate the last hours of the year because of the time shift that we perform, which moves the first
+    # hours of January 1 into the final hours of December 31.
+    amy_df = _pd.read_csv(file_paths[0], delim_whitespace=True, header=None)
+    amy_next_year_df = _pd.read_csv(file_paths[1], delim_whitespace=True, header=None, nrows=23)
+    amy_df = _pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
+
+    amy_df = _set_noaa_df_columns(amy_df)
+    amy_df = _create_timestamp_index_for_noaa_df(amy_df)
+
+    # Initialize new column for station pressure (not strictly necessary)
+    amy_df['Station_Pressure'] = None
+
+    # Convert sea level pressure in NOAA df to atmospheric station pressure in Pa.
+    for index in amy_df.index:
+        stp = _convert_sea_level_pressure_to_station_pressure(amy_df['Sea_Level_Pressure'][index], elevation)
+        amy_df.loc[index, 'Station_Pressure'] = stp
+
+    # Shift the timestamp (index) to match the time zone of the WMO station.
+    amy_df = amy_df.shift(periods=timezone_gmt_offset, freq='H')
+
+    # Remove time steps that aren't applicable to the year of interest
+    amy_df = _map_noaa_df_to_year(amy_df, year)
+
+    return amy_df
+
+def _get_amy_df_for_wrf_netcdf(filepaths:Tuple[str, str]):
 
 def _set_noaa_df_columns(df:_pd.DataFrame) -> _pd.DataFrame:
     """Add headings to a NOAA ISD Lite formatted dataframe, and Drop columns for observations

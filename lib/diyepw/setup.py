@@ -12,6 +12,6 @@ setuptools.setup(  # pragma: no cover
       install_requires=[
           'numpy~=1.19',
           'pandas~=1.1',
-          'netcdf4~=1.5'
+          'xarray~=0.16.2'
       ]
 )

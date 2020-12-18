@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import calendar
 import typing
+import xarray
 
 _RANGES = {
     'Tdb': (-70, 70),
@@ -241,6 +242,82 @@ class Meteorology:
         })
 
         return instance
+
+    @staticmethod
+    def from_netcdf_file(file_path:str):
+        """
+        Create an instance of this class based on a tmy3 file
+
+        :param file_path: Path to a TMY file. For the definition of a tmy3 file,
+        see https://www.nrel.gov/docs/fy08osti/43156.pdf
+        :return:
+        """
+        instance = Meteorology()
+        ds = xarray.open_dataset(file_path)
+
+        print("ds:")
+        for key in ds.variables:
+            print(key)
+
+        ds_sub1 = ds.where(ds.PRES != np.NAN)
+        ds_subset = ds_sub1.sel(lat=25.063) # Consider using "method='nearest', tolerance='???' to resolve to the closest lat/long to a weather station's location
+
+        stop = 1
+
+        instance._city = "TODO"
+        instance._state = "TODO"
+        instance._country = "TODO"
+        instance._station_number = "TODO"
+        instance._latitude = -1.
+        instance._longitude = -1.
+        instance._timezone_gmt_offset = -1
+        instance._elevation = 1.
+
+        instance._comment = "TODO"
+
+        ############################
+        # Read TMY3 data
+        ############################
+        data = np.genfromtxt(file_path, delimiter=',', skip_header=8)
+        instance._observations = pd.DataFrame(data={
+            "year":           [ int(i) for i in data[:, 0] ],
+            "month":          [ int(i) for i in data[:, 1] ],
+            "day":            [ int(i) for i in data[:, 2] ],
+            "hour":           [ int(i) for i in data[:, 3] ],
+            "minute":         [ int(i) for i in data[:, 4] ],
+            "Tdb":            data[:, 6],
+            "Tdew":           data[:, 7],
+            "RH":             data[:, 8],
+            "Patm":           data[:, 9],
+            "ExHorRad":       data[:, 10],
+            "ExDirNormRad":   data[:, 11],
+            "HorIR":          data[:, 12],
+            "GHRad":          data[:, 13],
+            "DNRad":          data[:, 14],
+            "DHRad":          data[:, 15],
+            "GHIll":          data[:, 16],
+            "DNIll":          data[:, 17],
+            "DHIll":          data[:, 18],
+            "ZenLum":         data[:, 19],
+            "Wdir":           data[:, 20],
+            "Wspeed":         data[:, 21],
+            "TotSkyCover":    data[:, 22],
+            "OpSkyCover":     data[:, 23],
+            "Visib":          data[:, 24],
+            "CeilH":          data[:, 25],
+            "PresWeathObs":   data[:, 26],
+            "PresWeathCodes": data[:, 27],
+            "PrecWater":      data[:, 28],
+            "AerOptDepth":    data[:, 29],
+            "SnowDepth":      data[:, 30],
+            "DSLS":           data[:, 31],
+            "Albedo":         data[:, 32],
+            "LiqPrecDepth":   data[:, 33],
+            "LiqPrecQuant":   data[:, 34]
+        })
+
+        return instance
+
 
     def validate_against_epw_rules(self) -> list:
         """

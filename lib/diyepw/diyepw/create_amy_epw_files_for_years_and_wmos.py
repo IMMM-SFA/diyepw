@@ -63,10 +63,10 @@ def create_amy_epw_files_for_years_and_wmos(
                     max_records_to_interpolate=max_records_to_interpolate,
                     max_records_to_impute=max_records_to_impute,
                     max_missing_amy_rows=max_missing_amy_rows,
-                    amy_epw_dir=amy_epw_dir,
-                    tmy_epw_dir=tmy_epw_dir,
-                    amy_dir=amy_dir,
-                    amy_files=amy_files
+                    amy_epw_output_dir=amy_epw_dir,
+                    tmy_epw_input_dir=tmy_epw_dir,
+                    amy_input_dir=amy_dir,
+                    amy_input_files=amy_files
                 )
                 amy_epw_files[year][wmo_index].append(amy_epw_file)
             except Exception as e:
