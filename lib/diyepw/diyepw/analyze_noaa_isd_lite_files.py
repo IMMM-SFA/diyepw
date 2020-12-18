@@ -77,7 +77,7 @@ def analyze_noaa_isd_lite_files(
         rows_present = df.shape[0]
         file_description = {
             'file': file,
-            'total_rows_missing': 8760 - rows_present,
+            'total_rows_missing': 8760 - rows_present, # TODO: 8760 will not be right for leap years, we need handling for that case
             'max_consec_rows_missing': 0
         }
         # Skip the work of counting consecutive missing rows for files that have no missing rows
@@ -109,6 +109,7 @@ def _get_max_missing_rows_from_hourly_dataframe(df:pd.DataFrame, timestamp_col_n
     :return:
     """
     # Create series of continuous timestamp values for that year
+    # TODO: 8760 will not be right for leap years, we need handling for that case
     all_timestamps = pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='H')
 
     # Merge to one dataframe containing all continuous timestamp values.
