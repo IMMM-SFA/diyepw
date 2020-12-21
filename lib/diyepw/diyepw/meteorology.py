@@ -4,14 +4,6 @@ import datetime
 import calendar
 import typing
 
-_RANGES = {
-    'Tdb': (-70, 70),
-    'Tdew': (-70, 70),
-    'Patm': (31000, 120000),
-    'Wspeed': (0, 40),
-    'Wdir': (0, 360)
-}
-
 class Meteorology:
     """
     Represents a time series of meteorological measurements at a given location.
@@ -31,6 +23,14 @@ class Meteorology:
         _comment - str - A comment string describing the TMY file
         _observations - DataFrame - Data representing the year's observations
     """
+
+    _RANGES = {
+        'Tdb': (-70, 70),
+        'Tdew': (-70, 70),
+        'Patm': (31000, 120000),
+        'Wspeed': (0, 40),
+        'Wdir': (0, 360)
+    }
 
     def __init__(self):
         self._data_source = 'NOAA_TMY3' # Currently hard-coded because we only process NOAA .tmy3 files
@@ -251,8 +251,8 @@ class Meteorology:
         """
         violations = []
 
-        for col_name in _RANGES:
-            min_allowed, max_allowed = _RANGES[col_name]
+        for col_name in self._RANGES:
+            min_allowed, max_allowed = self._RANGES[col_name]
             min_observed = self._observations[col_name].min()
             max_observed = self._observations[col_name].max()
             if min_observed < min_allowed or max_observed > max_allowed:
