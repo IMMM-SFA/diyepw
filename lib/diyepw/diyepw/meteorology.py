@@ -176,16 +176,15 @@ class Meteorology:
         :return:
         """
         instance = Meteorology()
-        tmy3_file = open(file_path)
 
         ############################
         # Read TMY3 header
         ############################
-        instance._headers = []
-        for i in range(0, 8):
-            line = tmy3_file.readline().strip()
-            instance._headers.append(line)
-        tmy3_file.close()
+        with open(file_path) as tmy3_file:
+            instance._headers = []
+            for i in range(0, 8):
+                line = tmy3_file.readline().strip()
+                instance._headers.append(line)
 
         first_line = instance._headers[0].split(',')
         instance._city = first_line[1]
