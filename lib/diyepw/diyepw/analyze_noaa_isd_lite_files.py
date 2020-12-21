@@ -104,9 +104,9 @@ def _get_max_missing_rows_from_hourly_dataframe(df:pd.DataFrame, timestamp_col_n
     Given a DataFrame containing hourly timestamps over a year, determine the longest sequence of timestamps
     missing from that DataFrame.
 
-    :param df:
-    :param timestamp_col_name:
-    :return:
+    :param df: The DataFrame from which to retrieve the maximum number of missing timestamps.
+    :param timestamp_col_name: The name of the column containing timestamps in the DataFrame `df`
+    :return: The size of the longest sequence of missing timestamps from the Dataframe `df`
     """
     # Create series of continuous timestamp values for that year
     # TODO: 8760 will not be right for leap years, we need handling for that case
