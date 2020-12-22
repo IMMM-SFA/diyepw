@@ -1,10 +1,10 @@
-import os as _os
-from typing import Iterable as _Iterable
+import os
+from typing import Iterable
 from ._logging import _logger
 from .analyze_noaa_isd_lite_file import analyze_noaa_isd_lite_file
 
 def analyze_noaa_isd_lite_files(
-        files: _Iterable,
+        files: Iterable,
         *,
         max_missing_rows: int,
         max_consecutive_missing_rows: int,
@@ -46,7 +46,7 @@ def analyze_noaa_isd_lite_files(
         # It's nicer to work with absolute paths, especially since we are going to put this path in a
         # file to share with another script - otherwise that other script needs to know where this
         # script is located to make sense of the relative paths
-        file = _os.path.abspath(file)
+        file = os.path.abspath(file)
 
         file_description = analyze_noaa_isd_lite_file(file, compression)
 
