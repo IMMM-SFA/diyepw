@@ -27,7 +27,7 @@ setuptools.setup(  # pragma: no cover
       author='Amanda Smith',
       author_email='amanda.d.smith@pnnl.gov',
       packages=setuptools.find_packages(),
-      package_data={ 'diyepw': ['data/*'] },
+      package_data={ 'diyepw': ['data/**/*'] },
       python_requires='~=3.7',
       install_requires=get_requirements()
 )
