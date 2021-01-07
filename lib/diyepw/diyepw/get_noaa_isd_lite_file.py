@@ -65,7 +65,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, catalog_dir=None, force_update=Fal
     """
     if catalog_dir is None:
         this_dir = os.path.dirname(os.path.realpath(__file__))
-        catalog_dir = os.path.join(this_dir, 'files', 'noaa_isd_lite_catalogs')
+        catalog_dir = os.path.join(this_dir, 'data', 'noaa_isd_lite_catalogs')
         _logger.debug(f"catalog_dir was not defined, using {catalog_dir}")
 
     if not os.path.exists(catalog_dir):

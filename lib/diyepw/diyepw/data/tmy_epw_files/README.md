@@ -1,4 +1,4 @@
-files/tmy_epw_files/
+data/tmy_epw_files/
 --------------------------
 When TMY EPW files (EPWs containing meteorology based on a typical meteorological year) 
 are downloaded in get_tmy_epw_file(), they are stored here by default. If you 

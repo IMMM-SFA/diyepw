@@ -53,11 +53,11 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
         raise Exception(f"No file for WMO index {wmo_index} could be found at {catalog_url}")
     file_url = catalog_url + match.groups()[0]
     epw_file_name = file_url.split("/")[-1].replace(".zip", ".epw")
-    epw_file_path = _os.path.join(output_dir, epw_file_name)
+    epw_file_path = os.path.join(output_dir, epw_file_name)
 
     # Check whether we already have the TMY EPW file in our directory. If we do it would be a waste of time
     # to download it again.
-    if _os.path.exists(epw_file_path):
+    if os.path.exists(epw_file_path):
         _logger.debug(f"get_tmy_epw_file() - TMY EPW file ({epw_file_path}) already exists, won't download again.")
         return epw_file_path
 

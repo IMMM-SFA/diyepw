@@ -263,7 +263,7 @@ def _handle_missing_values(
 
     # For simplicity's sake, set all missing values to NAN up front
     for col_name in df:
-        df.loc[df[col_name].isin(missing_values), col_name] = _np.nan
+        df.loc[df[col_name].isin(missing_values), col_name] = np.nan
 
     for col_name in df:
         indices_to_replace = get_indices_to_replace(df, col_name)

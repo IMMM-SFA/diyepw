@@ -1,4 +1,4 @@
-files/noaa_isd_lite_catalogs
+data/noaa_isd_lite_catalogs
 ----------------------------
 Lists of filenames of files for a year and WMO index. These catalog files are derived from
 the NOAA ISD Lite website, and are stored here so that they don't have to be repeatedly

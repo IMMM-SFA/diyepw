@@ -1,4 +1,4 @@
-files/noaa_isd_lite_files/
+data/noaa_isd_lite_files/
 --------------------------
 When ISD Lite files (AMY files, storing information about actual meteorological years) 
 are downloaded in get_noaa_isd_lite_file(), they are stored here by default. If you 
