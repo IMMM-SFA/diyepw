@@ -5,8 +5,8 @@
 *.log
 
 # Downloaded data files
-lib/diyepw/diyepw/data/noaa_isd_lite_files/*
-lib/diyepw/diyepw/data/tmy_epw_files/*
+diyepw/data/noaa_isd_lite_files/*
+diyepw/data/tmy_epw_files/*
 
 # Package installation files
 *.egg-info
