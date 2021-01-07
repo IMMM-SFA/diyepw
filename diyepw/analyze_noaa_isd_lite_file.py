@@ -1,4 +1,4 @@
-import pandas as _pd
+import pandas as pd
 
 def analyze_noaa_isd_lite_file(
         file: str,
@@ -25,7 +25,7 @@ def analyze_noaa_isd_lite_file(
         }
     """
     # Read the file into a Pandas dataframe.
-    df = _pd.read_csv(file,
+    df = pd.read_csv(file,
                      delim_whitespace=True,
                      header=None,
                      compression=compression,
@@ -36,7 +36,7 @@ def analyze_noaa_isd_lite_file(
                      )
 
     # Take year-month-day-hour columns and convert to datetime stamps.
-    df['obs_timestamps'] = _pd.to_datetime(_pd.DataFrame({'year': df['Year'],
+    df['obs_timestamps'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
                                                         'month': df['Month'],
                                                         'day': df['Day'],
                                                         'hour': df['Hour']}))
@@ -56,7 +56,7 @@ def analyze_noaa_isd_lite_file(
 
     return file_description
 
-def _get_max_missing_rows_from_hourly_dataframe(df:_pd.DataFrame, timestamp_col_name:str) ->int:
+def _get_max_missing_rows_from_hourly_dataframe(df:pd.DataFrame, timestamp_col_name:str) ->int:
     """
     Given a DataFrame containing hourly timestamps over a year, determine the longest sequence of timestamps
     missing from that DataFrame.
@@ -66,11 +66,11 @@ def _get_max_missing_rows_from_hourly_dataframe(df:_pd.DataFrame, timestamp_col_
     :return: The size of the longest sequence of missing timestamps from the Dataframe `df`
     """
     # Create series of continuous timestamp values for that year
-    all_timestamps = _pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='H')
+    all_timestamps = pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='H')
 
     # Merge to one dataframe containing all continuous timestamp values.
-    all_times = _pd.DataFrame(all_timestamps, columns=['all_timestamps'])
-    df_all_times = _pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on=timestamp_col_name)
+    all_times = pd.DataFrame(all_timestamps, columns=['all_timestamps'])
+    df_all_times = pd.merge(all_times, df, how='left', left_on='all_timestamps', right_on=timestamp_col_name)
 
     # Create series of only the missing timestamp values
     missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
@@ -86,11 +86,11 @@ def _get_max_missing_rows_from_hourly_dataframe(df:_pd.DataFrame, timestamp_col_
     counter = 1
     max_missing_rows = 1
     for step in missing_times_diff:
-        if step == _pd.Timedelta('1h'):
+        if step == pd.Timedelta('1h'):
             counter += 1
             if counter > max_missing_rows:
                 max_missing_rows = counter
-        elif step > _pd.Timedelta('1h'):
+        elif step > pd.Timedelta('1h'):
             counter = 1
 
     return max_missing_rows

@@ -1,5 +1,5 @@
-import pandas as _pd
-import os as _os
+import pandas as pd
+import os
 from typing import List, Tuple
 from .create_amy_epw_file import create_amy_epw_file
 from ._logging import _logger
@@ -44,8 +44,8 @@ def create_amy_epw_files_for_years_and_wmos(
     amy_epw_files = {}
 
     # Initialize the df to hold information about year/WMO Index combinations for which no EPW could be generated
-    errors = _pd.DataFrame(columns=['year', 'wmo_index', 'error'])
-    errors_path = _os.path.join(amy_epw_dir, "errors.csv")
+    errors = pd.DataFrame(columns=['year', 'wmo_index', 'error'])
+    errors_path = os.path.join(amy_epw_dir, "errors.csv")
 
     for year in years:
         for wmo_index in wmo_indices:

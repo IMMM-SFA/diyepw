@@ -1,2 +1,2 @@
-import os as _os
-_files_dir = _os.path.join(_os.path.dirname(_os.path.realpath(__file__)), 'data')
+import os
+_files_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
