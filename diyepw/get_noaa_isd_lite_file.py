@@ -2,6 +2,7 @@ import urllib.request as request
 import re
 import os
 import pandas as pd
+from urllib.error import URLError
 
 from ._logging import _logger
 
@@ -39,6 +40,8 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force
             with request.urlopen(url) as response:
                 with open(file_path, 'wb') as downloaded_file:
                     downloaded_file.write(response.read())
+        except URLError as e:
+            raise Exception(f'Failed to download {url} - are you connected to the internet?')
         except Exception as e:
             raise Exception(f"Error downloading from {url}: {e}")
 

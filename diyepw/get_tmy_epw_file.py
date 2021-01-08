@@ -49,6 +49,8 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
                 _catalog_html = response.read().decode('utf-8')
         except URLError:
             raise Exception(f"Failed to connect to {catalog_url} - are you connected to the internet?")
+        except Exception as e:
+            raise Exception(f"Error downloading from {catalog_url}: {e}")
 
     # Find the filename in the catalog that matches the requested WMO index
     match = re.search(f'href="([^"]*\.{wmo_index}_TMY3\.zip)"', _catalog_html)
@@ -68,9 +70,15 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     tmp_file_handle, tmp_file_path = tempfile.mkstemp()
     tmp_dir = tempfile.mkdtemp()
     _logger.debug(f"get_tmy_epw_file() - Downloading file from {file_url} and saving to {epw_file_path}")
-    with request.urlopen(file_url) as response:
-        with open(tmp_file_handle, 'wb') as downloaded_file:
-            downloaded_file.write(response.read())
+    try:
+        with request.urlopen(file_url) as response:
+            with open(tmp_file_handle, 'wb') as downloaded_file:
+                downloaded_file.write(response.read())
+    except URLError:
+        raise Exception(f"Failed to download TMY EPW file {file_url} - are you connected to the internet?")
+    except Exception as e:
+        raise Exception(f"Error downloading from {file_url}: {e}")
+
     with ZipFile(tmp_file_path, 'r') as zip_file:
         zip_file.extractall(tmp_dir)
 
