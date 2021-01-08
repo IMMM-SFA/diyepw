@@ -1,13 +1,13 @@
 from .get_tmy_epw_file import get_tmy_epw_file
 from .get_noaa_isd_lite_file import get_noaa_isd_lite_file
 from .meteorology import Meteorology
-from ._files_dir import _files_dir
 from .analyze_noaa_isd_lite_file import analyze_noaa_isd_lite_file
 
 import tempfile
 import pandas as pd
 import numpy as np
 import os
+import pkg_resources
 from typing import Tuple
 
 from ._logging import _logger
@@ -80,7 +80,7 @@ def create_amy_epw_file(
         amy_file_path, amy_next_year_file_path = amy_files
     else:
         if amy_dir is None:
-            amy_dir = os.path.join(_files_dir, "noaa_isd_lite_files")
+            amy_dir = pkg_resources.resource_filename("diyepw", "data/noaa_isd_lite_files")
             _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
 
         amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)

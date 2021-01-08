@@ -1,13 +1,16 @@
 import logging
 import os
 import sys
+import pkg_resources
 from datetime import datetime
 
 _LOG_LEVEL = logging.INFO
 
-this_dir = os.path.dirname(os.path.realpath(__file__))
+log_dir = pkg_resources.resource_filename("diyepw", "log")
+if not os.path.exists(log_dir):
+    os.mkdir(log_dir)
 
-_log_path = os.path.join(this_dir, '..', 'log', str(datetime.now()).replace(' ', '_') +'.log')
+_log_path = os.path.join(log_dir, str(datetime.now()).replace(' ', '_') +'.log')
 _file_handler = logging.FileHandler(_log_path)
 _file_handler.setFormatter(logging.Formatter("%(asctime)s [diyepw.%(levelname)s] %(message)s"))
 _file_handler.setLevel(_LOG_LEVEL)

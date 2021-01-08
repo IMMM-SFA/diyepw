@@ -3,11 +3,11 @@ import urllib.request as request
 import re
 import os
 import shutil
+import pkg_resources
 from zipfile import ZipFile
 from urllib.error import URLError
 
 from ._logging import _logger
-from ._files_dir import _files_dir
 
 # Buffer for the EPW catalog, which is a large HTML file that we don't want to have to download anew every time
 # a new EPW file is requested
@@ -26,7 +26,10 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None):
     _logger.debug(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
 
     if output_dir is None:
-        output_dir = os.path.join(_files_dir, "tmy_epw_files")
+        output_dir = pkg_resources.resource_filename("diyepw", "data/tmy_epw_files")
+
+    if not os.path.isdir(output_dir):
+        raise Exception(f'The path {output_dir} is not a valid directory path')
 
     # The sources we know of for TMY EPW files are http://climate.onebuilding.org and https://energyplus.net/weather;
     # we use the climate.onebuilding.org source here because it has all of the EPW files linked
