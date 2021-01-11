@@ -2,11 +2,12 @@ import urllib.request as request
 import re
 import os
 import pandas as pd
+import pkg_resources
 from urllib.error import URLError
 
 from ._logging import _logger
 
-def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force_update = False) -> str:
+def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, allow_downloads:bool = False) -> str:
     """
     Given a WMO index and a year, retrieve the corresponding NOAA ISD Lite AMY file
     :param wmo_index:
@@ -14,13 +15,12 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force
     :param output_dir: Optional output directory - if not specified, the file will be saved to a package directory.
         If the directory already contains a NOAA ISD Lite file matching the requested WMO Index and year, then a new
         file will not be downloaded from NOAA and that file's path will be returned
-    :param force_update: Pass True to force a new ISD Lite file to be downloaded, even if it already exists in the
-       output directory.
+    :param allow_downloads: Pass True to permit NOAA ISD Lite files and related information to be downloaded from
+        ncdc.noaa.gov if they are not already present in output_dir.
     :return: The path to the NOAA ISD Lite file
     """
     if output_dir is None:
-        this_dir = os.path.dirname(os.path.realpath(__file__))
-        output_dir = os.path.join(this_dir, 'files', 'noaa_isd_lite_files')
+        output_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_files')
         _logger.debug(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
 
     if not os.path.exists(output_dir):
@@ -34,8 +34,13 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force
     file_path = os.path.join(output_dir, file_name)
 
     # Download the ISD Lite file if it's not already in the output directory
-    if force_update or not os.path.exists(file_path):
-        url = _get_noaa_isd_lite_file_url(year, wmo_index)
+    if not os.path.exists(file_path):
+        url = _get_noaa_isd_lite_file_url(year, wmo_index, allow_downloads)
+
+        if not allow_downloads:
+            raise Exception(f"The ISD Lite file {file_path} is not present. Pass allow_downloads=True to "
+                            f"allow the missing data to be automatically downloaded from {url}")
+
         try:
             with request.urlopen(url) as response:
                 with open(file_path, 'wb') as downloaded_file:
@@ -47,12 +52,12 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, output_dir:str = None, force
 
     return file_path
 
-def _get_noaa_isd_lite_file_url(year:int, wmo_index:int) -> str:
-    catalog = _get_noaa_isd_lite_file_catalog(year)
+def _get_noaa_isd_lite_file_url(year:int, wmo_index:int, allow_downloads:bool) -> str:
+    catalog = _get_noaa_isd_lite_file_catalog(year, allow_downloads=allow_downloads)
     file_name = list(catalog.loc[catalog['wmo_index'] == wmo_index]['file_name'])[0]
     return f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/{file_name}"
 
-def _get_noaa_isd_lite_file_catalog(year:int, catalog_dir=None, force_update=False) -> pd.DataFrame:
+def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloads:bool = False) -> pd.DataFrame:
     """
     Retrieve the list of all NOAA ISD Lite files for North America (WMO indices starting with 7) for a given year.
     If the file is not already present, one will be downloaded. Files are named after the year whose files they
@@ -60,15 +65,14 @@ def _get_noaa_isd_lite_file_catalog(year:int, catalog_dir=None, force_update=Fal
     :param year:
     :param catalog_dir: The directory in which to look for the file, and into which the file will be written if
         downloaded
-    :param force_update: If set to True, a new copy of the catalog file will be downloaded and will overwrite the
-        current one if it already exists.
+    :param allow_downloads: Pass True to permit the catalog of available NOAA ISD Lite files for North America to
+        be downloaded if it is not already present in catalog_dir
     :return: A Pandas Dataframe containing a set of file names. The file names can be
         appended to the URL https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/ to download the files from
         NOAA
     """
     if catalog_dir is None:
-        this_dir = os.path.dirname(os.path.realpath(__file__))
-        catalog_dir = os.path.join(this_dir, 'data', 'noaa_isd_lite_catalogs')
+        catalog_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_catalogs')
         _logger.debug(f"catalog_dir was not defined, using {catalog_dir}")
 
     if not os.path.exists(catalog_dir):
@@ -78,11 +82,16 @@ def _get_noaa_isd_lite_file_catalog(year:int, catalog_dir=None, force_update=Fal
 
     # If the catalog file already exists, we'll read it. If it doesn't, we'll download it, import it into a
     # dataframe, and then save that so that it exists the next time we need it.
-    if os.path.exists(file_path) and not force_update:
+    if os.path.exists(file_path):
         _logger.debug(f"Catalog file exists at {file_path}, using it instead of downloading it from NOAA")
         catalog = pd.read_csv(file_path)
     else:
         catalog_url = f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/"
+
+        if not allow_downloads:
+            raise Exception(f"The ISD Lite catalog file {file_path} is not present. Pass allow_downloads=True to "
+                            f"allow the missing data to be automatically downloaded from {catalog_url}")
+
         _logger.info(f"Downloading catalog file for year {year} from {catalog_url}")
 
         # Retrieve the NOAA ISD Lite catalog for the requested year
