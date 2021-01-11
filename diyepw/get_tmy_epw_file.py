@@ -9,6 +9,7 @@ from zipfile import ZipFile
 from urllib.error import URLError
 
 from ._logging import _logger
+from .exceptions import DownloadNotAllowedError
 
 def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool = False):
     """
@@ -54,8 +55,10 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
     # If the TMY EPW file is not already present in our directory, then we need to check that we've been given
     # permission to download missing files
     if not allow_downloads:
-        raise Exception(f"The TMY3 file {epw_file_path} is not present. Pass allow_downloads=True to "
-                        f"allow the missing data to be automatically downloaded from {epw_file_url}")
+        raise DownloadNotAllowedError(
+            f"The TMY3 file {epw_file_path} is not present. Pass allow_downloads=True to "
+            f"allow the missing data to be automatically downloaded from {epw_file_url}"
+        )
 
     # Download the ZIP file and decompress it. It contains a number of files including the EPW that we are looking for.
     tmp_file_handle, tmp_file_path = tempfile.mkstemp()
@@ -113,8 +116,10 @@ def _get_tmy3_file_catalog(allow_downloads:bool = False) -> pd.DataFrame:
         # from the source site
 
         if not allow_downloads:
-            raise Exception(f"The TMY3 catalog file {catalog_file_path} is not present. Pass allow_downloads=True to "
-                            f"allow the missing data to be automatically downloaded from {catalog_url}")
+            raise DownloadNotAllowedError(
+                f"The TMY3 catalog file {catalog_file_path} is not present. Pass allow_downloads=True to "
+                f"allow the missing data to be automatically downloaded from {catalog_url}"
+            )
 
         _logger.info(f"The TMY3 catalog file was not found at {catalog_file_path}, and allow_downloads is True, so "
                      f"the catalog will be downloaded from {catalog_url}")

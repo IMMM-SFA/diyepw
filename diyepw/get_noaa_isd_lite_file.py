@@ -6,6 +6,7 @@ import pkg_resources
 from urllib.error import URLError
 
 from ._logging import _logger
+from .exceptions import DownloadNotAllowedError
 
 def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, allow_downloads:bool = False) -> str:
     """
@@ -38,8 +39,10 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
         url = _get_noaa_isd_lite_file_url(year, wmo_index, allow_downloads)
 
         if not allow_downloads:
-            raise Exception(f"The ISD Lite file {file_path} is not present. Pass allow_downloads=True to "
-                            f"allow the missing data to be automatically downloaded from {url}")
+            raise DownloadNotAllowedError(
+                f"The ISD Lite file {file_path} is not present. Pass allow_downloads=True to allow the "
+                f"missing data to be automatically downloaded from {url}"
+            )
 
         try:
             with request.urlopen(url) as response:
@@ -89,8 +92,10 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
         catalog_url = f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/"
 
         if not allow_downloads:
-            raise Exception(f"The ISD Lite catalog file {file_path} is not present. Pass allow_downloads=True to "
-                            f"allow the missing data to be automatically downloaded from {catalog_url}")
+            raise DownloadNotAllowedError(
+                f"The ISD Lite catalog file {file_path} is not present. Pass allow_downloads=True "
+                f"to allow the missing data to be automatically downloaded from {catalog_url}"
+            )
 
         _logger.info(f"Downloading catalog file for year {year} from {catalog_url}")
 
