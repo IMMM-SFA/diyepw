@@ -25,10 +25,11 @@ def create_amy_epw_file(
         max_records_to_interpolate:int,
         max_records_to_impute:int,
         max_missing_amy_rows:int = None,
-        amy_epw_dir:str=None,
-        tmy_epw_dir:str=None,
-        amy_dir:str=None,
-        amy_files:Tuple[str, str]=None
+        amy_epw_dir:str = None,
+        tmy_epw_dir:str = None,
+        amy_dir:str = None,
+        amy_files:Tuple[str, str] = None,
+        allow_downloads:bool = False
 ) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
@@ -41,15 +42,15 @@ def create_amy_epw_file(
     :param tmy_epw_dir: The source directory for TMY EPW files. If a file for the requested WMO Index is
         already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
         get_tmy_epw_file() function for details). If no directory is given, the package's default
-        directory (in files/tmy_epw_files/ in the package's directory) will be used, which will allow AMY
+        directory (in data/tmy_epw_files/ in the package's directory) will be used, which will allow AMY
         files to be reused for future calls instead of downloading them repeatedly, which is quite time
         consuming.
     :param amy_dir: The source directory for AMY files. If a file for the requested WMO Index and year
         is already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
         get_noaa_isd_lite_file() function for details). If no directory is given, the package's default
-        directory (in files/ in the package's directory) will be used, which will allow AMY files to be
+        directory (in data/ in the package's directory) will be used, which will allow AMY files to be
         reused for future calls instead of downloading them repeatedly, which is quite time consuming.
-    :param amy_files: Instead of specifying amy_dir an allowing this method to try to find the appropriate
+    :param amy_files: Instead of specifying amy_dir and allowing this method to try to find the appropriate
         file, you can use this argument to specify the actual files that should be used. There should be
         two files - the first the AMY file for "year", and the second the AMY file for the subsequent year,
         which is required to support shifting the timezone from GMT to the timezone of the observed meteorology.
@@ -58,6 +59,9 @@ def create_amy_epw_file(
     :param max_records_to_impute: The maximum length of sequence for which imputation will be used to replace
         missing values. See the documentation of _handle_missing_values() below for details.
     :param max_missing_amy_rows: The maximum total number of missing rows to permit in a year's AMY file.
+    :param allow_downloads: If this is set to True, then any missing TMY or AMY files required to generate the
+        requested AMY EPW file will be downloaded from publicly available online catalogs. Otherwise, those files
+        being missing will result in an error being raised.
     :return: The absolute path of the generated AMY EPW file
     """
 
@@ -83,8 +87,8 @@ def create_amy_epw_file(
             amy_dir = pkg_resources.resource_filename("diyepw", "data/noaa_isd_lite_files")
             _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
 
-        amy_file_path = get_noaa_isd_lite_file(wmo_index, year, amy_dir)
-        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, amy_dir)
+        amy_file_path = get_noaa_isd_lite_file(wmo_index, year, output_dir=amy_dir, allow_downloads=allow_downloads)
+        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, output_dir=amy_dir, allow_downloads=allow_downloads)
 
     if max_missing_amy_rows is not None:
         amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path)
@@ -92,7 +96,7 @@ def create_amy_epw_file(
             raise Exception(f"File is missing {amy_file_analysis['total_rows_missing']} rows, but maximum allowed is {max_missing_amy_rows}")
 
     # Read in the corresponding TMY3 EPW file.
-    tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir)
+    tmy_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_dir, allow_downloads=allow_downloads)
     tmy = Meteorology.from_tmy3_file(tmy_epw_file_path)
 
     amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
@@ -182,9 +186,9 @@ def _create_timestamp_index_for_noaa_df(df:pd.DataFrame) -> pd.DataFrame:
     :return:
     """
     df['timestamp'] = pd.to_datetime(pd.DataFrame({'year': df['Year'],
-                                                     'month': df['Month'],
-                                                     'day': df['Day'],
-                                                     'hour': df['Hour']}))
+                                                   'month': df['Month'],
+                                                   'day': df['Day'],
+                                                   'hour': df['Hour']}))
     df = df.set_index('timestamp')
 
     # Remove unnecessary columns
