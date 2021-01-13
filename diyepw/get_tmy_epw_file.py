@@ -140,8 +140,7 @@ def _get_tmy3_file_catalog(allow_downloads:bool = False) -> pd.DataFrame:
             # Regex: Match hrefs pointing to files in the form *.#_TMY3.zip, where the # is the WMO
             # represented by the file.
             # Capture groups: The big capture group gets the file name, and the small one gets the WMO
-            match = re.search(r'href="([^"]*\.(\d{6})_TMY3.zip)"', line)
-            if match is not None:
+            for match in re.finditer(r'href="([^"]*\.(\d{6})_TMY3.zip)"', line):
                 file_path, wmo_index = match.groups()
 
                 # The file extension of the download URL is .zip, and points to an archive file containing a number

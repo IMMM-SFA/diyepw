@@ -108,8 +108,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
             for line in html.splitlines():
                 # Regex: Match hrefs pointing to files in the form #-#-#.gz, where the first # starts with a 7.
                 # Capture groups: The big capture group gets the file name, and the small one gets the WMO
-                match = re.search(f'href="((7\d+)-.*\.gz)"', line)
-                if match is not None:
+                for match in re.finditer(f'href="((7\d+)-.*\.gz)"', line):
                     file_name, wmo_index = match.groups()
                     catalog = catalog.append({'wmo_index': int(wmo_index), 'file_name': file_name}, ignore_index=True)
 
