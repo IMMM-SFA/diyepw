@@ -15,7 +15,8 @@ def create_amy_epw_files_for_years_and_wmos(
         amy_epw_dir: str = None,
         tmy_epw_dir: str = None,
         amy_dir: str = None,
-        amy_files: Tuple[str, str] = None
+        amy_files: Tuple[str, str] = None,
+        allow_downloads: bool = False
 ) -> dict:
     """
     Create AMY EPW files for every combination of a set of WMO indices and years.
@@ -33,6 +34,7 @@ def create_amy_epw_files_for_years_and_wmos(
     :param tmy_epw_dir:
     :param amy_dir:
     :param amy_files:
+    :param allow_downloads:
     :return: A dictionary of the files generated for each year/wmo combination, in the form {
         <year>: {
             <wmo_index>: [<file_path>, ...],
@@ -66,7 +68,8 @@ def create_amy_epw_files_for_years_and_wmos(
                     amy_epw_dir=amy_epw_dir,
                     tmy_epw_dir=tmy_epw_dir,
                     amy_dir=amy_dir,
-                    amy_files=amy_files
+                    amy_files=amy_files,
+                    allow_downloads=allow_downloads
                 )
                 amy_epw_files[year][wmo_index].append(amy_epw_file)
             except Exception as e:
