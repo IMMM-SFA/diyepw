@@ -52,6 +52,8 @@ class Meteorology:
         return self._station_number
     @station_number.setter
     def station_number(self, station_number:int):
+        if station_number < 100000 or station_number > 999999:
+            raise Exception("station_number must be a six-digit number")
         self._station_number = station_number
 
     @property
@@ -59,6 +61,13 @@ class Meteorology:
         return self._latitude, self._longitude
     @latlong.setter
     def latlong(self, latlong:typing.Tuple[int, int]):
+        lat, long = latlong
+
+        if abs(lat) > 90:
+            raise Exception("Latitude must be in the range -90 - 90")
+        if abs(long) > 180:
+            raise Exception("Longitude must be in the range -180 - 180")
+
         self._latitude, self._longitude = latlong
 
     @property
@@ -89,14 +98,14 @@ class Meteorology:
     def timezone_gmt_offset(self, timezone_gmt_offset:int):
         if abs(timezone_gmt_offset) > 12:
             raise Exception("timezone_gmt_offset must be in the range -12 - 12")
-        self._timezone_gmt_offset = timezone_gmt_offset
+        self._timezone_gmt_offset = int(timezone_gmt_offset)
 
     @property
     def elevation(self):
         return self._elevation
     @elevation.setter
     def elevation(self, elevation:int):
-        self._elevation = elevation
+        self._elevation = int(elevation)
 
     @property
     def observations(self):
