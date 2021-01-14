@@ -87,6 +87,8 @@ class Meteorology:
         return self._timezone_gmt_offset
     @timezone_gmt_offset.setter
     def timezone_gmt_offset(self, timezone_gmt_offset:int):
+        if abs(timezone_gmt_offset) > 12:
+            raise Exception("timezone_gmt_offset must be in the range -12 - 12")
         self._timezone_gmt_offset = timezone_gmt_offset
 
     @property
