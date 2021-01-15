@@ -1,5 +1,7 @@
 import unittest
 import diyepw
+import pkg_resources
+import random
 
 
 class MeteorologyTest(unittest.TestCase):
@@ -59,6 +61,66 @@ class MeteorologyTest(unittest.TestCase):
                             f"id not cause an Exception to be raised"
                 ):
                     setattr(self._meteorology, property_name, test_value)
+
+    def test_create_from_tmy3(self):
+        """
+        Tests that observations from a known TMY3 file result in an instance with the expected values
+        :return:
+        """
+        tmy_file_path = pkg_resources.resource_filename('diyepw', 'test/files/TEST_TMY3.epw')
+        meteorology = diyepw.Meteorology.from_tmy3_file(tmy_file_path)
+
+        self.assertEqual(meteorology.city, "Testville")
+        self.assertEqual(meteorology.country, "USA")
+        self.assertEqual(meteorology.elevation, 78.)
+        self.assertEqual(meteorology.latlong, (32.1, -90.23009))
+        self.assertEqual(meteorology.station_number, '799999')
+        self.assertEqual(meteorology.timezone_gmt_offset, -6)
+
+        observations = meteorology.observations
+        expected_columns = [
+            'year', 'month', 'day', 'hour', 'minute', 'Tdb', 'Tdew', 'RH', 'Patm', 'ExHorRad', 'ExDirNormRad', 'HorIR',
+            'GHRad', 'DNRad', 'DHRad', 'GHIll', 'DNIll', 'DHIll', 'ZenLum', 'Wdir', 'Wspeed', 'TotSkyCover',
+            'OpSkyCover', 'Visib', 'CeilH', 'PresWeathObs', 'PresWeathCodes', 'PrecWater', 'AerOptDepth', 'SnowDepth',
+            'DSLS', 'Albedo', 'LiqPrecDepth', 'LiqPrecQuant'
+        ]
+        for col in expected_columns:
+            self.assertIn(col, observations.columns)
+
+    def test_validation(self):
+        """
+        Tests that the validation rules are properly applied
+        :return:
+        """
+        tmy_file_path = pkg_resources.resource_filename('diyepw', 'test/files/TEST_TMY3.epw')
+        meteorology = diyepw.Meteorology.from_tmy3_file(tmy_file_path)
+
+        # Initially there should be no validation errors in the test file
+        epw_violations = meteorology.validate_against_epw_rules()
+        self.assertEqual(len(epw_violations), 0, msg=f"Expected 0 EPW validation errors but got {len(epw_violations)}")
+
+        invalid_values = {
+            'Tdb': [-71, 71],
+            'Tdew': [-71, 71],
+            'Patm': [30999, 120001],
+            'Wspeed': [-1, 41],
+            'Wdir': [-1, 361]
+        }
+        # Intentionally introduce validation errors and confirm that the expected error appears
+        for col in invalid_values:
+            original_values = meteorology.observations.loc[:, col]
+            for value in invalid_values[col]:
+                changed_values = original_values.copy()
+                changed_values.iloc[random.randint(0, len(changed_values) - 1)] = value
+                meteorology.set(col, changed_values)
+                epw_violations = meteorology.validate_against_epw_rules()
+                self.assertEqual(len(epw_violations), 1, msg=f"Expected 1 EPW validation error but got {len(epw_violations)}")
+                self.assertIn(f"{col} must be in the range", epw_violations[0])
+
+                # Replace the original values after each test so that only a single error is ever present
+                meteorology.set(col, original_values)
+
+
 
 if __name__ == '__main__': # pragma: no cover
     unittest.main()
