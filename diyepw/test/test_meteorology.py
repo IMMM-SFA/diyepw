@@ -129,6 +129,5 @@ class MeteorologyTest(unittest.TestCase):
                 meteorology.set(col, original_values)
 
 
-
 if __name__ == '__main__': # pragma: no cover
     unittest.main()
