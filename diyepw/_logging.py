@@ -7,7 +7,7 @@ from datetime import datetime
 _LOG_LEVEL = logging.INFO
 
 log_dir = pkg_resources.resource_filename("diyepw", "log")
-if not os.path.exists(log_dir):
+if not os.path.exists(log_dir): # pragma: no cover
     os.mkdir(log_dir)
 
 _log_path = os.path.join(log_dir, str(datetime.now()).replace(' ', '_') +'.log')
