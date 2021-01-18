@@ -108,13 +108,17 @@ class MeteorologyTest(unittest.TestCase):
         }
         # Intentionally introduce validation errors and confirm that the expected error appears
         for col in invalid_values:
-            original_values = meteorology.observations.loc[:, col]
+            original_values = meteorology.observations.loc[:, col].copy()
             for value in invalid_values[col]:
                 changed_values = original_values.copy()
                 changed_values.iloc[random.randint(0, len(changed_values) - 1)] = value
                 meteorology.set(col, changed_values)
                 epw_violations = meteorology.validate_against_epw_rules()
-                self.assertEqual(len(epw_violations), 1, msg=f"Expected 1 EPW validation error but got {len(epw_violations)}")
+                self.assertEqual(
+                    len(epw_violations),
+                    1,
+                    f"Expected 1 EPW validation error but got {len(epw_violations)}. Violations were: {epw_violations}"
+                )
                 self.assertIn(f"{col} must be in the range", epw_violations[0])
 
                 # Replace the original values after each test so that only a single error is ever present
