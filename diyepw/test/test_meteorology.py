@@ -5,6 +5,10 @@ import random
 
 
 class MeteorologyTest(unittest.TestCase):
+    """
+    Tests of the behavior of the diyepw.Meteorology class
+    """
+
     def setUp(self) -> None:
         super().setUp()
 
