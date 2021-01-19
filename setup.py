@@ -26,5 +26,10 @@ setuptools.setup(  # pragma: no cover
       packages=setuptools.find_packages(),
       package_data={ 'diyepw': ['data/**/*', 'test/files/**/*'] },
       python_requires='~=3.7',
-      install_requires=get_requirements()
+      install_requires=get_requirements(),
+      extras_require={
+          'dev': [
+              'pvlib~=0.8.1'
+          ]
+      }
 )
