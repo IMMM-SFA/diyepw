@@ -2,7 +2,9 @@ import unittest
 import diyepw
 import pkg_resources
 import random
-
+import tempfile
+import pvlib
+import pandas as pd
 
 class MeteorologyTest(unittest.TestCase):
     """
@@ -12,7 +14,31 @@ class MeteorologyTest(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
 
-        self._meteorology = diyepw.Meteorology()
+        tmy_file_path = pkg_resources.resource_filename('diyepw', 'test/files/TEST_TMY3.epw')
+        self._meteorology = diyepw.Meteorology.from_tmy3_file(tmy_file_path)
+
+    def test_observation_setter(self):
+        # We should get an exception if we use set() to set a non-existent observation column
+        with self.assertRaises(Exception):
+            self._meteorology.set("not_a_real_column", -1)
+
+        # We should get an exception if we use set() to set an observation column to an array
+        # with a number of values differing from the number of observation rows already present
+        with self.assertRaises(Exception):
+            self._meteorology.set('Tdb', [1, 2, 3])
+
+    def test_write_epw(self):
+        with tempfile.NamedTemporaryFile('w+') as tmp_file:
+            self._meteorology.write_epw(tmp_file.name)
+            with open(tmp_file.name, "r") as m:
+                try:
+                    parsed_epw = pvlib.iotools.parse_epw(m)
+                except Exception as e:
+                    raise Exception(f"Encountered an error trying to parse the produce of Meteorology.write_epw() as an EPW file: {e}")
+
+                # Make sure that parse_epw() actually succeeded in creating a DataFrame instance
+                self.assertIsInstance(parsed_epw, pd.DataFrame)
+
 
     def test_property_setters_and_getters__good_values(self):
         """
@@ -71,17 +97,14 @@ class MeteorologyTest(unittest.TestCase):
         Tests that observations from a known TMY3 file result in an instance with the expected values
         :return:
         """
-        tmy_file_path = pkg_resources.resource_filename('diyepw', 'test/files/TEST_TMY3.epw')
-        meteorology = diyepw.Meteorology.from_tmy3_file(tmy_file_path)
+        self.assertEqual(self._meteorology.city, "Testville")
+        self.assertEqual(self._meteorology.country, "USA")
+        self.assertEqual(self._meteorology.elevation, 78.)
+        self.assertEqual(self._meteorology.latlong, (32.1, -90.23009))
+        self.assertEqual(self._meteorology.station_number, '799999')
+        self.assertEqual(self._meteorology.timezone_gmt_offset, -6)
 
-        self.assertEqual(meteorology.city, "Testville")
-        self.assertEqual(meteorology.country, "USA")
-        self.assertEqual(meteorology.elevation, 78.)
-        self.assertEqual(meteorology.latlong, (32.1, -90.23009))
-        self.assertEqual(meteorology.station_number, '799999')
-        self.assertEqual(meteorology.timezone_gmt_offset, -6)
-
-        observations = meteorology.observations
+        observations = self._meteorology.observations
         expected_columns = [
             'year', 'month', 'day', 'hour', 'minute', 'Tdb', 'Tdew', 'RH', 'Patm', 'ExHorRad', 'ExDirNormRad', 'HorIR',
             'GHRad', 'DNRad', 'DHRad', 'GHIll', 'DNIll', 'DHIll', 'ZenLum', 'Wdir', 'Wspeed', 'TotSkyCover',
@@ -96,11 +119,8 @@ class MeteorologyTest(unittest.TestCase):
         Tests that the validation rules are properly applied
         :return:
         """
-        tmy_file_path = pkg_resources.resource_filename('diyepw', 'test/files/TEST_TMY3.epw')
-        meteorology = diyepw.Meteorology.from_tmy3_file(tmy_file_path)
-
         # Initially there should be no validation errors in the test file
-        epw_violations = meteorology.validate_against_epw_rules()
+        epw_violations = self._meteorology.validate_against_epw_rules()
         self.assertEqual(len(epw_violations), 0, msg=f"Expected 0 EPW validation errors but got {len(epw_violations)}")
 
         invalid_values = {
@@ -112,12 +132,12 @@ class MeteorologyTest(unittest.TestCase):
         }
         # Intentionally introduce validation errors and confirm that the expected error appears
         for col in invalid_values:
-            original_values = meteorology.observations.loc[:, col].copy()
+            original_values = self._meteorology.observations.loc[:, col].copy()
             for value in invalid_values[col]:
                 changed_values = original_values.copy()
                 changed_values.iloc[random.randint(0, len(changed_values) - 1)] = value
-                meteorology.set(col, changed_values)
-                epw_violations = meteorology.validate_against_epw_rules()
+                self._meteorology.set(col, changed_values)
+                epw_violations = self._meteorology.validate_against_epw_rules()
                 self.assertEqual(
                     len(epw_violations),
                     1,
@@ -126,7 +146,7 @@ class MeteorologyTest(unittest.TestCase):
                 self.assertIn(f"{col} must be in the range", epw_violations[0])
 
                 # Replace the original values after each test so that only a single error is ever present
-                meteorology.set(col, original_values)
+                self._meteorology.set(col, original_values)
 
 
 if __name__ == '__main__': # pragma: no cover
