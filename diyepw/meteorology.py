@@ -174,7 +174,7 @@ class Meteorology:
 
                 'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31'
             ]) + "\n")
-            epw_file.write(self._observations.to_csv(header=False))
+            epw_file.write(self._observations.to_csv(header=False, index=False))
 
     # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
     @staticmethod
@@ -219,6 +219,7 @@ class Meteorology:
             "day":            [ int(i) for i in data[:, 2] ],
             "hour":           [ int(i) for i in data[:, 3] ],
             "minute":         [ int(i) for i in data[:, 4] ],
+            "Flags" :         data[:, 5],
             "Tdb":            data[:, 6],
             "Tdew":           data[:, 7],
             "RH":             data[:, 8],
