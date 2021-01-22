@@ -105,7 +105,7 @@ class MeteorologyTest(unittest.TestCase):
         self.assertEqual(self._meteorology.country, "USA")
         self.assertEqual(self._meteorology.elevation, 78.)
         self.assertEqual(self._meteorology.latlong, (32.1, -90.23009))
-        self.assertEqual(self._meteorology.station_number, '799999')
+        self.assertEqual(self._meteorology.station_number, 799999)
         self.assertEqual(self._meteorology.timezone_gmt_offset, -6)
 
         observations = self._meteorology.observations
