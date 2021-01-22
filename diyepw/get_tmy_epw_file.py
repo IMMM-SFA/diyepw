@@ -29,7 +29,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
     """
     _logger.debug(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
 
-    if output_dir is None:
+    if output_dir is None: # pragma: no cover - Not worth the risk of having tests that fiddle with real project data
         output_dir = pkg_resources.resource_filename("diyepw", "data/tmy_epw_files")
 
     if not os.path.isdir(output_dir):
@@ -68,9 +68,9 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
         with request.urlopen(epw_file_url) as response:
             with open(tmp_file_handle, 'wb') as downloaded_file:
                 downloaded_file.write(response.read())
-    except URLError:
+    except URLError: # pragma: no cover - Not worth the time to write a test that disables the internet just for one exception
         raise Exception(f"Failed to download TMY EPW file {epw_file_url} - are you connected to the internet?")
-    except Exception as e:
+    except Exception as e: # pragma: no cover - This block is good for adding information to an Exception but can't be intentionally provoked
         raise Exception(f"Error downloading from {epw_file_url}: {e}")
 
     with ZipFile(tmp_file_path, 'r') as zip_file:
@@ -128,9 +128,9 @@ def _get_tmy3_file_catalog(allow_downloads:bool = False) -> pd.DataFrame:
         try:
             with request.urlopen(catalog_url) as response:
                 catalog_html = response.read().decode('utf-8')
-        except URLError:
+        except URLError: # pragma: no cover - Not worth the time to write a test that disables the internet just for one exception
             raise Exception(f"Failed to connect to {catalog_url} - are you connected to the internet?")
-        except Exception as e:
+        except Exception as e: # pragma: no cover - This block is good for adding information to an Exception but can't be intentionally provoked
             raise Exception(f"Error downloading from {catalog_url}: {e}")
 
         # Iterate over each line in the catalog HTML page, parsing out the file names for each TMY3 file that is
