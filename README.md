@@ -10,7 +10,7 @@ Every script has a manual page that can be accessed by passing the "--help" opti
 For example:
  
 ```
-python analyze_noaa_data.py --help"
+python analyze_noaa_data.py --help
 ```
 
 ## 1. analyze_noaa_data.py
