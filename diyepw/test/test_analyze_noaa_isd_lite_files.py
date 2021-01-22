@@ -43,3 +43,7 @@ class AnalyzeNoaaIsdLiteFilesTest(unittest.TestCase):
         self.assertEqual(len(analysis['too_many_consecutive_rows_missing']), 1)
         self.assertEqual(analysis['too_many_consecutive_rows_missing'][0]['total_rows_missing'], 59)
         self.assertEqual(analysis['too_many_consecutive_rows_missing'][0]['max_consec_rows_missing'], 17)
+
+
+if __name__ == '__main__': # pragma: no cover
+    unittest.main()

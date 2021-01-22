@@ -68,3 +68,7 @@ class AnalyzeNoaaIsdLiteFileTest(unittest.TestCase):
         self.assertEqual(analysis['file'], file_name)
         self.assertEqual(analysis['total_rows_missing'], 0)
         self.assertEqual(analysis['max_consec_rows_missing'], 0)
+
+
+if __name__ == '__main__': # pragma: no cover
+    unittest.main()
