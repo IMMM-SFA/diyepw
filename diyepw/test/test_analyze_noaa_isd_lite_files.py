@@ -32,5 +32,14 @@ class AnalyzeNoaaIsdLiteFilesTest(unittest.TestCase):
         # labeled as "too many consecutive rows missing", and the remaining file, which has only a single row, should
         # be labeled as "too many total rows missing" because that category is given priority over "too many consecutive"
         self.assertEqual(len(analysis['good']), 2)
+        for good_res in analysis['good']:
+            self.assertEqual(good_res['total_rows_missing'], 0)
+            self.assertEqual(good_res['max_consec_rows_missing'], 0)
+
         self.assertEqual(len(analysis['too_many_total_rows_missing']), 1)
+        self.assertEqual(analysis['too_many_total_rows_missing'][0]['total_rows_missing'], 8759)
+        self.assertEqual(analysis['too_many_total_rows_missing'][0]['max_consec_rows_missing'], 8759)
+
         self.assertEqual(len(analysis['too_many_consecutive_rows_missing']), 1)
+        self.assertEqual(analysis['too_many_consecutive_rows_missing'][0]['total_rows_missing'], 59)
+        self.assertEqual(analysis['too_many_consecutive_rows_missing'][0]['max_consec_rows_missing'], 17)
