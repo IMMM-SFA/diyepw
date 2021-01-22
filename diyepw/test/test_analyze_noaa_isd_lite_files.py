@@ -34,5 +34,3 @@ class AnalyzeNoaaIsdLiteFilesTest(unittest.TestCase):
         self.assertEqual(len(analysis['good']), 2)
         self.assertEqual(len(analysis['too_many_total_rows_missing']), 1)
         self.assertEqual(len(analysis['too_many_consecutive_rows_missing']), 1)
-
-        stop = 1
