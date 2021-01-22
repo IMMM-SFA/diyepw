@@ -76,8 +76,8 @@ def _get_max_missing_rows_from_hourly_dataframe(df:pd.DataFrame, timestamp_col_n
     missing_times = df_all_times[df_all_times.isnull().any(axis=1)]
     missing_times = missing_times['all_timestamps']
 
-    if missing_times.empty:
-        return 0
+    if missing_times.empty: # pragma: no cover - This check is good defensive programming, but in practice we don't
+        return 0            # actually call this function at all if the number of missing rows is 0
 
     # Create a series containing the time step distance from the previous timestamp for the missing timestamp values
     missing_times_diff = missing_times.diff()
