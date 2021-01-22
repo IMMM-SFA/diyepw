@@ -49,18 +49,18 @@ class Meteorology:
 
     @property
     def station_number(self):
-        return self._station_number
+        return int(self._station_number)
     @station_number.setter
     def station_number(self, station_number:int):
         if station_number < 100000 or station_number > 999999:
             raise Exception("station_number must be a six-digit number")
-        self._station_number = station_number
+        self._station_number = int(station_number)
 
     @property
     def latlong(self):
         return self._latitude, self._longitude
     @latlong.setter
-    def latlong(self, latlong:typing.Tuple[int, int]):
+    def latlong(self, latlong:typing.Tuple[float, float]):
         lat, long = latlong
 
         if abs(lat) > 90:
