@@ -1,3 +1,6 @@
+# Mac system files
+.DS_Store
+
 # pycharm
 .idea
 

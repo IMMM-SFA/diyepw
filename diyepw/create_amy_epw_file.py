@@ -254,7 +254,7 @@ def _handle_missing_values(
     :return:
     """
 
-    if missing_values is None:
+    if missing_values is None: # pragma: no cover - We don't currently have any calls that don't specify this argument
         missing_values = [np.nan]
 
     def get_indices_to_replace(df, col_name):
@@ -273,7 +273,7 @@ def _handle_missing_values(
         indices_to_replace = get_indices_to_replace(df, col_name)
 
         # There is no work to be done on this column if it has no missing data
-        if len(indices_to_replace) == 0:
+        if len(indices_to_replace) == 0: # pragma: no cover
             continue
 
         # max(..., key=len) gives us the longest sequence, then we use len() to get that sequence's length
@@ -281,7 +281,7 @@ def _handle_missing_values(
 
         # We raise an exception if a column has too many sequential missing rows; it's up to the calling
         # code to decide how we are going to handle records that can't be processed for this reason.
-        if max_sequence_length > max_to_impute:
+        if max_sequence_length > max_to_impute: # pragma: no cover - We check for this case before this function is called
             raise Exception("The longest set of missing records for {} is {}, but the max allowed is {}".format(
                 col_name, max_sequence_length, max_to_impute
             ))
