@@ -32,10 +32,10 @@ class TmyCreateAmyEpwFilesForYearsAndWmosTest(unittest.TestCase):
                     allow_downloads=True,
                     amy_epw_dir=output_dir
                 )
-                self.assertEqual(result.keys(), years)
+                self.assertEqual(list(result.keys()), years)
 
                 for year in result:
-                    self.assertEqual(result[year].keys(), wmo_indices)
+                    self.assertEqual(list(result[year].keys()), wmo_indices)
 
                     for wmo_index in result[year]:
                         for file_path in result[year][wmo_index]:
