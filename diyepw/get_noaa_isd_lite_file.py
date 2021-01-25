@@ -20,11 +20,11 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
         ncdc.noaa.gov if they are not already present in output_dir.
     :return: The path to the NOAA ISD Lite file
     """
-    if output_dir is None:
+    if output_dir is None: # pragma: no cover
         output_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_files')
         _logger.debug(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
 
-    if not os.path.exists(output_dir):
+    if not os.path.exists(output_dir): # pragma: no cover
         os.mkdir(output_dir)
         _logger.debug(f"get_noaa_isd_lite_file() - {output_dir} did not exist, so has been created")
 
@@ -48,9 +48,9 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
             with request.urlopen(url) as response:
                 with open(file_path, 'wb') as downloaded_file:
                     downloaded_file.write(response.read())
-        except URLError as e:
+        except URLError as e: # pragma: no cover
             raise Exception(f'Failed to download {url} - are you connected to the internet?')
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             raise Exception(f"Error downloading from {url}: {e}")
 
     return file_path
@@ -78,7 +78,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
         catalog_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_catalogs')
         _logger.debug(f"catalog_dir was not defined, using {catalog_dir}")
 
-    if not os.path.exists(catalog_dir):
+    if not os.path.exists(catalog_dir): # pragma: no cover
         raise Exception(f"Directory {catalog_dir} does not exist")
 
     file_path = os.path.join(catalog_dir, str(year))
