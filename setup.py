@@ -2,7 +2,7 @@
 Setup file for DIYEPW
 :author:   Amanda Smith
 :email:    amanda.d.smith@pnnl.gov
-License:  TODO: We need to determine what license to publish this project under
+License:  BSD 2-Clause, see LICENSE and DISCLAIMER files
 """
 
 import setuptools  # pragma: no cover
@@ -25,6 +25,7 @@ setuptools.setup(  # pragma: no cover
       author_email='amanda.d.smith@pnnl.gov',
       packages=setuptools.find_packages(),
       package_data={ 'diyepw': ['data/**/*', 'test/files/**/*'] },
+      license='BSD 2-Clause',
       python_requires='~=3.7',
       install_requires=get_requirements(),
       extras_require={
