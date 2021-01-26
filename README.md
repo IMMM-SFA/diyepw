@@ -5,8 +5,23 @@ of scripts (https://github.com/IMMM-SFA/diyepw-scripts) and as a Python package 
 This allows DIYEPW to be used as a command-line tool, or as a package to incorporate EPW file 
 generation into a custom script.
 
-Both workflows, and the functions provided by the package, are tools to achieve the same
-goal, which is the generation of AMY (actual meteorological year) EPW files, which is done
+# Getting Started
+The DIYEPW Python package can be easily installed using PIP:
+
+```
+pip install diyepw
+```
+
+One you've installed the package, you can access any of the DIYEPW functions or classes by importing the package
+into your own Python scripts:
+
+```
+import diyepw
+diyepw.create_amy_epw_files_for_years_and_wmos([723154, 772104], [2010, 2011, 2012])
+```
+
+# Using DIYEPW to generate AMY EPW files
+This package is a tool for the generation of AMY (actual meteorological year) EPW files, which is done
 by injecting AMY data into TMY (typical meteorological year) EPW files. The generated EPW files
 have the following fields replaced with observed data:
 
@@ -42,22 +57,6 @@ missing values that can be imputed, can be changed from their defaults. The func
 All of the functionality of the DIYEPW project is available as a set of functions that underlie the scripts 
 described above. The functions offer much more granular access to the capabilities of the project, and allow
 DIYEPW capabilites to be incorporated into other software projects.
-
-In order to install the package, simply clone the DIYEPW Git project, then use the PIP utility included with
-Python (please make sure you are using Python 3) to install the package:
-
-```
-git clone git@github.com:IMMM-SFA/diyepw.git
-pip install diyepw/lib/diyepw
-```
-
-One you've installed the package, you can access any of the DIYEPW functions or classes by importing the package
-into your own Python scripts:
-
-```
-import diyepw
-diyepw.create_amy_epw_files_for_years_and_wmos([723154, 772104], [2010, 2011, 2012])
-```
 
 The functions provided by the package are as follows:
 
