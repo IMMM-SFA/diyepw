@@ -1,7 +1,8 @@
 import unittest
 import diyepw
-import pkg_resources
+import os
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class AnalyzeNoaaIsdLiteFilesTest(unittest.TestCase):
     """
@@ -13,7 +14,7 @@ class AnalyzeNoaaIsdLiteFilesTest(unittest.TestCase):
         Confirm the correct behavior of the script when handling our set of test ISD Lite files
         """
         file_paths = map(
-            lambda file_name: pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/' + file_name),
+            lambda file_name: os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', file_name),
             [
                 'max_17_missing_rows',
                 'no_missing_rows.bz2',

@@ -1,6 +1,8 @@
 import unittest
 import diyepw
-import pkg_resources
+import os
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class AnalyzeNoaaIsdLiteFileTest(unittest.TestCase):
@@ -12,10 +14,7 @@ class AnalyzeNoaaIsdLiteFileTest(unittest.TestCase):
         """
         Confirm the correct behavior of the script when handling an ISD Lite file that has no missing rows
         """
-        isd_lite_file = pkg_resources.resource_filename(
-            'diyepw',
-            'test/files/noaa_isd_lite/uncompressed_no_missing_rows'
-        )
+        isd_lite_file = os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'uncompressed_no_missing_rows')
 
         analysis = diyepw.analyze_noaa_isd_lite_file(isd_lite_file)
         self._assert_analysis_for_no_missing_rows(analysis, isd_lite_file)
@@ -28,19 +27,13 @@ class AnalyzeNoaaIsdLiteFileTest(unittest.TestCase):
         """
 
         # Test that manually setting a compression argument works as expected
-        zip_file_path = pkg_resources.resource_filename(
-            'diyepw',
-            'test/files/noaa_isd_lite/zip_no_extension_no_missing_rows'
-        )
+        zip_file_path = os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'zip_no_extension_no_missing_rows')
         analysis = diyepw.analyze_noaa_isd_lite_file(zip_file_path, compression='zip')
         self._assert_analysis_for_no_missing_rows(analysis, zip_file_path)
 
         # Test that the default "inferred" behavior works correctly for a format other than the
         # default GZIP that is otherwise used in all our tests and scripts
-        bz2_file_path = pkg_resources.resource_filename(
-            'diyepw',
-            'test/files/noaa_isd_lite/no_missing_rows.bz2'
-        )
+        bz2_file_path = os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'no_missing_rows.bz2')
         analysis = diyepw.analyze_noaa_isd_lite_file(bz2_file_path)
         self._assert_analysis_for_no_missing_rows(analysis, bz2_file_path)
 
@@ -49,7 +42,7 @@ class AnalyzeNoaaIsdLiteFileTest(unittest.TestCase):
         Confirm correct behavior when too many rows are missing from a file. For this test we
         use a file that has only a single row defined.
         """
-        file_path = pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/only_one_row')
+        file_path = os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'only_one_row')
         analysis = diyepw.analyze_noaa_isd_lite_file(file_path)
         self.assertEqual(analysis['total_rows_missing'], 8759)
         self.assertEqual(analysis['max_consec_rows_missing'], 8759)
@@ -60,7 +53,7 @@ class AnalyzeNoaaIsdLiteFileTest(unittest.TestCase):
         of missing rows of various lengths. For this test we use a file that has lots of rows deleted,
         but the largest sequential chunk of missing rows is 17 hours long
         """
-        file_path = pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/max_17_missing_rows')
+        file_path = os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'max_17_missing_rows')
         analysis = diyepw.analyze_noaa_isd_lite_file(file_path)
         self.assertEqual(analysis['max_consec_rows_missing'], 17)
 

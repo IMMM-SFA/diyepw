@@ -1,10 +1,12 @@
 import unittest
 import diyepw
-import pkg_resources
 import random
 import tempfile
 import pvlib
 import pandas as pd
+import os
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class MeteorologyTest(unittest.TestCase):
     """
@@ -13,8 +15,7 @@ class MeteorologyTest(unittest.TestCase):
 
     def setUp(self) -> None:
         super().setUp()
-
-        tmy_file_path = pkg_resources.resource_filename('diyepw', 'test/files/TEST_TMY3.epw')
+        tmy_file_path = os.path.join(THIS_DIR, 'files', 'TEST_TMY3.epw')
         self._meteorology = diyepw.Meteorology.from_tmy3_file(tmy_file_path)
 
     def test_observation_setter(self):

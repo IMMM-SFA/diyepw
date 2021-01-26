@@ -5,7 +5,6 @@ import tempfile
 import os
 
 
-
 class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
     """
     Tests of the behavior of the get_noaa_isd_lite_file() function

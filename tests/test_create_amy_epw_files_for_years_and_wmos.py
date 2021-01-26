@@ -1,6 +1,5 @@
 import unittest
 import diyepw
-import pkg_resources
 import tempfile
 import pvlib
 import pandas as pd

@@ -1,9 +1,11 @@
 import unittest
 import diyepw
-import pkg_resources
 import tempfile
 import pvlib
 import pandas as pd
+import os
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class TmyCreateAmyEpwFileTest(unittest.TestCase):
@@ -39,8 +41,8 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
             max_records_to_impute=20,
             allow_downloads=True,
             amy_files = (
-                pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/725300-2017.gz'),
-                pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/725300-2018.gz')
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz'),
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
             )
         )
         self._validate_epw_file(file_path)
@@ -94,8 +96,8 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     amy_epw_dir=tmp_dir,
                     allow_downloads=True,
                     amy_files = (
-                        pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/725300-2017_epw_violations.gz'),
-                        pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/725300-2018.gz')
+                        os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017_epw_violations.gz'),
+                        os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
                     )
                 )
 
@@ -111,8 +113,8 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     amy_epw_dir=tmp_dir,
                     max_missing_amy_rows=15,
                     amy_files = (
-                        pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/only_one_row'),
-                        pkg_resources.resource_filename('diyepw', 'test/files/noaa_isd_lite/725300-2018.gz')
+                        os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'only_one_row'),
+                        os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
                     )
                 )
 
@@ -128,8 +130,6 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
 
             # Make sure that parse_epw() actually succeeded in creating a DataFrame instance
             self.assertIsInstance(parsed_epw, pd.DataFrame)
-
-
 
 
 if __name__ == '__main__': # pragma: no cover
