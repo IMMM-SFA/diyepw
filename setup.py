@@ -20,6 +20,7 @@ setuptools.setup(  # pragma: no cover
       version='1.0',
       description='A package offering support for generating EPW (EnergyPlus Weather) files',
       long_description=readme(),
+      long_description_content_type="text/markdown",
       url='https://github.com/IMMM-SFA/diyepw',
       author='Amanda Smith',
       author_email='amanda.d.smith@pnnl.gov',
