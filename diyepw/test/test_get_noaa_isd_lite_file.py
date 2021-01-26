@@ -9,8 +9,6 @@ import os
 class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
     """
     Tests of the behavior of the get_noaa_isd_lite_file() function
-
-    TODO: Validate the resulting ISD Lite files
     """
 
     def test_file_download(self):
@@ -26,14 +24,14 @@ class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
             with self.assertRaises(Exception):
                 diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir)
 
-            # Now pass the allow_downloads flag and check that the download behavior works correctly
-            diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir, allow_downloads=True)
-
-            # Call the same method again to exercise the shortcut in the code that will skip the download if
+            # Now pass the allow_downloads flag and check that the download behavior works correctly.
+            # Call the method twice to exercise the shortcut in the code that will skip the download if
             # the file is already present in output_dir. This is difficult to confirm (unless we wanted to verify
             # that the second call ran faster?) but can be verified by seeing in the coverage report that the
             # code branch associated with that behavior has been invoked.
-            diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir, allow_downloads=True)
+            for _ in range(2):
+                file = diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir, allow_downloads=True)
+                self._validate_isd_lite_file(file)
 
         # We need a new temp directory because we need to trigger another download attempt
         with tempfile.TemporaryDirectory() as output_dir:
@@ -47,8 +45,11 @@ class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
             with self.assertRaises(Exception):
                 diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir)
 
-            # Now call it with allow_downloads to ensure that the catalog downloads correctly
-            diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir, allow_downloads=True)
+            # Now call it with allow_downloads to ensure that the catalog downloads correctly. Here we
+            # don't have to do two calls as we did above because the "catalog already exists" shortcut
+            # will have been exercised by at least one of the two calls in the above loop, if not both.
+            file = diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir, allow_downloads=True)
+            self._validate_isd_lite_file(file)
 
     def test_argument_validation(self):
         """
@@ -64,6 +65,18 @@ class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
         for args in invalid_args:
             with self.assertRaises(Exception):
                 diyepw.get_tmy_epw_file(**args)
+
+    def _validate_isd_lite_file(self, file_path:str):
+        """Perform some assertions on a file to verify that it is a valid ISD Lite file"""
+
+        # analyze_noaa_isd_lite_file() interacts with the contents of a file deeply enough
+        # to serve as a good approximation for validating that the file is well-formatted,
+        # since the function will raise an Exception if it's unable to read data from the
+        # file due to it being incorrectly formatted.
+        analysis = diyepw.analyze_noaa_isd_lite_file(file_path)
+        for field_name in ['file', 'total_rows_missing', 'max_consec_rows_missing']:
+            self.assertIn(field_name, analysis)
+        self.assertEqual(analysis['file'], file_path)
 
 if __name__ == '__main__': # pragma: no cover
     unittest.main()
