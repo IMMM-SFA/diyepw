@@ -34,9 +34,7 @@ If a gap exists in the data that is larger than the maximum allowed for the impu
 rejected and no EPW file will be generated.
 
 The maximum number of missing values that the interpolation strategy will be used for, and the maximum number of
-missing values that can be imputed, can be changed from their defaults. In the scripts, `create_amy_epw_files.py`
-and `create_amy_epw_files_for_years_and_wmos.py`, that generate EPW files, the options `--max-records-to-interpolate`
-and `--max-records-to-impute` can be set to override the defaults. The related package functions, 
+missing values that can be imputed, can be changed from their defaults. The functions that generate EPW files, 
 `create_amy_epw_file()` and `create_amy_epw_files_for_years_and_wmos()`, both accept the optional arguments
 `max_records_to_interpolate` and `max_records_to_impute`, which likewise override the defaults of 6 and 48.
   
