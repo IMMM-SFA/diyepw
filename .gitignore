@@ -25,3 +25,7 @@ htmlcov/
 
 # Never ignore README files
 !README.md
+
+# Files generated during package deployment
+build
+dist

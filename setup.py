@@ -5,7 +5,7 @@ Setup file for DIYEPW
 License:  BSD 2-Clause, see LICENSE and DISCLAIMER files
 """
 
-import setuptools  # pragma: no cover
+import setuptools  # pragma: no coverU
 
 def readme():
     with open('README.md') as f:
@@ -13,7 +13,7 @@ def readme():
 
 setuptools.setup(  # pragma: no cover
       name='diyepw',
-      version='1.0',
+      version='1.0.2',
       description='A package offering support for generating EPW (EnergyPlus Weather) files',
       long_description=readme(),
       long_description_content_type="text/markdown",
