@@ -11,10 +11,6 @@ def readme():
     with open('README.md') as f:
         return f.read()
 
-def get_requirements():
-    with open('requirements.txt') as f:
-        return f.read().split()
-
 setuptools.setup(  # pragma: no cover
       name='diyepw',
       version='1.0',
@@ -28,7 +24,10 @@ setuptools.setup(  # pragma: no cover
       package_data={ 'diyepw': ['data/**/*', 'test/files/**/*'] },
       license='BSD 2-Clause',
       python_requires='~=3.7',
-      install_requires=get_requirements(),
+      install_requires= [
+          'xarray~=0.16.2',
+          'numpy~=1.19.2'
+      ],
       extras_require={
           'dev': [
               'pvlib~=0.8.1'
