@@ -40,7 +40,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
             max_records_to_interpolate=2, # Intentionally very low so that imputation code gets exercised
             max_records_to_impute=20,
             allow_downloads=True,
-            amy_files = (
+            amy_input_files = (
                 os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz'),
                 os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
             )
@@ -59,8 +59,8 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                 2018,
                 max_records_to_interpolate=5,
                 max_records_to_impute=20,
-                amy_dir="some_dir",
-                amy_files=("some_file", "some_other_file")
+                amy_input_dir="some_dir",
+                amy_input_files=("some_file", "some_other_file")
             )
 
         # If amy_files is used to define the current and next year AMY input files, then
@@ -73,7 +73,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     2018,
                     max_records_to_interpolate=5,
                     max_records_to_impute=20,
-                    amy_files=(tmp_file.name, "some_other_file")
+                    amy_input_files=(tmp_file.name, "some_other_file")
                 )
             with self.assertRaises(Exception):
                 diyepw.create_amy_epw_file(
@@ -81,7 +81,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     2018,
                     max_records_to_interpolate=5,
                     max_records_to_impute=20,
-                    amy_files=("some_file", tmp_file.name)
+                    amy_input_files=("some_file", tmp_file.name)
                 )
 
         # An otherwise valid call, passed inputs into which we have injected values that would result in an invalid EPW
@@ -93,9 +93,9 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     2017,
                     max_records_to_interpolate=5,
                     max_records_to_impute=20,
-                    amy_epw_dir=tmp_dir,
+                    amy_epw_output_dir=tmp_dir,
                     allow_downloads=True,
-                    amy_files = (
+                    amy_input_files=(
                         os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017_epw_violations.gz'),
                         os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
                     )
@@ -110,9 +110,9 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     2017,
                     max_records_to_interpolate=5,
                     max_records_to_impute=20,
-                    amy_epw_dir=tmp_dir,
+                    amy_epw_output_dir=tmp_dir,
                     max_missing_amy_rows=15,
-                    amy_files = (
+                    amy_input_files = (
                         os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'only_one_row'),
                         os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
                     )
