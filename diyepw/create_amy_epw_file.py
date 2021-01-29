@@ -108,8 +108,7 @@ def create_amy_epw_file(
         return amy_epw_output_file_path
 
     amy_df = _get_amy_df(
-        amy_input_file_path,
-        amy_input_next_year_file_path,
+        (amy_input_file_path, amy_input_next_year_file_path),
         meteorology.elevation,
         meteorology.timezone_gmt_offset,
         year
@@ -149,7 +148,7 @@ def create_amy_epw_file(
 
     return amy_epw_output_file_path
 
-def _get_amy_df(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int) -> _pd.DataFrame:
+def _get_amy_df(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int) -> pd.DataFrame:
     """
     Generate a DataFrame that contains a set of values to be substituted into a TMY EPW file in order to
     generate an AMY EPW file. Currently supports the following file types, which must have the indicated
@@ -164,7 +163,7 @@ def _get_amy_df(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:i
         hours the evening of December 31.
     :return: A DataFrame with the following fields:
     """
-    extensions = [_os.path.splitext(fp)[1] for fp in file_paths]
+    extensions = [ os.path.splitext(fp)[1] for fp in file_paths ]
     if extensions[0] != extensions[1]:
         raise Exception(f"File paths do not have the same extension: {file_paths}")
 
@@ -184,9 +183,9 @@ def _get_amy_df_for_tmy3_epw(file_paths:Tuple[str, str], elevation:int, timezone
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
     # used to populate the last hours of the year because of the time shift that we perform, which moves the first
     # hours of January 1 into the final hours of December 31.
-    amy_df = _pd.read_csv(file_paths[0], delim_whitespace=True, header=None)
-    amy_next_year_df = _pd.read_csv(file_paths[1], delim_whitespace=True, header=None, nrows=23)
-    amy_df = _pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
+    amy_df = pd.read_csv(file_paths[0], delim_whitespace=True, header=None)
+    amy_next_year_df = pd.read_csv(file_paths[1], delim_whitespace=True, header=None, nrows=23)
+    amy_df = pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
 
     amy_df = _set_noaa_df_columns(amy_df)
     amy_df = _create_timestamp_index_for_noaa_df(amy_df)
@@ -208,6 +207,7 @@ def _get_amy_df_for_tmy3_epw(file_paths:Tuple[str, str], elevation:int, timezone
     return amy_df
 
 def _get_amy_df_for_wrf_netcdf(filepaths:Tuple[str, str]):
+    pass
 
 def _set_noaa_df_columns(df:pd.DataFrame) -> pd.DataFrame:
     """Add headings to a NOAA ISD Lite formatted dataframe, and Drop columns for observations
