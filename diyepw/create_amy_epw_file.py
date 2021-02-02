@@ -30,7 +30,7 @@ def create_amy_epw_file(
         amy_input_dir:str = None,
         amy_input_files:Tuple[str, str] = None,
         allow_downloads:bool = False,
-        file_type:str = "tmy3"
+        amy_file_type:str = "tmy3"
 ) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
@@ -63,7 +63,7 @@ def create_amy_epw_file(
     :param allow_downloads: If this is set to True, then any missing TMY or AMY files required to generate the
         requested AMY EPW file will be downloaded from publicly available online catalogs. Otherwise, those files
         being missing will result in an error being raised.
-    :param file_type: The format of the AMY files. Either "wrf_netcdf" or "tmy3". If this is "wrf_netcdf", then the
+    :param amy_file_type: The format of the AMY files. Either "wrf_netcdf" or "tmy3". If this is "wrf_netcdf", then the
         files must be present in amy_input_dir, or the files must be explicitly set using amy_files, because there is
         no handling for automatic downloads of WRF NetCDF files.
     :return: The absolute path of the generated AMY EPW file
@@ -71,7 +71,7 @@ def create_amy_epw_file(
 
     if amy_input_dir is not None and amy_input_files is not None:
         raise Exception("It is not possible to specify both amy_dir and amy_files")
-    if file_type == 'wrf_netcdf' and allow_downloads is True:
+    if amy_file_type == 'wrf_netcdf' and allow_downloads is True:
         raise Exception(
             "If file_type is 'wrf_netcdf', you cannot pass allow_downloads=True, because the DIYEPW package cannot "
             "automatically download wrf_netcdf files from an online repository"
@@ -121,7 +121,7 @@ def create_amy_epw_file(
         meteorology.elevation,
         meteorology.timezone_gmt_offset,
         year,
-        file_type
+        amy_file_type
     )
 
     # TODO: analyze_noaa_isd_lite_file() needs to be rewritten to take the amy_df as an argument instead, so that
