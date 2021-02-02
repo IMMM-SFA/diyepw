@@ -26,10 +26,11 @@ def create_amy_epw_file(
         max_records_to_impute:int,
         max_missing_amy_rows:int = None,
         amy_epw_output_dir:str = None,
-        tmy_epw_input_dir:str =None,
+        tmy_epw_input_dir:str = None,
         amy_input_dir:str = None,
         amy_input_files:Tuple[str, str] = None,
-        allow_downloads:bool = False
+        allow_downloads:bool = False,
+        file_type:str = "tmy3"
 ) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
@@ -62,11 +63,19 @@ def create_amy_epw_file(
     :param allow_downloads: If this is set to True, then any missing TMY or AMY files required to generate the
         requested AMY EPW file will be downloaded from publicly available online catalogs. Otherwise, those files
         being missing will result in an error being raised.
+    :param file_type: The format of the AMY files. Either "wrf_netcdf" or "tmy3". If this is "wrf_netcdf", then the
+        files must be present in amy_input_dir, or the files must be explicitly set using amy_files, because there is
+        no handling for automatic downloads of WRF NetCDF files.
     :return: The absolute path of the generated AMY EPW file
     """
 
     if amy_input_dir is not None and amy_input_files is not None:
         raise Exception("It is not possible to specify both amy_dir and amy_files")
+    if file_type == 'wrf_netcdf' and allow_downloads is True:
+        raise Exception(
+            "If file_type is 'wrf_netcdf', you cannot pass allow_downloads=True, because the DIYEPW package cannot "
+            "automatically download wrf_netcdf files from an online repository"
+        )
 
     if amy_epw_output_dir is None:
         global _tempdir_amy_epw
@@ -111,10 +120,12 @@ def create_amy_epw_file(
         (amy_input_file_path, amy_input_next_year_file_path),
         meteorology.elevation,
         meteorology.timezone_gmt_offset,
-        year
+        year,
+        file_type
     )
 
-    # TODO: analyze_noaa_isd_lite_file() needs to be rewritten to take the amy_df as an argument instead
+    # TODO: analyze_noaa_isd_lite_file() needs to be rewritten to take the amy_df as an argument instead, so that
+    # it can validate the dataframe regardless of what format the input files are in
     if max_missing_amy_rows is not None:
         amy_input_file_analysis = analyze_noaa_isd_lite_file(amy_input_file_path)
         if amy_input_file_analysis['total_rows_missing'] > max_missing_amy_rows:
@@ -148,35 +159,25 @@ def create_amy_epw_file(
 
     return amy_epw_output_file_path
 
-def _get_amy_df(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int) -> pd.DataFrame:
+def _get_amy_df(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int, file_type:str) -> pd.DataFrame:
     """
     Generate a DataFrame that contains a set of values to be substituted into a TMY EPW file in order to
-    generate an AMY EPW file. Currently supports the following file types, which must have the indicated
-    extensions:
+    generate an AMY EPW file.
 
-        .nc or .nc4: A WRF NetCDF file
-        .epw: A TMY3 EPW file
-
-    :param file_paths: The paths to the AMY file to be opened. The first path must point to the AMY file for the year
+    :param file_paths: The paths to the AMY files to be opened. The first path must point to the AMY file for the year
         to be examined, and the second path to the AMY file for the subsequent year. This is necessary because we
         retrieve data from January 1 of the subsequent year to allow for time-zone shifting without leaving empty
         hours the evening of December 31.
+    :param file_type: One of "wrf_netcdf" or "tmy3"
     :return: A DataFrame with the following fields:
     """
-    extensions = [ os.path.splitext(fp)[1] for fp in file_paths ]
-    if extensions[0] != extensions[1]:
-        raise Exception(f"File paths do not have the same extension: {file_paths}")
-
-    extension = extensions[0]
-    if extension in ["nc", "nc4"]:
-        # Treat file as a WRF NetCDF file
+    if file_type == 'wrf_netcdf':
         return _get_amy_df_for_wrf_netcdf(file_paths)
 
-    elif extension == "epw":
-        # Treat file as a TMY3 EPW file
+    elif file_type == "tmy3":
         return _get_amy_df_for_tmy3_epw(file_paths, elevation, timezone_gmt_offset, year)
 
-    raise Exception(f"Unexpected file extension for files {file_paths}, expected .nc, .nc4, or .epw")
+    raise Exception(f"Unexpected value, '{file_type}', of file_type")
 
 def _get_amy_df_for_tmy3_epw(file_paths:Tuple[str, str], elevation:int, timezone_gmt_offset:int, year:int):
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
@@ -194,7 +195,8 @@ def _get_amy_df_for_tmy3_epw(file_paths:Tuple[str, str], elevation:int, timezone
     amy_df['Station_Pressure'] = None
 
     # Convert sea level pressure in NOAA df to atmospheric station pressure in Pa.
-    for index in amy_df.index:
+    # -9999 represents a missing value, so rows with this value are not converted
+    for index in amy_df[amy_df["Sea_Level_Pressure"] != -9999].index:
         stp = _convert_sea_level_pressure_to_station_pressure(amy_df['Sea_Level_Pressure'][index], elevation)
         amy_df.loc[index, 'Station_Pressure'] = stp
 
