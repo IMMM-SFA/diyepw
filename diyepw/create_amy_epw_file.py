@@ -365,7 +365,7 @@ def _handle_missing_values(
                     replacement_value_index += imputation_step
 
                 # Take the mean of the values pulled. Will ignore NaNs.
-                df[col_name][index_to_impute] = pd.Series(replacement_values, dtype=np.float64).mean()
+                df.loc[index_to_impute, col_name] = pd.Series(replacement_values, dtype=np.float64).mean()
 
     # Perform interpolation on any remaining missing values. At this point we know that there are no
     # sequences larger than the max permitted for interpolation, because they would have been imputed
