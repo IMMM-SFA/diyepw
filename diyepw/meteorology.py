@@ -22,7 +22,45 @@ class Meteorology:
             from GMT
         _elevation - float - The elevation at which the data was observed in meters above sea level
         _comment - str - A comment string describing the TMY file
-        _observations - DataFrame - Data representing the year's observations
+        _observations - DataFrame - Data representing the year's observations. Contains the following fields. More
+            information about each field can be found at
+            https://bigladdersoftware.com/epx/docs/8-3/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html
+
+            year
+            month
+            day
+            hour
+            minute
+            Flags - Data source and uncertainty flags
+            Tdb - Dry bulb temperature
+            Tdew - Dewpoint temperature
+            RH - Relative humidity
+            Patm - Atmospheric pressure
+            ExHorRad - Extraterrestrial horizontal radiation
+            ExDirNormRad - Extraterrestrial direct normal radiation
+            HorIR - Horizontal Infrared Radiation Intensity
+            GHRad - Global Horizontal Radiation
+            DNRad - Direct normal radiation
+            DHRad - Diffuse Horizontal Radiation
+            GHIll - Global Horizontal Illuminance
+            DNIll - Direct Normal Illuminance
+            DHIll - Diffuse Horizontal Illuminance
+            ZenLum - Zenith Luminance
+            Wdir - Wind direction
+            Wspeed - Wind speed
+            TotSkyCover - Total Sky Cover
+            OpSkyCover - Opaque sky cover
+            Visib - Visibility
+            CeilH - Ceiling Height
+            PresWeathObs - Present Weather Observation
+            PresWeathCodes - Present Weather Codes
+            PrecWater - Precipitable Water
+            AerOptDepth - Aerosol Optical Depth
+            SnowDepth - Snow Depth
+            DSLS - Days Since Last Snowfall
+            Albedo - Albedo
+            LiqPrecDepth - Liquid Precipitation Depth
+            LiqPrecQuant - Liquid Precipitation Quantity
     """
 
     _RANGES = {
@@ -253,82 +291,6 @@ class Meteorology:
         })
 
         return instance
-
-    @staticmethod
-    def from_netcdf_file(file_path:str):
-        """
-        Create an instance of this class based on a tmy3 file
-
-        :param file_path: Path to a TMY file. For the definition of a tmy3 file,
-        see https://www.nrel.gov/docs/fy08osti/43156.pdf
-        :return:
-        """
-        instance = Meteorology()
-        ds = xarray.open_dataset(file_path)
-
-        print("ds:")
-        for key in ds.variables:
-            print(key)
-
-        ds_sub1 = ds.where(ds.PRES != np.NAN)
-        ds_subset = ds_sub1.sel(lat=25.063) # Consider using "method='nearest', tolerance='???' to resolve to the closest lat/long to a weather station's location
-
-        stop = 1
-
-        instance._city = "TODO"
-        instance._state = "TODO"
-        instance._country = "TODO"
-        instance._station_number = "TODO"
-        instance._latitude = -1.
-        instance._longitude = -1.
-        instance._timezone_gmt_offset = -1
-        instance._elevation = 1.
-
-        instance._comment = "TODO"
-
-        ############################
-        # Read TMY3 data
-        ############################
-        data = np.genfromtxt(file_path, delimiter=',', skip_header=8)
-        instance._observations = pd.DataFrame(data={
-            "year":           [ int(i) for i in data[:, 0] ],
-            "month":          [ int(i) for i in data[:, 1] ],
-            "day":            [ int(i) for i in data[:, 2] ],
-            "hour":           [ int(i) for i in data[:, 3] ],
-            "minute":         [ int(i) for i in data[:, 4] ],
-            "Tdb":            data[:, 6],
-            "Tdew":           data[:, 7],
-            "RH":             data[:, 8],
-            "Patm":           data[:, 9],
-            "ExHorRad":       data[:, 10],
-            "ExDirNormRad":   data[:, 11],
-            "HorIR":          data[:, 12],
-            "GHRad":          data[:, 13],
-            "DNRad":          data[:, 14],
-            "DHRad":          data[:, 15],
-            "GHIll":          data[:, 16],
-            "DNIll":          data[:, 17],
-            "DHIll":          data[:, 18],
-            "ZenLum":         data[:, 19],
-            "Wdir":           data[:, 20],
-            "Wspeed":         data[:, 21],
-            "TotSkyCover":    data[:, 22],
-            "OpSkyCover":     data[:, 23],
-            "Visib":          data[:, 24],
-            "CeilH":          data[:, 25],
-            "PresWeathObs":   data[:, 26],
-            "PresWeathCodes": data[:, 27],
-            "PrecWater":      data[:, 28],
-            "AerOptDepth":    data[:, 29],
-            "SnowDepth":      data[:, 30],
-            "DSLS":           data[:, 31],
-            "Albedo":         data[:, 32],
-            "LiqPrecDepth":   data[:, 33],
-            "LiqPrecQuant":   data[:, 34]
-        })
-
-        return instance
-
 
     def validate_against_epw_rules(self) -> list:
         """
