@@ -5,8 +5,8 @@ from .create_amy_epw_file import create_amy_epw_file
 from ._logging import _logger
 
 def create_amy_epw_files_for_years_and_wmos(
-        wmo_indices: List[int],
         years: List[int],
+        wmo_indices: List[int],
 
         *,
         max_records_to_interpolate: int,
