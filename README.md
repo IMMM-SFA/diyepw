@@ -17,7 +17,14 @@ into your own Python scripts:
 
 ```
 import diyepw
-diyepw.create_amy_epw_files_for_years_and_wmos([723154, 772104], [2010, 2011, 2012])
+diyepw.create_amy_epw_files_for_years_and_wmos(
+    [724940, 725300], 
+    [2010, 2011, 2012], 
+    max_records_to_interpolate=10, 
+    max_records_to_impute=25, 
+    max_missing_amy_rows=5, 
+    allow_downloads=True
+)
 ```
 
 # Using DIYEPW to generate AMY EPW files
