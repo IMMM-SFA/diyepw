@@ -23,10 +23,10 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
         # in code coverage.
         for _ in range(2):
             file_path = diyepw.create_amy_epw_file(
-                702913,
+                702910,
                 2018,
                 max_records_to_interpolate=5,
-                max_records_to_impute=20,
+                max_records_to_impute=40,
                 allow_downloads=True
             )
             self._validate_epw_file(file_path)
