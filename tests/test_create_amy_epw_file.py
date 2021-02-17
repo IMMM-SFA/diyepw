@@ -47,6 +47,22 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
         )
         self._validate_epw_file(file_path)
 
+    def test_leap_year(self):
+        """Test that an AMY EPW file can be generated for a leap year, which is an issue because the
+           TMY files we use have the number of hours for a non-leap year, which causes size mismatches
+           when mapping AMY data onto the TMY EPW file without special handling"""
+        file_path = diyepw.create_amy_epw_file(
+            724940,
+            2016,
+            max_records_to_interpolate=2,
+            max_records_to_impute=20,
+            allow_downloads=True,
+            amy_files = (
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz'),
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
+            )
+        )
+        self._validate_epw_file(file_path)
 
     def test_validation_errors(self):
         """Verify that invalid inputs result in errors as expected"""
