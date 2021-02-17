@@ -35,7 +35,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
         """Test the use case that the caller specifies AMY files to be used instead of allowing these
            to be determined automatically"""
         file_path = diyepw.create_amy_epw_file(
-            724940,
+            725300,
             2017,
             max_records_to_interpolate=2, # Intentionally very low so that imputation code gets exercised
             max_records_to_impute=20,
@@ -52,14 +52,14 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
            TMY files we use have the number of hours for a non-leap year, which causes size mismatches
            when mapping AMY data onto the TMY EPW file without special handling"""
         file_path = diyepw.create_amy_epw_file(
-            703710,
+            725300,
             2016,
             max_records_to_interpolate=2,
             max_records_to_impute=20,
             allow_downloads=True,
             amy_files = (
-                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz'),
-                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2016.gz'),
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz')
             )
         )
         self._validate_epw_file(file_path)
