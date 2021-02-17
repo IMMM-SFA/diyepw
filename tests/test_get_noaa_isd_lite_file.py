@@ -50,21 +50,6 @@ class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
             file = diyepw.get_noaa_isd_lite_file(wmo_index, year, output_dir=output_dir, allow_downloads=True)
             self._validate_isd_lite_file(file)
 
-    def test_argument_validation(self):
-        """
-        Ensure that the get_tmy_epw_file() method correctly handles invalid arguments
-        """
-
-        invalid_args = [
-            { "wmo_index": "banana" }, # Invalid WMO index
-            { "wmo_index": "777777" }, # Nonexistent WMO index
-            { "wmo_index": "722016", 'output_dir': '08jtounaksnfehurousoejfowijf' } # Nonexistent output directory
-        ]
-
-        for args in invalid_args:
-            with self.assertRaises(Exception):
-                diyepw.get_tmy_epw_file(**args)
-
     def _validate_isd_lite_file(self, file_path:str):
         """Perform some assertions on a file to verify that it is a valid ISD Lite file"""
 
