@@ -23,7 +23,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
         # in code coverage.
         for _ in range(2):
             file_path = diyepw.create_amy_epw_file(
-                724940,
+                702913,
                 2018,
                 max_records_to_interpolate=5,
                 max_records_to_impute=20,
@@ -52,7 +52,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
            TMY files we use have the number of hours for a non-leap year, which causes size mismatches
            when mapping AMY data onto the TMY EPW file without special handling"""
         file_path = diyepw.create_amy_epw_file(
-            724940,
+            703710,
             2016,
             max_records_to_interpolate=2,
             max_records_to_impute=20,
