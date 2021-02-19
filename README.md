@@ -17,7 +17,14 @@ into your own Python scripts:
 
 ```
 import diyepw
-diyepw.create_amy_epw_files_for_years_and_wmos([723154, 772104], [2010, 2011, 2012])
+diyepw.create_amy_epw_files_for_years_and_wmos(
+    [2010, 2011, 2012],
+    [724940, 725300], 
+    max_records_to_interpolate=10, 
+    max_records_to_impute=25, 
+    max_missing_amy_rows=5, 
+    allow_downloads=True
+)
 ```
 
 # Using DIYEPW to generate AMY EPW files
@@ -60,16 +67,15 @@ DIYEPW capabilites to be incorporated into other software projects.
 
 The functions provided by the package are as follows:
 
-`analyze_noaa_isd_lite_file()` - Performs an analysis of a single NOAA ISD Lite file to determine whether it is suitable
+- `analyze_noaa_isd_lite_file()` - Performs an analysis of a single NOAA ISD Lite file to determine whether it is suitable
     for use in generating an AMY EPW file.
-`analyze_noaa_isd_lite_files()` - Performs an analysis of a set of NOAA ISD Lite files to determine whether they are
+- `analyze_noaa_isd_lite_files()` - Performs an analysis of a set of NOAA ISD Lite files to determine whether they are
     suitable for use in generating AMY EPW files. This function is equivalent to the `analyze_noaa_data.py` script.
-`create_amy_epw_file()` - Creates a single AMY EPW file for a given year and WMO index.
-`create_amy_epw_files_for_years_and_wmos()` - Creates a set of AMY EPW files for a set of years and WMO indices. This
-    function is equivalent to the `create_amy_epw_files_for_years_and_wmos.py` script.
-`get_noaa_isd_lite_file()` - Downloads a NOAA ISD Lite file from the NOAA online catalog for a given year and WMO index
-`get_tmy_epw_file()` - Downloads a TMY EPW file from the EnergyPlus online catalog for a given WMO index
-`get_wmo_station_location()` - Retrieves the state and county associated with a weather station
+- `create_amy_epw_file()` - Creates a single AMY EPW file for a given year and WMO index.
+- `create_amy_epw_files_for_years_and_wmos()` - Creates a set of AMY EPW files for a set of years and WMO indices.
+- `get_noaa_isd_lite_file()` - Downloads a NOAA ISD Lite file from the NOAA online catalog for a given year and WMO index
+- `get_tmy_epw_file()` - Downloads a TMY EPW file from the EnergyPlus online catalog for a given WMO index
+- `get_wmo_station_location()` - Retrieves the state and county associated with a weather station
 
 The classes provided by the package are as follows:
 

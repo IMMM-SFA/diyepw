@@ -1,12 +1,12 @@
 import pandas as pd
 import os
 from typing import List, Tuple
-from .create_amy_epw_file import create_amy_epw_file
+from .create_amy_epw_file import create_amy_epw_file, _tempdir_amy_epw
 from ._logging import _logger
 
 def create_amy_epw_files_for_years_and_wmos(
-        wmo_indices: List[int],
         years: List[int],
+        wmo_indices: List[int],
 
         *,
         max_records_to_interpolate: int,
@@ -47,7 +47,7 @@ def create_amy_epw_files_for_years_and_wmos(
 
     # Initialize the df to hold information about year/WMO Index combinations for which no EPW could be generated
     errors = pd.DataFrame(columns=['year', 'wmo_index', 'error'])
-    errors_path = os.path.join(amy_epw_dir, "errors.csv")
+    errors_path = os.path.join(amy_epw_dir if amy_epw_dir else _tempdir_amy_epw, "errors.csv")
 
     for year in years:
         for wmo_index in wmo_indices:

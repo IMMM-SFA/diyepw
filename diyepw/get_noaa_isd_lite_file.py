@@ -57,7 +57,12 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
 
 def _get_noaa_isd_lite_file_url(year:int, wmo_index:int, allow_downloads:bool) -> str:
     catalog = _get_noaa_isd_lite_file_catalog(year, allow_downloads=allow_downloads)
-    file_name = list(catalog.loc[catalog['wmo_index'] == wmo_index]['file_name'])[0]
+    wmo_index_row = catalog.loc[catalog['wmo_index'] == wmo_index]
+
+    if len(wmo_index_row) == 0:
+        raise Exception(f"Invalid WMO Inex: The NOAA ISD Lite catalog does not contain an entry for WMO Index {wmo_index}")
+
+    file_name = wmo_index_row['file_name'].iloc[0]
     return f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/{file_name}"
 
 def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloads:bool = False) -> pd.DataFrame:

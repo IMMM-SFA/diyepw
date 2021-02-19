@@ -9,6 +9,7 @@ import numpy as np
 import os
 import pkg_resources
 from typing import Tuple
+from calendar import isleap
 
 from ._logging import _logger
 
@@ -108,6 +109,32 @@ def create_amy_epw_file(
     tmy_input_epw_file_path = get_tmy_epw_file(wmo_index, tmy_epw_input_dir, allow_downloads=allow_downloads)
     meteorology = Meteorology.from_tmy3_file(tmy_input_epw_file_path)
 
+    # If the year we are generating an AMY EPW for is a leap year, then we need to add the leap day to the TMY data.
+    # We'll do that by adding the day with all empty values, then using the same routine we do to interpolate/impute
+    # missing data in our AMY files to fill in the missing data.
+    if isleap(year):
+        _logger.debug(f"{year} is a leap year, using the interpolation strategy to populate TMY data for Feb. 29")
+        for hour in range(1, 25):
+            col_names = meteorology.observations.columns.to_list()
+            new_row_vals = [1982, 2, 29, hour, 0]
+            new_row_vals.extend(np.repeat(np.nan, len(col_names) - len(new_row_vals)))
+            new_row = pd.DataFrame([new_row_vals], columns=col_names)
+            meteorology.observations = meteorology.observations.append(new_row)
+
+        # We sort by month, day and hour. We do *not* sort by year, because the year column doesn't matter and because
+        # it is in any case not consistent throughout a TMY data set
+        meteorology.observations = meteorology.observations.sort_values(by=["month", "day", "hour"])
+
+        _handle_missing_values(
+            meteorology.observations,
+            max_to_interpolate=0, # We only want the imputation strategy to be used for the 24 missing hours
+            max_to_impute=24,
+            step=1,
+            imputation_range=14 * 24, # Two weeks, in hours
+            imputation_step=24,
+            ignore_columns=["Flags"] # The TMY files we use seem to be missing data for this field entirely
+        )
+
     amy_epw_output_file_name = f"{meteorology.country}_{meteorology.state}_{meteorology.city}.{meteorology.station_number}_AMY_{year}.epw"
     amy_epw_output_file_name = amy_epw_output_file_name.replace(" ", "-")
     amy_epw_output_file_path = os.path.join(amy_epw_output_dir, amy_epw_output_file_name)
@@ -124,8 +151,6 @@ def create_amy_epw_file(
         amy_file_type
     )
 
-    # TODO: analyze_noaa_isd_lite_file() needs to be rewritten to take the amy_df as an argument instead, so that
-    # it can validate the dataframe regardless of what format the input files are in
     if max_missing_amy_rows is not None:
         amy_input_file_analysis = analyze_noaa_isd_lite_file(amy_input_file_path)
         if amy_input_file_analysis['total_rows_missing'] > max_missing_amy_rows:
@@ -267,7 +292,7 @@ def _map_noaa_df_to_year(df, year):
 
 def _handle_missing_values(
         df:pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
-        imputation_range, imputation_step, missing_values:list=None
+        imputation_range, imputation_step, missing_values:list=None, ignore_columns=[]
 ):
     """
     Look for missing values in a DataFrame. If possible, the missing values will be
@@ -302,6 +327,8 @@ def _handle_missing_values(
       in the imputation strategy above.
     :param missing_values: Values matching any value in this list will be treated as missing. If not
       passed, defaults to numpy.nan
+    :param ignore_columns: Columns listed here will be skipped; their data will be left unchanged, and
+      no checks will be made of whether they are missing overly large segments of values.
     :return:
     """
 
@@ -316,11 +343,14 @@ def _handle_missing_values(
         )
         return indices_to_replace
 
-    # For simplicity's sake, set all missing values to NAN up front
-    for col_name in df:
-        df.loc[df[col_name].isin(missing_values), col_name] = np.nan
+    for col_name in (c for c in df if c not in ignore_columns):
 
-    for col_name in df:
+        # TODO: This is the line that is breaking the dates. It seems like we dodged the bullet here for this long
+        #   just because we always converted the date fields into an index before we added interpolating for the
+        #   leap day data
+        if df[col_name].isin(missing_values).any():
+            df.loc[df[col_name].isin(missing_values), col_name] = np.nan
+
         indices_to_replace = get_indices_to_replace(df, col_name)
 
         # There is no work to be done on this column if it has no missing data
@@ -367,11 +397,11 @@ def _handle_missing_values(
                 # Take the mean of the values pulled. Will ignore NaNs.
                 df.loc[index_to_impute, col_name] = pd.Series(replacement_values, dtype=np.float64).mean()
 
-    # Perform interpolation on any remaining missing values. At this point we know that there are no
-    # sequences larger than the max permitted for interpolation, because they would have been imputed
-    # or caused an exception (if larger than the imputation limit), so we can just call interpolate()
-    # on anything that is still missing.
-    df.interpolate(inplace=True)
+        # Perform interpolation on any remaining missing values. At this point we know that there are no
+        # sequences larger than the max permitted for interpolation, because they would have been imputed
+        # or caused an exception (if larger than the imputation limit), so we can just call interpolate()
+        # on anything that is still missing.
+        df[col_name].interpolate(inplace=True)
 
 def _split_list_into_contiguous_segments(l:list, step):
     """

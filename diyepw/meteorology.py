@@ -149,6 +149,9 @@ class Meteorology:
     @property
     def observations(self):
         return self._observations
+    @observations.setter
+    def observations(self, observations:int):
+        self._observations = observations
 
     def set(self, column_name:str, val):
         """
