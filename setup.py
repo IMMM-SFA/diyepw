@@ -30,7 +30,10 @@ setuptools.setup(  # pragma: no cover
       ],
       extras_require={
           'dev': [
-              'pvlib~=0.8.1'
+              'pvlib~=0.8.1',
+              'recommonmark~=0.7.1',
+              'sphinx~=3.5.1',
+              'sphinx-rtd-theme~=0.5.1'
           ]
       }
 )
