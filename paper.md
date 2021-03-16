@@ -1,10 +1,12 @@
 title: 'DIY EPW: A Python package for Do-It-Yourself EnergyPlus Weather files'
+
 tags:
   - Python
   - EnergyPlus
   - building energy modeling
   - weather data
   - meteorological year
+ 
 authors:
   - name: Amanda D. Smith^[Corresponding author: https://energyenvironment.pnnl.gov/staff/staff_info.asp?staff_num=3681]
     orcid: 0000-0003-2990-2190
@@ -13,12 +15,15 @@ authors:
     affiliation: 2
   - name: Travis Thurber
   - name: Chris Vernon
+ 
 affiliations:
  - name: Pacific Northwest National Laboratory, Richland, WA, USA
    index: 1
  - name: Institution Name
    index: 2
+   
 date: 2021-03-16
+
 bibliography: paper.bib
 
 ---
