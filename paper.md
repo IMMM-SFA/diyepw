@@ -84,7 +84,7 @@ DIY EPW is inspired by the Local Actual Meteorological Year File (LAF) app \cite
 - LAF is no longer developed or maintained.
 - LAF is not directly extensible to other sources of weather data, such as the NOAA ISD Lite format used here.
 
-DIY EPW was inspired by LAF and shares one author in common (@amandadsmith). DIY EPW has adapted functionality for reading and writing EPWs from code developed by @carlobianchi89.
+DIY EPW was inspired by LAF and shares one author in common, [@amandadsmith](https://github.com/amandadsmith). DIY EPW has adapted functionality for reading and writing EPWs from code developed by [@carlobianchi89].
 
 Other resources exist for obtaining weather files, but the raw data used is typically not available, the process for producing the EPWs is not fully documented and reproducible, and they are often paid products. DIY EPW is available free and open-source, so that the user does not need to pay for each individual weather file and has the ability to see exactly how the file was constructed.
 
