@@ -11,7 +11,8 @@ authors:
     orcid: 0000-0003-2990-2190
     affiliation: "1" # (Multiple affiliations must be quoted)
   - name: Benjamin St\"urmer
-    affiliation: 2
+    orcid: 0000-0003-2007-929X
+    affiliation: 1
   - name: Travis Thurber
     orcid: 0000-0002-4370-9971
     affiliation: 1
