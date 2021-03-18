@@ -43,6 +43,13 @@ Aside from toy problems and demonstrations, the majority of problems require
 efficient numerical tools, many of which require the same base code (e.g., for
 performing numerical orbit integration).
 
+
+`DIY EPW` allows for quick and easy automated generation of a set of EnergyPlus weather (EPW) files for a
+given set of weather station locations over a selected historical year(s). This provides a weather file that can be
+used with building energy performance simulation to represent observed weather in a given year(s). `DIY EPW` is provided as both a set of scripts (https://github.com/IMMM-SFA/diyepw-scripts) and as a Python
+package (https://github.com/IMMM-SFA/diyepw). Therefore it can be used as a command-line tool, or as a
+package to incorporate EPW file generation into a custom script.
+
 # Statement of need
 
 `Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
@@ -64,6 +71,22 @@ visualizations of textbook material [@Binney:2008]. The combination of speed,
 design, and support for Astropy functionality in `Gala` will enable exciting
 scientific explorations of forthcoming data releases from the *Gaia* mission
 [@gaia] by students and experts alike.
+
+The IM3 project's (https://im3.pnnl.gov/) Building Energy Demand modeling team needed a way to convert
+observed weather data (and, eventually, future projected weather data) into weather files that are ready to be
+used in EnergyPlus simulation.
+
+# Relationship to other resources in this research area
+
+DIY EPW is inspired by the Local Actual Meteorological Year File (LAF) app \cite{Bianchi2019-lm}. DIY EPW addresses some of its key limitations: 
+- LAF relies on an API for downloading observed weather data that has limitations on the amount of data that can be downloaded without a paid account.
+- LAF's process is not fully automated--it requires downloading and clicking and does not have a fully automated workflow.
+- LAF is no longer developed or maintained.
+- LAF is not directly extensible to other sources of weather data, such as the NOAA ISD Lite format used here.
+
+DIY EPW was inspired by LAF and shares one author in common (@amandadsmith). DIY EPW has adapted functionality for reading and writing EPWs from code developed by @carlobianchi89.
+
+Other resources exist for obtaining weather files, but the raw data used is typically not available, the process for producing the EPWs is not fully documented and reproducible, and they are often paid products. DIY EPW is available free and open-source, so that the user does not need to pay for each individual weather file and has the ability to see exactly how the file was constructed.
 
 # Mathematics
 
