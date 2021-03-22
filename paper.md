@@ -12,7 +12,7 @@ authors:
     affiliation: "1" # (Multiple affiliations must be quoted)
   - name: Benjamin St\"urmer
     orcid: 0000-0003-2007-929X
-    affiliation: 1
+    affiliation: 2
   - name: Travis Thurber
     orcid: 0000-0002-4370-9971
     affiliation: 1
@@ -22,7 +22,7 @@ authors:
 affiliations:
  - name: Pacific Northwest National Laboratory, Richland, WA, USA
    index: 1
- - name: Institution Name
+ - name: Independent Researcher
    index: 2
    
 date: 2021-03-16
