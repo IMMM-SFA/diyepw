@@ -9,8 +9,8 @@ tags:
 authors:
   - name: Amanda D. Smith^[Corresponding author: https://energyenvironment.pnnl.gov/staff/staff_info.asp?staff_num=3681]
     orcid: 0000-0003-2990-2190
-    affiliation: "1" # (Multiple affiliations must be quoted)
-  - name: Benjamin St\"urmer
+    affiliation: 1
+  - name: Benjamin St&uuml;rmer
     orcid: 0000-0003-2007-929X
     affiliation: 2
   - name: Travis Thurber
@@ -24,10 +24,9 @@ affiliations:
    index: 1
  - name: Independent Researcher
    index: 2
-date: 2021-03-24
+date: 24 March 2021
 bibliography: paper.bib
 ---
-
 
 # Summary
 
@@ -46,6 +45,7 @@ Future project work will require the team to use projections for future weather 
 # Relationship to other resources in this research area
 
 DIY EPW is inspired by the Local Actual Meteorological Year File (LAF) app [@Bianchi2019-lm]. DIY EPW addresses some of its key limitations: 
+
 - LAF relies on an API for downloading observed weather data that has limitations on the amount of data that can be downloaded without a paid account.
 - LAF's process requires downloading and clicking and it does not have a fully automated workflow.
 - LAF is no longer developed or maintained.
