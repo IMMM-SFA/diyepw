@@ -39,7 +39,7 @@ package in this repository, and as a set of scripts in a separate repository. It
 
 # Statement of need
 
-The Building ENergy Demand (BEND) modeling team, as part of the [Integrated Multisector Multiscale Modeling (IM3) project](https://im3.pnnl.gov/), needed a way to use observed weather data to drive simulations of model buildings using EnergyPlus. They wanted to use reliable, quality-checked, publicly available data and process it into weather files that can be directly used
+The Building ENergy Demand (BEND) modeling team, as part of the Integrated Multisector Multiscale Modeling (IM3) project `[@IM3web]`, needed a way to use observed weather data to drive simulations of model buildings using EnergyPlus. They wanted to use reliable, quality-checked, publicly available data and process it into weather files that can be directly used
 used in EnergyPlus simulations. 
 
 Prior work by members of the BEND team `[@Burleyson2018-sb]`
