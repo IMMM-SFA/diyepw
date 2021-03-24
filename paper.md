@@ -35,7 +35,7 @@ bibliography: paper.bib
 
 `DIY EPW` allows for quick and easy generation of a set of EnergyPlus weather (EPW) files for a
 given set of weather station location(s) over selected historical year(s). Building energy modelers can use these auto-generated weather files in building performance simulations to represent the actual observed weather conditions in the location(s) of interest, based on meteorological observations obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database `[@NOAA_ISD]`.  DIY EPW provides a weather file or group of weather files as output which can be used directly with any building performance simulation software that uses EnergyPlus `[@EnergyPlus]` as its simulation engine. These weather files are output in the EPW format `[@EPWdd]` and can be used directly in simulations that employ EnergyPlus as their simulation engine. `DIY EPW` is available  as a Python
-package in this repository `[github_diyepw]`, and as a set of scripts in a separate repository `[@github_diyepw-scripts]`. It can be used as a command-line tool, customized if the modeler desires, or called directly as a package to incorporate EPW file generation into a custom script.
+package in this repository, and as a set of scripts in a separate repository. It can be used as a command-line tool, customized if the modeler desires, or called directly as a package to incorporate EPW file generation into a custom script.
 
 # Statement of need
 
