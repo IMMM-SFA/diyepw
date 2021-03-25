@@ -49,7 +49,7 @@ DIY EPW is inspired by the Local Actual Meteorological Year File (LAF) app [@Bia
 
 The EnergyPlus website lists additional resources for obtaining BEM weather files [@eplus-weather-data-for-simulation]. Few data providers can produce weather files for specific locations over a given historical period, and when they do provide such EPW files, the raw data used may not be available and the processing of that data to produce the EPWs is not fully documented and reproducible. The user may need to pay to obtain these files and does not have the option to adjust the standards for data quality--for determining which values are acceptable for a given meteorological variable, or for limiting the amount of data that is interpolated or otherwise imputed by the software generating the weather files. 
 
-DIY EPW is freely available and open-source. The user can produce weather files in an entirely automated workflow based on the World Meteorological Organization weather station identification number and a selected historical year or set of years, but they also have the ability to see exactly how the file was constructed and modify it according to their needs.
+DIY EPW is freely available and open-source. The user can obtain weather files for free in an entirely automated workflow by simply specifying the location of interest using the World Meteorological Organization weather station number [@WMOstationlist] and a selected historical year or set of years. They also have the ability to see exactly how the file was constructed and to modify it according to their needs.
 
 # Acknowledgements
 
