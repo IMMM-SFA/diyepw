@@ -30,9 +30,9 @@ bibliography: paper.bib
 
 # Summary
 
-`DIY EPW` allows for quick and easy generation of a set of EnergyPlus weather (EPW) files for a given set of weather station location(s) over selected historical year(s). Building energy modelers can use these auto-generated weather files in building performance simulations to represent the actual observed weather conditions in the location(s) of interest, based on meteorological observations obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database [@NOAA_ISD]. Because observed weather data are not available for every meteorological variable specified in the EPW format [@EPWdd], DIY EPW starts with a widely-used set of typical meteorological year (TMY) files [@eplus-weather-data], using them as the template to generate new actual meterological year (AMY) files by substituting in the observed values of meteorological variables that are known to affect building energy performance.
+`DIY EPW` allows for quick and easy generation of a set of EnergyPlus weather (EPW) files for a given set of weather station location(s) over selected historical year(s). Building energy modelers can use these auto-generated weather files in building performance simulations to represent the actual observed weather conditions in the location(s) of interest, based on meteorological observations obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database [@NOAA_ISD]. Because observed weather data are not available for every meteorological variable specified in the EPW format [@EPWdd], `DIY EPW` starts with a widely-used set of typical meteorological year (TMY) files [@eplus-weather-data], using them as the template to generate new actual meterological year (AMY) files by substituting in the observed values of meteorological variables that are known to affect building energy performance.
 
-DIY EPW provides a weather file or group of weather files as output which can be used directly with any building performance simulation software that employs EnergyPlus [@EnergyPlus] as its simulation engine. These weather files are output in the EPW format so they can be directly used in EnergyPlus simulations. The software will check for conformity to the requirements of the EPW data dictionary [@EPWdd]. `DIY EPW` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according to the modeler's needs.
+`DIY EPW` provides a weather file or group of weather files as output which can be used directly with any building performance simulation software that employs EnergyPlus [@EnergyPlus] as its simulation engine. These weather files are output in the EPW format so they can be directly used in EnergyPlus simulations. The software will check for conformity to the requirements of the EPW data dictionary [@EPWdd]. `DIY EPW` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according to the modeler's needs.
 
 # Statement of need
 
@@ -40,7 +40,7 @@ Building energy modeling (BEM) practitioners and researchers have few options fo
 
 # Relationship to other resources in this research area
 
-DIY EPW is inspired by the Local Actual Meteorological Year File (LAF) app [@Bianchi2019-lm]. DIY EPW addresses some of its key limitations: 
+`DIY EPW` is inspired by the Local Actual Meteorological Year File (LAF) app [@Bianchi2019-lm]. `DIY EPW` addresses some of its key limitations: 
 
 - LAF's process requires downloading and clicking and it does not have a fully automated workflow.
 - LAF is no longer developed or maintained.
@@ -49,7 +49,7 @@ DIY EPW is inspired by the Local Actual Meteorological Year File (LAF) app [@Bia
 
 The EnergyPlus website lists additional resources for obtaining BEM weather files [@eplus-weather-data-for-simulation]. Few data providers can produce weather files for specific locations over a given historical period, and when they do provide such EPW files, the raw data used may not be available and the processing of that data to produce the EPWs is not fully documented and reproducible. The user may need to pay to obtain these files and does not have the option to adjust the standards for data quality--for determining which values are acceptable for a given meteorological variable, or for limiting the amount of data that is interpolated or otherwise imputed by the software generating the weather files. 
 
-DIY EPW is freely available and open-source. The user can obtain weather files for free in an entirely automated workflow by simply specifying the location of interest using the World Meteorological Organization weather station number [@WMOstationlist] and a selected historical year or set of years. They also have the ability to see exactly how the file was constructed and to modify it according to their needs.
+`DIY EPW` is freely available and open-source. The user can obtain weather files for free in an entirely automated workflow by simply specifying the location of interest using the World Meteorological Organization weather station number [@WMOstationlist] and a selected historical year or set of years. They also have the ability to see exactly how the file was constructed and to modify it according to their needs.
 
 # Acknowledgements
 
