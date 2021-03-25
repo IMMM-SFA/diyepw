@@ -9,20 +9,22 @@ tags:
 authors:
   - name: Amanda D. Smith^[Corresponding author]
     orcid: 0000-0003-2990-2190
-    affiliation: 1
+    affiliation: "1"
   - name: Benjamin St&uuml;rmer
     orcid: 0000-0003-2007-929X
-    affiliation: 2
+    affiliation: "2"
   - name: Travis Thurber
     orcid: 0000-0002-4370-9971
-    affiliation: 1
-  - name: Chris Vernon
+    affiliation: "1"
+  - name: Chris R. Vernon
     orcid: 0000-0002-3406-6214
-    affiliation: 1
+    affiliation: "1"
 affiliations:
- - name: Joint Global Change Research Institute, Pacific Northwest National Laboratory, College Park, MD, USA
+ - name: Pacific Northwest National Laboratory, Richland, WA, USA
    index: 1
-date: 07 October 2020
+ - name: Independent Researcher
+   index: 2
+date: 24 March 2021
 bibliography: paper.bib
 ---
 
@@ -52,7 +54,5 @@ DIY EPW is freely available and open-source. The user can obtain weather files f
 # Acknowledgements
 
 This work was supported by the U.S. Department of Energy, Office of Science, as part of research in the MultiSector Dynamics, Earth and Environmental System Modeling Program. Pacific Northwest National Laboratory is a multi-program national laboratory operated by Battelle for the U.S. Department of Energy under Contract DE-AC05-76RL01830. A portion of the research was performed using PNNL Institutional Computing at Pacific Northwest National Laboratory. 
-
-[^*]:  [Corresponding author](https://energyenvironment.pnnl.gov/staff/staff_info.asp?staff_num=3681)
 
 # References
