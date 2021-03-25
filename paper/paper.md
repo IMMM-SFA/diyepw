@@ -7,7 +7,7 @@ tags:
   - weather data
   - meteorological year
 authors:
-  - name: Amanda D. Smith^[Corresponding author]
+  - name: Amanda D. Smith[^*]
     orcid: 0000-0003-2990-2190
     affiliation: 1
   - name: Benjamin St&uuml;rmer
@@ -52,5 +52,7 @@ DIY EPW is freely available and open-source. The user can obtain weather files f
 # Acknowledgements
 
 This work was supported by the U.S. Department of Energy, Office of Science, as part of research in the MultiSector Dynamics, Earth and Environmental System Modeling Program. Pacific Northwest National Laboratory is a multi-program national laboratory operated by Battelle for the U.S. Department of Energy under Contract DE-AC05-76RL01830. A portion of the research was performed using PNNL Institutional Computing at Pacific Northwest National Laboratory. 
+
+[^*]:  [Corresponding author](https://energyenvironment.pnnl.gov/staff/staff_info.asp?staff_num=3681)
 
 # References
