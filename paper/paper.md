@@ -1,5 +1,5 @@
 ---
-title: 'DIY EPW: A Python package for Do-It-Yourself EnergyPlus Weather files'
+title: 'diyepw: A Python package for Do-It-Yourself EnergyPlus Weather files'
 tags:
   - Python
   - EnergyPlus
@@ -7,7 +7,7 @@ tags:
   - weather data
   - meteorological year
 authors:
-  - name: Amanda D. Smith^[Corresponding author: https://energyenvironment.pnnl.gov/staff/staff_info.asp?staff_num=3681]
+  - name: Amanda D. Smith<sup>[Corresponding author:](https://energyenvironment.pnnl.gov/staff/staff_info.asp?staff_num=3681)</sup>
     orcid: 0000-0003-2990-2190
     affiliation: 1
   - name: Benjamin St&uuml;rmer
@@ -18,13 +18,11 @@ authors:
     affiliation: 1
   - name: Chris Vernon
     orcid: 0000-0002-3406-6214
-    affiliation: "1"
+    affiliation: 1
 affiliations:
- - name: Pacific Northwest National Laboratory, Richland, WA, USA
+ - name: Joint Global Change Research Institute, Pacific Northwest National Laboratory, College Park, MD, USA
    index: 1
- - name: Independent Researcher
-   index: 2
-date: 24 March 2021
+date: 07 October 2020
 bibliography: paper.bib
 ---
 
