@@ -7,7 +7,7 @@ tags:
   - weather data
   - meteorological year
 authors:
-  - name: Amanda D. Smith[^*]
+  - name: Amanda D. Smith^[Corresponding author]
     orcid: 0000-0003-2990-2190
     affiliation: 1
   - name: Benjamin St&uuml;rmer
