@@ -1,5 +1,5 @@
 ---
-title: 'diyepw: A Python package for Do-It-Yourself EnergyPlus Weather files'
+title: 'diyepw: A Python package for Do-It-Yourself EnergyPlus weather file generation'
 tags:
   - Python
   - EnergyPlus
