@@ -71,6 +71,10 @@ use of reliable, quality-checked, publicly available weather data in their simul
 
 The EnergyPlus website lists additional resources for obtaining BEM weather files [@eplus-weather-data-for-simulation]. Few data providers can produce weather files for specific locations over a given historical period, and when they do provide such EPW files, the raw data used may not be available and thus the processing of that data to produce the EPWs is not fully documented and reproducible. The user may be required to pay for these files and would not have the option to adjust the standards for data quality--for determining which values are acceptable for a given meteorological variable, or for limiting the amount of data that is interpolated or otherwise imputed by the software generating the weather files.
 
+# Dependencies
+
+`diyepw` incorporates the following packages as dependencies: `NumPy` [@numpy], `pandas` [@pandas], and `xarray` [@xarray].
+
 # Acknowledgements
 
 This work was supported by the U.S. Department of Energy, Office of Science, as part of research in the MultiSector Dynamics, Earth and Environmental System Modeling Program. Pacific Northwest National Laboratory is a multi-program national laboratory operated by Battelle for the U.S. Department of Energy under Contract DE-AC05-76RL01830. A portion of the research was performed using PNNL Institutional Computing at Pacific Northwest National Laboratory. 
