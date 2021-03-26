@@ -73,7 +73,7 @@ The EnergyPlus website lists additional resources for obtaining BEM weather file
 
 # Dependencies
 
-`diyepw` incorporates the following packages as dependencies: `NumPy` [@numpy], `pandas` [@pandas], and `xarray` [@xarray].
+`diyepw` relies on functionality from the following Python packages: `NumPy` [@numpy], `pandas` [@pandas], and `xarray` [@xarray].
 
 # Acknowledgements
 
