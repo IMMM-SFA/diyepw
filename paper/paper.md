@@ -39,9 +39,7 @@ weather data are not available for every meteorological variable specified in th
 meteorological year (TMY) files [@eplus-weather-data], using them as the template to generate new EPW files by substituting in the observed values of selected 
 meteorological variables that are known to affect building energy performance. Its output is a weather file or group of weather files that conform to the data 
 standards associated with the EPW format so they can be used with any building performance simulation software employing EnergyPlus [@EnergyPlus] as its 
-simulation engine. `diyepw` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. 
-It can be called directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according 
-to the modeler's needs.
+simulation engine. 
 
 `diyepw` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called 
 directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according to the modeler's 
