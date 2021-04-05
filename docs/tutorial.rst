@@ -7,16 +7,17 @@ Using the diyepw package
   a. Install diyepw using pip by typing pip install diyepw in your console.
   b. Start Python and type import diyepw to work with this package.
   c. Ask for the file(s) you want:
-    
-        `diyepw.create_amy_epw_files_for_years_and_wmos(
-        [{years}],
-        [{WMOs}], 
-        max_records_to_interpolate={integer}, 
-        max_records_to_impute={integer}, 
-        max_missing_amy_rows={integer}, 
-        allow_downloads={Boolean},
-        amy_epw_dir=’{dir}’
-        )`
+  .. code-block:: python
+  
+     diyepw.create_amy_epw_files_for_years_and_wmos(
+     [{years}],
+     [{WMOs}], 
+     max_records_to_interpolate={integer}, 
+     max_records_to_impute={integer}, 
+     max_missing_amy_rows={integer}, 
+     allow_downloads={Boolean},
+     amy_epw_dir=’{dir}’
+     )
 
 
 
