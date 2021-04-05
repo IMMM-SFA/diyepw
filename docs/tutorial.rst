@@ -8,7 +8,8 @@ Using the diyepw package
   b. Start Python and type import diyepw to work with this package.
   c. Ask for the file(s) you want:
   
-     .. code-block:: python
+Your call to `diyepw` will include:
+::
   
      diyepw.create_amy_epw_files_for_years_and_wmos(
      [{years}],
