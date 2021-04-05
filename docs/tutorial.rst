@@ -66,4 +66,30 @@ The 6-digit number following “AP” is the WMO weather station ID number. Nort
 
     diyepw.create_amy_epw_files_for_years_and_wmos([2020], [725300], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=5, allow_downloads=True, amy_epw_dir=’/Users/smit744/test_generated_weather_files’)
 
-Remember to change
+Remember to change ``/Users/smit744/test_generated_weather_files`` to a path that’s valid on your computer to tell ``diyepw`` where to place its output AMY EPW files.
+
+When diyepw has created the file, you will see this at the bottom of the console:
+::
+
+    {2020: {725300: ['/Users/smit744/test_generated_weather_files']}}
+
+
+    
+Example 2: Making weather files for multiple locations in multiple years
+--------------------------------------------------------------------------------
+
+Now you want to get weather files for two different locations in Washington state: the first in Seattle and the second in the Tri-Cities region (comprised of Kennewick, Pasco, and Richland). You want to create weather files over three historical years, 2015-2017.
+
+**Identify years:** 2015, 2016, and 2017
+
+**Identify WMO weather station numbers:** If you don’t know the weather station number, take look at the `EnergyPlus weather page <https://energyplus.net/weather>`_ and navigate to the location of interest. On the page for `Washington state <https://energyplus.net/weather-region/north_and_central_america_wmo_region_4/USA/WA>`_, we see that 727930 is the ID number provided for the weather station at Seattle-Tacoma International Airport and 727845 is the number for the Pasco Tri-Cities Airport. 
+
+**Create the weather files:** After installing and importing diyepw, enter this at the Python prompt:
+::
+
+    diyepw.create_amy_epw_files_for_years_and_wmos([2016,2017,2018], [727930,727845], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=5, allow_downloads=True,amy_epw_dir=’/Users/smit744/test_generated_weather_files’)
+
+You’ll see more text returned from diyepw as it creates six AMY EPW weather files. When it’s finished, you will see this at the bottom of the console:
+::
+
+{2015: {727930: ['/Users/smit744/test_generated_weather_files/USA_WA_Seattle-Tacoma-Intl-AP.727930_AMY_2015.epw'], 727845:      ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2015.epw']}, 2016: {727930: ['/Users/smit744/test_generated_weather_files/USA_WA_Seattle-Tacoma-Intl-AP.727930_AMY_2016.epw'], 727845: ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2016.epw']}, 2017: {727930: ['/Users/smit744/test_generated_weather_files/USA_WA_Seattle-Tacoma-Intl-AP.727930_AMY_2017.epw'], 727845: ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2017.epw']}}
