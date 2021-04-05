@@ -110,9 +110,9 @@ You also want to get a weather files for the Tri-Cities region in the year 2019.
 But now ``diyepw`` returns:
 :: 
 
-Problem processing year 2019 and WMO index 727845: File is missing 6 rows, but maximum allowed is 5
-2021-04-01 22:19:50,990 AMY EPW files could not be generated for 1 year/WMO Index combinations - see /Users/smit744/test_generated_weather_files/errors.csv for more information
-{2019: {727845: []}}
+    Problem processing year 2019 and WMO index 727845: File is missing 6 rows, but maximum allowed is 5
+    2021-04-01 22:19:50,990 AMY EPW files could not be generated for 1 year/WMO Index combinations - see /Users/smit744/test_generated_weather_files/errors.csv for more information
+    {2019: {727845: []}}
 
 This means that the file containing the observed weather data is missing 6 rows and because it’s above the threshold ``max_missing_amy_rows=5``, diyepw returned an error and did not create the weather file.
 
