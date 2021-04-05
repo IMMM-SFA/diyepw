@@ -3,7 +3,7 @@ Using the diyepw package
 
 1. Identify the year(s) you want to cover with your weather files.
 2. Identify the WMO weather station ID number(s) for the location(s) you want to cover.
-3. Install `diyepw` package using pip.
+3. Install ``diyepw`` package using pip.
 
 Type in your console:
 ::
@@ -11,9 +11,9 @@ Type in your console:
     pip install diyepw
   
 4. Start Python and type import diyepw to work with this package.
-5. Ask `'diyepw` to create the file(s) you want.
+5. Ask ``'diyepw`` to create the file(s) you want.
   
-Your call to `diyepw` will include:
+Your call to ``diyepw`` will include:
 ::
   
      diyepw.create_amy_epw_files_for_years_and_wmos(
@@ -28,22 +28,19 @@ Your call to `diyepw` will include:
 
 You'll need to provide to `diyepw` in this call:
 
-- `[{years}]`, where `{years}` is replaced with the 4-digit year(s) for which you want to produce a weather file (separated by commas).
-   - `diyepw` creates the weather file for a calendar year based on the local time at the location of the weather station you selected.
-- `[{WMOs}]`, where `{WMOs}` is replaced with the WMO station identifier number(s) for which you want to produce a weather file (separated by commas).
+- ``[{years}]``, where ``{years}`` is replaced with the 4-digit year(s) for which you want to produce a weather file (separated by commas).
+   - ``diyepw`` creates the weather file for a calendar year based on the local time at the location of the weather station you selected.
+- ``[{WMOs}]``, where ``{WMOs}`` is replaced with the WMO station identifier number(s) for which you want to produce a weather file (separated by commas).
 
-You'll want to provide to `diyepw` in this call:
+You'll want to provide to ``diyepw`` in this call:
 
-- `max_records_to_interpolate={integer}`, where `{integer}` is replaced with the maximum number of records in the weather data that you want handled by interpolation. 
-- `max_records_to_impute={integer}`, where `{integer}` is replaced with the maximum number of records in the weather data that you want handled by imputation. 
-- `max_missing_amy_rows={integer}`, where `{integer}` is replaced with the maximum total number of missing rows that you want to allow in the weather data used to create the AMY file. 
-- `allow_downloads={True}`, which will give `diyepw` permission to go download the weather data that you need.
-
-   - Your internet connection must be active for diyepw to do this. 
-   
-- `amy_epw_dir='{dir}'`, where `{dir}` is replaced with the file path to the directory where you want your output EPWs (and any error files) to be stored.
-
-   - If you don’t provide a file path, `diyepw` will return the location where it stored the output files at the console after it creates them.
+- ``max_records_to_interpolate={integer}``, where ``{integer}`` is replaced with the maximum number of records in the weather data that you want handled by interpolation. 
+- ``max_records_to_impute={integer}``, where ``{integer}`` is replaced with the maximum number of records in the weather data that you want handled by imputation. 
+- ``max_missing_amy_rows={integer}``, where ``{integer}`` is replaced with the maximum total number of missing rows that you want to allow in the weather data used to create the AMY file. 
+- ``allow_downloads={True}``, which will give ``diyepw`` permission to go download the weather data that you need.
+   - Your internet connection must be active for ``diyepw`` to do this. 
+- ``amy_epw_dir='{dir}'``, where ``{dir}`` is replaced with the file path to the directory where you want your output EPWs (and any error files) to be stored.
+   - If you don’t provide a file path, ``diyepw`` will return the location where it stored the output files at the console after it creates them.
   
 We have three example scenarios below. Each one has a tutorial explaining how to use the diyepw package to create actual meteorological year EnergyPlus weather files that meet the modeler’s needs.
 
