@@ -13,7 +13,7 @@ def readme():
 
 setuptools.setup(  # pragma: no cover
       name='diyepw',
-      version='1.0.4',
+      version='1.0.5',
       description='A package offering support for generating EPW (EnergyPlus Weather) files',
       long_description=readme(),
       long_description_content_type="text/markdown",

@@ -8,6 +8,13 @@ Introduction
 
    README.md
 
+Tutorial
+________
+.. toctree::
+   :maxdepth: 1
+
+   tutorial
+
 Application Programming Interface (API)
 ----------------------------------------
 .. toctree::
