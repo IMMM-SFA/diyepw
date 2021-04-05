@@ -38,8 +38,11 @@ You'll want to provide to `diyepw` in this call:
 - `max_records_to_impute={integer}`, where `{integer}` is replaced with the maximum number of records in the weather data that you want handled by imputation. 
 - `max_missing_amy_rows={integer}`, where `{integer}` is replaced with the maximum total number of missing rows that you want to allow in the weather data used to create the AMY file. 
 - `allow_downloads={True}`, which will give `diyepw` permission to go download the weather data that you need.
+
    - Your internet connection must be active for diyepw to do this. 
+   
 - `amy_epw_dir='{dir}'`, where `{dir}` is replaced with the file path to the directory where you want your output EPWs (and any error files) to be stored.
+
    - If you don’t provide a file path, `diyepw` will return the location where it stored the output files at the console after it creates them.
   
 We have three example scenarios below. Each one has a tutorial explaining how to use the diyepw package to create actual meteorological year EnergyPlus weather files that meet the modeler’s needs.
