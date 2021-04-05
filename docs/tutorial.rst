@@ -57,7 +57,7 @@ Say that you designed an energy model for a building that was constructed in Chi
 
 **Identify WMO weather station ID number:** Note that the name of the TMY weather file indicates the number of the WMO weather station data used to produce it.
 
-    USA_IL_Chicago-OHare.Intl.AP.**725300**_TMY3.epw
+    USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw
     
 The 6-digit number following “AP” is the WMO weather station ID number. North American WMO station ID numbers `will be 6 digits, starting with “7” <https://tgftp.nws.noaa.gov/logs/site.shtml>`_. Here, we see that 725300 is the ID number for the weather station at Chicago-O’Hare International Airport. You can also open this file in a text editor and you will see that information on the first line.
 
