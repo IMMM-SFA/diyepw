@@ -6,8 +6,7 @@ Using the diyepw package
 3. Create the weather files at the command line:
   a. Install diyepw using pip by typing pip install diyepw in your console.
   b. Start Python and type import diyepw to work with this package.
-  c. Ask for the file(s) you want:
-  .. code-block:: python
+  c. Ask for the file(s) you want::
   
      diyepw.create_amy_epw_files_for_years_and_wmos(
      [{years}],
