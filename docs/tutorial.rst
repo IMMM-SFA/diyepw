@@ -2,12 +2,11 @@ Using the diyepw package
 ================================================================
 
 1. Identify the year(s) you want to cover with your weather files.
-1. Identify the WMO weather station ID number(s) for the location(s) you want to cover.
-1. Create the weather files at the command line:
- 
-    1. Install diyepw using pip by typing pip install diyepw in your console.
-    1. Start Python and type import diyepw to work with this package.
-    1. Ask for the file(s) you want:
+2. Identify the WMO weather station ID number(s) for the location(s) you want to cover.
+3. Create the weather files at the command line:
+  a. Install diyepw using pip by typing pip install diyepw in your console.
+  b. Start Python and type import diyepw to work with this package.
+  c. Ask for the file(s) you want:
     
         `diyepw.create_amy_epw_files_for_years_and_wmos(
         [{years}],
