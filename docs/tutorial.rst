@@ -121,7 +121,7 @@ Say you decide that 6 consecutive missing values really isn’t any more worriso
 
     diyepw.create_amy_epw_files_for_years_and_wmos([2019],[727845], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=6,allow_downloads=True,amy_epw_dir='/Users/smit744/test_generated_weather_files')
     
-Now diyepw successfully creates the file.
+Now diyepw successfully creates the file. You will see:
 ::
 
 {2019: {727845: ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2019.epw']}}
