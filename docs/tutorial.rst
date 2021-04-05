@@ -42,7 +42,7 @@ You'll want to provide to ``diyepw`` in this call:
 - ``amy_epw_dir='{dir}'``, where ``{dir}`` is replaced with the file path to the directory where you want your output EPWs (and any error files) to be stored.
    - If you don’t provide a file path, ``diyepw`` will return the location where it stored the output files at the console after it creates them.
   
-We have three example scenarios below. Each one has a tutorial explaining how to use the diyepw package to create actual meteorological year EnergyPlus weather files that meet the modeler’s needs.
+We have example scenarios below with tutorials explaining how to use the diyepw package to create actual meteorological year EnergyPlus weather files that will meet the modeler’s needs.
 
 These tutorials don’t assume that you are a Python programmer, although you will need to have Python installed and you will need to some basic familiarity with the command line. If you are a Python programmer, any of the workflows below can be embedded into your code once the diyepw package is imported.
   
@@ -76,7 +76,7 @@ When diyepw has created the file, you will see this at the bottom of the console
 
 
     
-Example 2: Making weather files for multiple locations in multiple years
+Example 2a: Making weather files for multiple locations in multiple years
 --------------------------------------------------------------------------------
 
 Now you want to get weather files for two different locations in Washington state: the first in Seattle and the second in the Tri-Cities region (comprised of Kennewick, Pasco, and Richland). You want to create weather files over three historical years, 2015-2017.
@@ -90,7 +90,39 @@ Now you want to get weather files for two different locations in Washington stat
 
     diyepw.create_amy_epw_files_for_years_and_wmos([2016,2017,2018], [727930,727845], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=5, allow_downloads=True,amy_epw_dir=’/Users/smit744/test_generated_weather_files’)
 
+Change ``/Users/smit744/test_generated_weather_files`` to your local output path before running the code.
+
 You’ll see more text returned from diyepw as it creates six AMY EPW weather files. When it’s finished, you will see this at the bottom of the console:
 ::
 
 {2015: {727930: ['/Users/smit744/test_generated_weather_files/USA_WA_Seattle-Tacoma-Intl-AP.727930_AMY_2015.epw'], 727845:      ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2015.epw']}, 2016: {727930: ['/Users/smit744/test_generated_weather_files/USA_WA_Seattle-Tacoma-Intl-AP.727930_AMY_2016.epw'], 727845: ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2016.epw']}, 2017: {727930: ['/Users/smit744/test_generated_weather_files/USA_WA_Seattle-Tacoma-Intl-AP.727930_AMY_2017.epw'], 727845: ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2017.epw']}}
+
+
+
+Example 2b: Changing the keyword arguments in response to an error message
+--------------------------------------------------------------------------------
+
+You also want to get a weather files for the Tri-Cities region in the year 2019. So you enter:
+::
+
+    diyepw.create_amy_epw_files_for_years_and_wmos([2019],[727845], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=5,allow_downloads=True,amy_epw_dir='/Users/smit744/test_generated_weather_files')
+    
+But now ``diyepw`` returns:
+:: 
+
+Problem processing year 2019 and WMO index 727845: File is missing 6 rows, but maximum allowed is 5
+2021-04-01 22:19:50,990 AMY EPW files could not be generated for 1 year/WMO Index combinations - see /Users/smit744/test_generated_weather_files/errors.csv for more information
+{2019: {727845: []}}
+
+This means that the file containing the observed weather data is missing 6 rows and because it’s above the threshold ``max_missing_amy_rows=5``, diyepw returned an error and did not create the weather file.
+
+Say you decide that 6 consecutive missing values really isn’t any more worrisome than 5, and you change that parameter:
+::
+
+    diyepw.create_amy_epw_files_for_years_and_wmos([2019],[727845], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=6,allow_downloads=True,amy_epw_dir='/Users/smit744/test_generated_weather_files')
+    
+Now diyepw successfully creates the file.
+::
+
+{2019: {727845: ['/Users/smit744/test_generated_weather_files/USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2019.epw']}}
+
