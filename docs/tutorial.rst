@@ -61,4 +61,9 @@ Say that you designed an energy model for a building that was constructed in Chi
     
 The 6-digit number following “AP” is the WMO weather station ID number. North American WMO station ID numbers `will be 6 digits, starting with “7” <https://tgftp.nws.noaa.gov/logs/site.shtml>`_. Here, we see that 725300 is the ID number for the weather station at Chicago-O’Hare International Airport. You can also open this file in a text editor and you will see that information on the first line.
 
+**Create the weather files:** After installing and importing diyepw, enter this at the Python prompt:
+::
 
+    diyepw.create_amy_epw_files_for_years_and_wmos([2020], [725300], max_records_to_interpolate=6, max_records_to_impute=48, max_missing_amy_rows=5, allow_downloads=True, amy_epw_dir=’/Users/smit744/test_generated_weather_files’)
+
+Remember to change
