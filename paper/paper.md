@@ -34,7 +34,7 @@ bibliography: paper.bib
 obtain weather files using an open-source, automated workflow by simply specifying the location of interest using the World Meteorological Organization 
 weather station ID number [@isd_station_history], and specifying a year or set of years for which to generate EPW files. Building energy modelers can use these 
 auto-generated weather files in building performance simulations to represent the actual observed weather conditions in the location(s) of interest, based 
-on meteorological observations obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database [@NOAA_ISD, @isd_BAMS]. Because observed weather data are not available for every meteorological variable specified in the EPW format [@EPWdd], `diyepw` starts with a widely-used set of typical 
+on meteorological observations obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database [@NOAA_ISD][@isd_BAMS]. Because observed weather data are not available for every meteorological variable specified in the EPW format [@EPWdd], `diyepw` starts with a widely-used set of typical 
 meteorological year (TMY) files [@eplus-weather-data], using them as the template to generate new EPW files by substituting in the observed values of selected 
 meteorological variables that are known to affect building energy performance. Its output is a weather file or group of weather files that conform to the data 
 standards associated with the EPW format so they can be used with any building performance simulation software employing EnergyPlus [@EnergyPlus] as its 
