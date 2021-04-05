@@ -49,7 +49,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
     # Check whether we already have the TMY EPW file in our directory. If we do it would be a waste of time
     # to download it again.
     if os.path.exists(epw_file_path):
-        _logger.debug(f"TMY EPW file ({epw_file_path}) already exists, won't download again.")
+        _logger.info(f"TMY EPW file ({epw_file_path}) already exists, won't download again.")
         return epw_file_path
 
     # If the TMY EPW file is not already present in our directory, then we need to check that we've been given
@@ -63,7 +63,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
     # Download the ZIP file and decompress it. It contains a number of files including the EPW that we are looking for.
     tmp_file_handle, tmp_file_path = tempfile.mkstemp()
     tmp_dir = tempfile.mkdtemp()
-    _logger.debug(f"Downloading file from {epw_file_url} and saving to {epw_file_path}")
+    _logger.info(f"Downloading file from {epw_file_url} and saving to {epw_file_path}")
     try:
         with request.urlopen(epw_file_url) as response:
             with open(tmp_file_handle, 'wb') as downloaded_file:

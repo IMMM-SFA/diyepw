@@ -22,11 +22,11 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
     """
     if output_dir is None: # pragma: no cover
         output_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_files')
-        _logger.debug(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
+        _logger.info(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
 
     if not os.path.exists(output_dir): # pragma: no cover
         os.mkdir(output_dir)
-        _logger.debug(f"get_noaa_isd_lite_file() - {output_dir} did not exist, so has been created")
+        _logger.info(f"get_noaa_isd_lite_file() - {output_dir} did not exist, so has been created")
 
     # On the NOAA website, the ISD Lite files are named with a third number between WMO and year, but
     # since we don't use that third number for anything and it complicates identifying a file for a
@@ -81,7 +81,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
     """
     if catalog_dir is None:
         catalog_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_catalogs')
-        _logger.debug(f"catalog_dir was not defined, using {catalog_dir}")
+        _logger.info(f"catalog_dir was not defined, using {catalog_dir}")
 
     if not os.path.exists(catalog_dir): # pragma: no cover
         raise Exception(f"Directory {catalog_dir} does not exist")
@@ -91,7 +91,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
     # If the catalog file already exists, we'll read it. If it doesn't, we'll download it, import it into a
     # dataframe, and then save that so that it exists the next time we need it.
     if os.path.exists(file_path):
-        _logger.debug(f"Catalog file exists at {file_path}, using it instead of downloading it from NOAA")
+        _logger.info(f"Catalog file exists at {file_path}, using it instead of downloading it from NOAA")
         catalog = pd.read_csv(file_path)
     else:
         catalog_url = f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/"

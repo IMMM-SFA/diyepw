@@ -72,7 +72,7 @@ def create_amy_epw_file(
     if amy_epw_dir is None:
         global _tempdir_amy_epw
         amy_epw_dir = _tempdir_amy_epw
-        _logger.debug(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_dir}")
+        _logger.info(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_dir}")
 
     # Either amy_files is specified, in which case we use the specified paths, or amy_dir is specified,
     # in which case we will search that directory for AMY files, or neither is specified, in which case
@@ -86,7 +86,7 @@ def create_amy_epw_file(
     else:
         if amy_dir is None:
             amy_dir = pkg_resources.resource_filename("diyepw", "data/noaa_isd_lite_files")
-            _logger.debug(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
+            _logger.info(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
 
         amy_file_path = get_noaa_isd_lite_file(wmo_index, year, output_dir=amy_dir, allow_downloads=allow_downloads)
         amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, output_dir=amy_dir, allow_downloads=allow_downloads)
@@ -104,7 +104,7 @@ def create_amy_epw_file(
     # We'll do that by adding the day with all empty values, then using the same routine we do to interpolate/impute
     # missing data in our AMY files to fill in the missing data.
     if isleap(year):
-        _logger.debug(f"{year} is a leap year, using the interpolation strategy to populate TMY data for Feb. 29")
+        _logger.info(f"{year} is a leap year, using the interpolation strategy to populate TMY data for Feb. 29")
         for hour in range(1, 25):
             col_names = tmy.observations.columns.to_list()
             new_row_vals = [1982, 2, 29, hour, 0]
@@ -133,7 +133,7 @@ def create_amy_epw_file(
     amy_epw_file_path = os.path.join(amy_epw_dir, amy_epw_file_name)
 
     if os.path.exists(amy_epw_file_path):
-        _logger.debug(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
+        _logger.info(f"File already exists at {amy_epw_file_path}, so a new one won't be generated.")
         return amy_epw_file_path
 
     # Read in the NOAA AMY file for the station for the requested year as well as the first 23 hours (sufficient
