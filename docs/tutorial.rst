@@ -48,7 +48,17 @@ These tutorials don’t assume that you are a Python programmer, although you wi
   
 
 
-Example 1: Making a simple weather file
+Example 1: Making a single weather file
 ----------------------------------------------------------
 
 Say that you designed an energy model for a building that was constructed in Chicago using the `EnergyPlus TMY3 weather file for Chicago-O’Hare airport <https://energyplus.net/weather-location/north_and_central_america_wmo_region_4/USA/IL/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3>`_. Now the building has been in operation for a full year and you want to calibrate your model using metered data.
+
+**Identify year:** 2020
+
+**Identify WMO weather station ID number:** Note that the TMY weather file indicates the number of the WMO weather station data that was used to produce it.
+
+    USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw
+    
+The 6-digit number following “AP” is the WMO weather station ID number. North American WMO station ID numbers `will be 6 digits, starting with “7”<https://tgftp.nws.noaa.gov/logs/site.shtml>`_. Here, we see that 725300 is the ID number for the weather station at Chicago-O’Hare International Airport. You can also open this file in a text editor and you will see that information on the first line.
+
+
