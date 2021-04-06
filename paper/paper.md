@@ -42,7 +42,7 @@ simulation engine.
 
 `diyepw` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called 
 directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according to the modeler's 
-needs. A step-by-step example tutorial is provided as a quick start option here: [Tutorial](https://diyepw.readthedocs.io/en/latest/README.html).
+needs. A step-by-step example tutorial is provided as a quick start option here: [Tutorial](https://diyepw.readthedocs.io/en/latest/tutorial.html).
 
 # Statement of need
 
