@@ -1,4 +1,0 @@
-diyepw
-======
-
-.. mdinclude:: ../README.md
