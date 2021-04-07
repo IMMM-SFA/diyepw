@@ -13,7 +13,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
-from diyepw import __version__
+import diyepw
 
 
 # -- Project information -----------------------------------------------------
@@ -23,8 +23,8 @@ copyright = '2021, Battelle Memorial Institute'
 author = 'Amanda Smith'
 
 # The full version, including alpha/beta/rc tags
-version = __version__
-release = __version__
+version = diyepw.__version__
+release = diyepw.__version__
 
 
 # -- General configuration ---------------------------------------------------
