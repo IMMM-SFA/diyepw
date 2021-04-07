@@ -7,9 +7,11 @@ License:  BSD 2-Clause, see LICENSE and DISCLAIMER files
 
 import setuptools  # pragma: no coverU
 
+
 def readme():
     with open('README.md') as f:
         return f.read()
+
 
 setuptools.setup(  # pragma: no cover
       name='diyepw',
