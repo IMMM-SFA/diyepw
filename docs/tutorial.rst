@@ -1,4 +1,4 @@
-Step by step tutorials for using the diyepw package
+Tutorial: step-by-step examples using DIYEPW
 ================================================================
 
 1. Identify the year(s) you want to cover with your weather files.
