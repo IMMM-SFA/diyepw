@@ -13,7 +13,6 @@ def readme():
 
 setuptools.setup(  # pragma: no cover
       name='diyepw',
-      version='1.0.5',
       description='A package offering support for generating EPW (EnergyPlus Weather) files',
       long_description=readme(),
       long_description_content_type="text/markdown",
@@ -24,7 +23,7 @@ setuptools.setup(  # pragma: no cover
       package_data={ 'diyepw': ['data/**/*', 'test/files/**/*'] },
       license='BSD 2-Clause',
       python_requires='~=3.7',
-      install_requires= [
+      install_requires=[
           'xarray~=0.16.2',
           'numpy~=1.19.2'
       ],

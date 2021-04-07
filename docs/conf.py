@@ -13,16 +13,18 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
+from diyepw import __version__
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'diyepw'
-copyright = '2021, Benjamin Stürmer'
-author = 'Benjamin Stürmer'
+copyright = '2021, Battelle Memorial Institute'
+author = 'Amanda Smith'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+version = __version__
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------

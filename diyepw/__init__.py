@@ -1,3 +1,4 @@
+__version__ = '1.0.5'
 from .meteorology import Meteorology
 from .create_amy_epw_files_for_years_and_wmos import create_amy_epw_files_for_years_and_wmos
 from .analyze_noaa_isd_lite_files import analyze_noaa_isd_lite_files
