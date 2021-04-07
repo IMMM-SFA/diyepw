@@ -1,4 +1,4 @@
-Using the diyepw package
+Step by step: Using the diyepw package
 ================================================================
 
 1. Identify the year(s) you want to cover with your weather files.
