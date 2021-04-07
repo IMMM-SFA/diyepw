@@ -29,3 +29,4 @@ htmlcov/
 # Files generated during package deployment
 build
 dist
+docs/_build
