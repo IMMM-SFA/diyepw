@@ -36,8 +36,7 @@ weather station ID number [@isd_station_history], and specifying a year or set o
 auto-generated weather files in building performance simulations to represent the actual observed weather conditions in the location(s) of interest, based 
 on meteorological observations obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database [@NOAA_ISD; @isd_BAMS]. Because observed weather data are not available for every meteorological variable specified in the EPW format [@EPWdd], `diyepw` starts with a widely-used set of typical 
 meteorological year (TMY) files [@eplus-weather-data], using them as the template to generate new EPW files by substituting in the observed values of selected 
-meteorological variables that are known to affect building energy performance. Its output is a weather file or group of weather files that conforms to the data 
-standards associated with the EPW format so they can be used with any building performance simulation software employing EnergyPlus [@EnergyPlus] as its simulation engine. 
+meteorological variables that are known to affect building energy performance (see [Using DIYEPW to generate AMY EPW files](https://diyepw.readthedocs.io/en/latest/README.html#using-diyepw-to-generate-amy-epw-files) for details). Its output is a weather file or group of weather files that conforms to the data standards associated with the EPW format so they can be used with any building performance simulation software employing EnergyPlus [@EnergyPlus] as its simulation engine. 
 
 `diyepw` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called 
 directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according to the modeler's 
@@ -45,7 +44,7 @@ needs. A step-by-step example tutorial is provided as a quick start option here:
 
 # Statement of need
 
-Building energy modeling (BEM) practitioners and researchers have few options for obtaining EnergyPlus weather files that contain historical weather observations. Modelers often use EPW files that are based on typical meteorological year (TMY) data, which do not represent any given historical year and are usually only available for airport weather station locations.  In our case, the Integrated Multisector Multiscale Modeling (IM3) project [@IM3web] needed a way to use 
+Building energy modeling (BEM) practitioners and researchers have few options for obtaining EnergyPlus weather files that contain historical weather observations to allow the modeler to simulate an actual meteorological year. Modelers often use EPW files that are based on typical meteorological year (TMY) data, which do not represent any given historical year and are usually only available for airport weather station locations. In our case, the Integrated Multisector Multiscale Modeling (IM3) project [@IM3web] needed a way to use 
 observed weather data to drive simulations of model buildings using EnergyPlus for specific historical years. Previous IM3 research [@Burleyson2018-sb] showed that for regional-scale BEM,  where many buildings are aggregated, a model that is forced with weather files taken from stations throughout the region will have lower bias in predicting the
 aggregate load than a model forced with only a few weather files that don't capture the heterogeneity in the region. Some commercial providers will offer 
 weather files for given year(s) and location(s), but they may charge for each weather file and the source data and code used to process it will not be 
