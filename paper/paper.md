@@ -45,11 +45,8 @@ needs. A step-by-step example tutorial is provided as a quick start option here:
 
 # Statement of need
 
-Building energy modeling (BEM) practitioners and researchers have few options for obtaining weather files outside of those typically used with EnergyPlus, 
-which are TMY files that do not represent any given historical year and are usually only available for airport weather station locations.  In our case, the 
-Building ENergy Demand (BEND) modeling team, working as part of the Integrated Multisector Multiscale Modeling (IM3) project [@IM3web], needed a way to use 
-observed weather data to drive simulations of model buildings using EnergyPlus. Previous IM3 research [@Burleyson2018-sb] showed that for regional-scale BEM, 
-where many buildings are aggregated, a model that is forced with weather files taken from stations throughout the region will have lower bias in predicting the
+Building energy modeling (BEM) practitioners and researchers have few options for obtaining EnergyPlus weather files that contain historical weather observations. Modelers often use EPW files that are based on typical meteorological year (TMY) data, which do not represent any given historical year and are usually only available for airport weather station locations.  In our case, the Integrated Multisector Multiscale Modeling (IM3) project [@IM3web] needed a way to use 
+observed weather data to drive simulations of model buildings using EnergyPlus for specific historical years. Previous IM3 research [@Burleyson2018-sb] showed that for regional-scale BEM,  where many buildings are aggregated, a model that is forced with weather files taken from stations throughout the region will have lower bias in predicting the
 aggregate load than a model forced with only a few weather files that don't capture the heterogeneity in the region. Some commercial providers will offer 
 weather files for given year(s) and location(s), but they may charge for each weather file and the source data and code used to process it will not be 
 transparent to the user. Some modelers have created their own EPW files but it is a labor-intensive process and no open-source, automated software package 
