@@ -22,16 +22,16 @@ setuptools.setup(  # pragma: no cover
       author='Amanda Smith',
       author_email='amanda.d.smith@pnnl.gov',
       packages=setuptools.find_packages(),
-      package_data={ 'diyepw': ['data/**/*', 'test/files/**/*'] },
+      package_data={'diyepw': ['data/**/*', 'test/files/**/*']},
       license='BSD 2-Clause',
       python_requires='~=3.7',
       install_requires=[
           'xarray~=0.16.2',
-          'numpy~=1.19.2'
+          'numpy~=1.19.2',
+          'pvlib~=0.8.1',
       ],
       extras_require={
           'dev': [
-              'pvlib~=0.8.1',
               'recommonmark~=0.7.1',
               'sphinx~=3.5.1',
               'sphinx-rtd-theme~=0.5.1'
