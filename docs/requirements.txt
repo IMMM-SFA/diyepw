@@ -1,2 +1,3 @@
 xarray~=0.16.2
 numpy~=1.19.2
+pvlib~=0.8.1
