@@ -1,3 +1,7 @@
+[![build](https://github.com/IMMM-SFA/diyepw/actions/workflows/build.yml/badge.svg)](https://github.com/IMMM-SFA/diyepw/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/IMMM-SFA/diyepw/branch/main/graph/badge.svg?token=IPOY8984MB)](https://codecov.io/gh/IMMM-SFA/diyepw)
+[![status](https://joss.theoj.org/papers/9267f12d29f6f17e6dce4fb7bb87897d/status.svg)](https://joss.theoj.org/papers/9267f12d29f6f17e6dce4fb7bb87897d)
+
 # `diyepw`
 `diyepw` is a tool developed by Pacific Northwest National Laboratory that allows the quick and easy
 generation of a set of EPW files for a given set of WMOs and years. It is provided as both a set
