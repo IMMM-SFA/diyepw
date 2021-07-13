@@ -78,7 +78,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
 
     # Move the EPW file from the temporary directory into which we extracted
     # the ZIP file into the directory storing our EPWs
-    os.rename(os.path.join(tmp_dir, epw_file_name), epw_file_path)
+    shutil.move(os.path.join(tmp_dir, epw_file_name), epw_file_path)
 
     # Delete the temporary files created in this call
     os.unlink(tmp_file_path)
