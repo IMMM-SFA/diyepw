@@ -2,7 +2,7 @@ import pandas as pd
 
 def analyze_noaa_isd_lite_file(
         file: str,
-        compression:str='infer'
+        compression: str='infer'
 ):
     """
     Performs an analysis of a single NOAA ISD Lite file, determining whether it is suitable for conversion into an AMY
