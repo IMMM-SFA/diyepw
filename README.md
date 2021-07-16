@@ -1,5 +1,6 @@
 [![build](https://github.com/IMMM-SFA/diyepw/actions/workflows/build.yml/badge.svg)](https://github.com/IMMM-SFA/diyepw/actions/workflows/build.yml)
-[![codecov](https://codecov.io/gh/IMMM-SFA/diyepw/branch/main/graph/badge.svg?token=IPOY8984MB)](https://codecov.io/gh/IMMM-SFA/diyepw)
+[![codecov](https://codecov.io/gh/IMMM-SFA/diyepw/branch/master/graph/badge.svg?token=IPOY8984MB)](https://codecov.io/gh/IMMM-SFA/diyepw)
+[![DOI](https://zenodo.org/badge/290590032.svg)](https://zenodo.org/badge/latestdoi/290590032)
 [![status](https://joss.theoj.org/papers/9267f12d29f6f17e6dce4fb7bb87897d/status.svg)](https://joss.theoj.org/papers/9267f12d29f6f17e6dce4fb7bb87897d)
 
 # `diyepw`
