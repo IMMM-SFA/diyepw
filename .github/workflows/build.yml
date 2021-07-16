@@ -1,6 +1,6 @@
-name: windows
+name: build
 
-on: [pull_request]
+on: [push]
 
 jobs:
   build:
@@ -8,7 +8,7 @@ jobs:
 
       strategy:
         matrix:
-          os: [windows-latest]
+          os: [ubuntu-latest]
 
       env:
         OS: ${{ matrix.os }}
@@ -28,7 +28,14 @@ jobs:
             python -m pip install --upgrade pip
             pip install .
 
-        - name: Test
+        - name: Test and generate coverage report
           run: |
             pip install pytest
-            python -m pytest tests/
+            pip install pytest-cov
+            python -m pytest tests/ --cov=./ --cov-report=xml
+
+        - name: Upload coverage to Codecov
+          uses: codecov/codecov-action@v1
+          with:
+            file: ./coverage.xml
+            fail_ci_if_error: true

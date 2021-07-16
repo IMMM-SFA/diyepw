@@ -26,15 +26,26 @@ setuptools.setup(  # pragma: no cover
       license='BSD 2-Clause',
       python_requires='~=3.7',
       install_requires=[
-          'xarray~=0.16.2',
+          'click~=8.0.1',
           'numpy~=1.19.2',
           'pvlib~=0.8.1',
+          'xarray~=0.16.2',
       ],
       extras_require={
           'dev': [
+              'build~=0.5.1',
+              'twine~=3.4.1',
               'recommonmark~=0.7.1',
+              'setuptools~=57.0.0',
               'sphinx~=3.5.1',
-              'sphinx-rtd-theme~=0.5.1'
+              'sphinx-rtd-theme~=0.5.1',
           ]
-      }
+      },
+      entry_points={
+          'console_scripts': [
+              'analyze_noaa_data = diyepw.scripts.analyze_noaa_data:analyze_noaa_data',
+              'create_amy_epw_files = diyepw.scripts.create_amy_epw_files:create_amy_epw_files',
+              'create_amy_epw_files_for_years_and_wmos = diyepw.scripts.create_amy_epw_files_for_years_and_wmos:create_amy_epw_files_for_years_and_wmos',
+          ],
+      },
 )

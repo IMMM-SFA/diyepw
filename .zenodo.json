@@ -1,0 +1,25 @@
+{
+    "title": "diyepw: A Python package for Do-It-Yourself EnergyPlus weather file generation",
+    "creators": [
+        {
+            "name": "Amanda D. Smith",
+            "affiliation": "Pacific Northwest National Laboratory, Richland, WA., USA",
+            "orcid": "0000-0003-2990-2190"
+        },
+        {
+            "name": "Benjamin Stürmer",
+            "affiliation": "Independent Researcher",
+            "orcid": "0000-0003-2007-929X"
+        },
+        {
+            "name": "Travis Thurber",
+            "affiliation": "Pacific Northwest National Laboratory, Richland, WA., USA",
+            "orcid": "0000-0002-4370-9971"
+        },
+        {
+            "name": "Chris R. Vernon",
+            "affiliation": "Pacific Northwest National Laboratory, Richland, WA., USA",
+            "orcid": "0000-0002-3406-6214"
+        }
+    ]
+}
