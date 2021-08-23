@@ -35,7 +35,7 @@ obtain weather files using an open-source, automated workflow by simply specifyi
 weather station ID number [@isd_station_history], and specifying a year or set of years for which to generate EPW files. Building energy modelers can use these 
 auto-generated weather files in building performance simulations to represent the actual observed weather conditions in the location(s) of interest, based 
 on observed weather data obtained from the National Oceanic and Atmospheric Administration's Integrated Surface Database [@NOAA_ISD; @isd_BAMS]. Because observed weather data are not available for every meteorological variable specified in the EPW format [@EPWdd], `diyepw` starts with a widely-used set of typical 
-meteorological year (TMY) EPW files [@eplus-weather-data], using them as the template to generate new EPW files by substituting in the observed values of selected 
+meteorological year (TMY) EPW files [@EPweather], using them as the template to generate new EPW files by substituting in the observed values of selected 
 meteorological variables that are known to affect building energy performance (see [Using DIYEPW to generate AMY EPW files](https://diyepw.readthedocs.io/en/latest/README.html#using-diyepw-to-generate-amy-epw-files) for details). Its output is a weather file or group of weather files that conform to the EPW format so they can be used with any building performance simulation software employing EnergyPlus [@EnergyPlus] as its simulation engine. 
 
 `diyepw` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called 
