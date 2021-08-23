@@ -38,8 +38,8 @@ on observed weather data obtained from the National Oceanic and Atmospheric Admi
 meteorological year (TMY) EPW files [@EPweather], using them as the template to generate new EPW files by substituting in the observed values of selected 
 meteorological variables that are known to affect building energy performance (see [Using DIYEPW to generate AMY EPW files](https://diyepw.readthedocs.io/en/latest/README.html#using-diyepw-to-generate-amy-epw-files) for details). Its output is a weather file or group of weather files that conform to the EPW format so they can be used with any building performance simulation software employing EnergyPlus [@EnergyPlus] as its simulation engine. 
 
-`diyepw` is available here as a Python package [@github_diyepw], and as a set of scripts in a separate repository [@github_diyepw-scripts]. It can be called 
-directly as a package to incorporate EPW file generation into a custom script, or used as a command-line tool, and is customizable according to the modeler's 
+`diyepw` is available on Github [@github_diyepw], and it can be called 
+directly as a package to incorporate EPW file generation into a custom script, and is designed to be customizable according to the modeler's 
 needs. A step-by-step example tutorial is provided as a quick start option here: [Tutorial](https://diyepw.readthedocs.io/en/latest/tutorial.html).
 
 # Statement of need
