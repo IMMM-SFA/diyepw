@@ -41,10 +41,10 @@ diyepw.create_amy_epw_files_for_years_and_wmos(
 )
 ```
 
-EnergyPlus provides a nice user interface for finding weather station information using a map: 
-https://energyplus.net/weather. Search using the map or the keyword input, and the WMO Index will be the six-digit 
-number appearing in the `title` field. Alternatively, the identifiers are available as part of this dataset: 
-http://www.weathergraphics.com/identifiers/. 
+EnergyPlus provides a nice user interface for finding weather station information using a 
+map: [Browse Weather Data](https://energyplus.net/weather). Search using the map or the keyword input, and the WMO 
+Index will be the six-digit number appearing in the `title` field. Alternatively, the identifiers are available as 
+part of this dataset: [Weather Station Identifiers](http://www.weathergraphics.com/identifiers/). 
 
 # Using `diyepw` to generate AMY EPW files
 This package is a tool for the generation of AMY (actual meteorological year) EPW files, which is done
