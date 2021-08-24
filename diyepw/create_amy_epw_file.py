@@ -18,19 +18,19 @@ from ._logging import _logger
 # file being generated multiple times.
 _tempdir_amy_epw = tempfile.mkdtemp()
 
-def create_amy_epw_file(
-        wmo_index:int,
-        year:int,
 
+def create_amy_epw_file(
+        wmo_index: int,
+        year: int,
         *,
-        max_records_to_interpolate:int,
-        max_records_to_impute:int,
-        max_missing_amy_rows:int = None,
-        amy_epw_dir:str = None,
-        tmy_epw_dir:str = None,
-        amy_dir:str = None,
-        amy_files:Tuple[str, str] = None,
-        allow_downloads:bool = False
+        max_records_to_interpolate: int = 6,
+        max_records_to_impute: int = 48,
+        max_missing_amy_rows: int = 700,
+        amy_epw_dir: str = None,
+        tmy_epw_dir: str = None,
+        amy_dir: str = None,
+        amy_files: Tuple[str, str] = None,
+        allow_downloads: bool = False
 ) -> str:
     """
     Combine data from a Typical Meteorological Year (TMY) EPW file and Actual Meteorological Year (AMY)
@@ -189,7 +189,8 @@ def create_amy_epw_file(
 
     return amy_epw_file_path
 
-def _set_noaa_df_columns(df:pd.DataFrame) -> pd.DataFrame:
+
+def _set_noaa_df_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Add headings to a NOAA ISD Lite formatted dataframe, and Drop columns for observations
     that won't be used in populating the EPW files.
     """
@@ -208,7 +209,8 @@ def _set_noaa_df_columns(df:pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-def _create_timestamp_index_for_noaa_df(df:pd.DataFrame) -> pd.DataFrame:
+
+def _create_timestamp_index_for_noaa_df(df: pd.DataFrame) -> pd.DataFrame:
     """Convert the year, month, day fields of a NOAA ISD Lite DataFrame into
     a timestamp and make that timestamp the index of the DataFrame
     :param df:
@@ -224,6 +226,7 @@ def _create_timestamp_index_for_noaa_df(df:pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=['Year', 'Month', 'Hour', 'Day'])
 
     return df
+
 
 def _map_noaa_df_to_year(df, year):
     """Add headings to a NOAA ISD Lite formatted dataframe, convert year-month-day-hour columns to a timestamp,
@@ -243,9 +246,10 @@ def _map_noaa_df_to_year(df, year):
 
     return df
 
+
 def _handle_missing_values(
-        df:pd.DataFrame, *, step, max_to_interpolate:int, max_to_impute:int,
-        imputation_range, imputation_step, missing_values:list=None, ignore_columns=[]
+        df: pd.DataFrame, *, step, max_to_interpolate: int, max_to_impute: int,
+        imputation_range, imputation_step, missing_values: list = None, ignore_columns=[]
 ):
     """
     Look for missing values in a DataFrame. If possible, the missing values will be

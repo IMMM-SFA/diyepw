@@ -9,9 +9,9 @@ def create_amy_epw_files_for_years_and_wmos(
         wmo_indices: List[int],
 
         *,
-        max_records_to_interpolate: int,
-        max_records_to_impute: int,
-        max_missing_amy_rows: int,
+        max_records_to_interpolate: int = 6,
+        max_records_to_impute: int = 48,
+        max_missing_amy_rows: int = 700,
         amy_epw_dir: str = None,
         tmy_epw_dir: str = None,
         amy_dir: str = None,
@@ -23,18 +23,36 @@ def create_amy_epw_files_for_years_and_wmos(
 
     Except for "years" and "wmos" being lists rather than single values, all parameters are identical in effect to
     create_amy_epw_file() - see that function's documentation for details.
-    :param wmo_indices:
-    :param years:
-    :param max_records_to_interpolate:
-    :param max_records_to_impute:
-    :param max_missing_amy_rows:
-    :param amy_epw_dir: Note that, in addition to the generated AMY EPW files, an errors.csv file will be created in this
+    :param wmo_indices: A list of the WMO Indices of the weather stations for which the EPW files should be generated.
+        Currently only weather stations in the United States are supported.
+    :param years: A list of years for which the EPW files should be generated
+    :param max_records_to_interpolate: The maximum length of sequence for which linear interpolation will be
+        used to replace missing values. See the documentation of _handle_missing_values() below for details.
+    :param max_records_to_impute: The maximum length of sequence for which imputation will be used to replace
+        missing values. See the documentation of _handle_missing_values() below for details.
+    :param max_missing_amy_rows: The maximum total number of missing rows to permit in a year's AMY file.
+    :param amy_epw_dir: The directory into which the generated AMY EPW file should be written.
+        If not defined, a temporary directory will be created. Note that, in addition to the generated AMY EPW files, an errors.csv file will be created in this
         directory if any errors were encountered, with error messages explaining which year/WMO Index combinations
         failed and why.
-    :param tmy_epw_dir:
-    :param amy_dir:
-    :param amy_files:
-    :param allow_downloads:
+    :param tmy_epw_dir: The source directory for TMY EPW files. If a file for the requested WMO Index is
+        already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
+        get_tmy_epw_file() function for details). If no directory is given, the package's default
+        directory (in data/tmy_epw_files/ in the package's directory) will be used, which will allow AMY
+        files to be reused for future calls instead of downloading them repeatedly, which is quite time
+        consuming.
+    :param amy_dir: The source directory for AMY files. If a file for the requested WMO Index and year
+        is already present, it will be used. Otherwise a TMY EPW file will be downloaded (see this package's
+        get_noaa_isd_lite_file() function for details). If no directory is given, the package's default
+        directory (in data/ in the package's directory) will be used, which will allow AMY files to be
+        reused for future calls instead of downloading them repeatedly, which is quite time consuming.
+    :param amy_files: Instead of specifying amy_dir and allowing this method to try to find the appropriate
+        file, you can use this argument to specify the actual files that should be used. There should be
+        two files - the first the AMY file for "year", and the second the AMY file for the subsequent year,
+        which is required to support shifting the timezone from GMT to the timezone of the observed meteorology.
+    :param allow_downloads: If this is set to True, then any missing TMY or AMY files required to generate the
+        requested AMY EPW file will be downloaded from publicly available online catalogs. Otherwise, those files
+        being missing will result in an error being raised.
     :return: A dictionary of the files generated for each year/wmo combination, in the form {
         <year>: {
             <wmo_index>: [<file_path>, ...],
