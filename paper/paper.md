@@ -61,7 +61,7 @@ The EnergyPlus website lists additional resources for obtaining EPW files for bu
 
 # Dependencies
 
-`diyepw` relies on functionality from the following Python packages: `NumPy` [@numpy], `pandas` [@pandas], and `xarray` [@xarray].
+`diyepw` relies on functionality from the following Python packages: `NumPy` [@numpy], `pandas` [@pandas], and `xarray` [@xarray; @xarray-zenodo].
 
 # Acknowledgements
 
