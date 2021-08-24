@@ -49,10 +49,11 @@ observed weather data to drive simulations of model buildings using EnergyPlus f
 
 # Relationship to other resources in this research area
 
-`diyepw` was inspired by the Local Actual Meteorological Year File (LAF) application [@Bianchi2019-lm]. `diyepw` addresses some of its key limitations: 
+`diyepw` was inspired by the Local Actual Meteorological Year File (LAF) application [@Bianchi2019-lm]. LAF provided a free downloadable application that used web-based access to real meteorological data from the MesoWest database [@mesowest] through an API [@mesonet] and processed it into an EPW weather file, allowing the user to combine results from multiple weather stations and multiple time years if desired.
+`diyepw` addresses some of its key limitations: 
 
 - LAF's workflow requires downloading and clicking and is not fully automated.
-- LAF is no longer developed or maintained.
+- LAF is no longer developed or maintained, and cannot be imported as a Python package.
 - LAF relies on an API for downloading observed weather data that has limitations on the amount of data that can be downloaded without a paid account.
 - LAF is not directly extensible to other sources of weather data, such as the NOAA ISD Lite format used here.
 
