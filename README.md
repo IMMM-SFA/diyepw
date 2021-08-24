@@ -5,9 +5,19 @@
 
 # `diyepw`
 `diyepw` is a tool developed by Pacific Northwest National Laboratory that allows the quick and easy
-generation of a set of EPW files for a given set of WMOs and years. It is provided as both a set
-of scripts and as a Python package. This allows `diyepw` to be used as a command-line tool, or as a package to
-incorporate EPW file generation into a custom script.
+generation of a set of [EnergyPlus Weather (EPW) files](https://bigladdersoftware.com/epx/docs/8-3/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html) 
+for a given set of [World Meteorological Organizations (WMOs) station identifiers](http://www.weathergraphics.com/identifiers/) 
+and years.
+
+EPW files are used as input into [EnergyPlus](https://energyplus.net/) building energy simulations, and have 
+traditionally been difficult to work with using open source tools. `diyepw` aims to fill this gap by providing both 
+a set of scripts and a Python package, allowing it to be used as a command-line tool or as a package to incorporate EPW 
+file generation into other modules or custom scripts.
+
+`diyepw` relies on the 
+[National Oceanic and Atmospheric Administration (NOAA) Integrated Surface Database (ISD)](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database) 
+as the reference for EPW file generation, in particular the ISDLite repository which provides a subset of the data 
+with eight surface parameters at hourly resolution.
 
 # Getting Started
 The `diyepw` Python package can be easily installed using PIP:
@@ -30,6 +40,11 @@ diyepw.create_amy_epw_files_for_years_and_wmos(
     allow_downloads=True
 )
 ```
+
+EnergyPlus provides a nice user interface for finding weather station information using a map: 
+https://energyplus.net/weather. Search using the map or the keyword input, and the WMO Index will be the six-digit 
+number appearing in the `title` field. Alternatively, the identifiers are available as part of this dataset: 
+http://www.weathergraphics.com/identifiers/. 
 
 # Using `diyepw` to generate AMY EPW files
 This package is a tool for the generation of AMY (actual meteorological year) EPW files, which is done

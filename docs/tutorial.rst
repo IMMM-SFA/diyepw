@@ -62,7 +62,7 @@ Say that you designed an energy model for a building that was constructed in Chi
 
     USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw
     
-The 6-digit number following “AP” is the WMO weather station ID number. North American WMO station ID numbers `will be 6 digits, starting with “7” <https://tgftp.nws.noaa.gov/logs/site.shtml>`_. Here, we see that 725300 is the ID number for the weather station at Chicago-O’Hare International Airport. You can also open this file in a text editor and you will see that information on the first line.
+The 6-digit number following “AP” is the WMO weather station ID number. North American WMO station ID numbers `will be 6 digits, starting with “7” <http://www.weathergraphics.com/identifiers/>`_. Here, we see that 725300 is the ID number for the weather station at Chicago-O’Hare International Airport. You can also open this file in a text editor and you will see that information on the first line.
 
 **Create the weather files:** After installing and importing diyepw, enter this at the Python prompt:
 ::
