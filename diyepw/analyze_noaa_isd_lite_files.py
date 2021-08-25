@@ -3,12 +3,13 @@ from typing import Iterable
 from ._logging import _logger
 from .analyze_noaa_isd_lite_file import analyze_noaa_isd_lite_file
 
+
 def analyze_noaa_isd_lite_files(
         files: Iterable,
         *,
-        max_missing_rows: int,
-        max_consecutive_missing_rows: int,
-        compression:str='infer'
+        max_missing_rows: int = 700,
+        max_consecutive_missing_rows: int = 48,
+        compression: str = 'infer'
 ):
     """
     Performs an analysis of a set of NOAA ISD Lite files, determining which of them are suitable
@@ -24,17 +25,17 @@ def analyze_noaa_isd_lite_files(
        pandas.read_csv() for more information.
 
     :return: dict in the form:
-    {
-      "good": [<file_description>, ...],
-      "too_many_total_rows_missing": [<file_description>, ...],
-      "too_many_consecutive_rows_missing": [<file_description>, ...]
-    }
-    ...where <file_description> is itself a dict in the form:
-    {
-      'file': <str> - absolute path to the file,
-      'total_rows_missing': <int> - The number of total rows that are missing data in this file,
-      'max_consec_rows_missing': <int> - The largest number of consecutive rows that are missing data in this file
-    }
+        {
+          "good": [<file_description>, ...],
+          "too_many_total_rows_missing": [<file_description>, ...],
+          "too_many_consecutive_rows_missing": [<file_description>, ...]
+        }
+        ...where <file_description> is itself a dict in the form:
+        {
+          'file': <str> - absolute path to the file,
+          'total_rows_missing': <int> - The number of total rows that are missing data in this file,
+          'max_consec_rows_missing': <int> - The largest number of consecutive rows that are missing data in this file
+        }
     """
 
     too_many_missing_rows = []

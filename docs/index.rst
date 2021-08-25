@@ -21,3 +21,10 @@ Application Programming Interface (API)
    :maxdepth: 1
 
    diyepw
+
+Contributing
+------------
+.. toctree::
+   :maxdepth: 1
+
+   CONTRIBUTING.md

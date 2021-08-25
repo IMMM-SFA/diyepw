@@ -1,8 +1,9 @@
 import pandas as pd
 
+
 def analyze_noaa_isd_lite_file(
         file: str,
-        compression: str='infer'
+        compression: str = 'infer'
 ):
     """
     Performs an analysis of a single NOAA ISD Lite file, determining whether it is suitable for conversion into an AMY
@@ -56,7 +57,8 @@ def analyze_noaa_isd_lite_file(
 
     return file_description
 
-def _get_max_missing_rows_from_hourly_dataframe(df:pd.DataFrame, timestamp_col_name:str) ->int:
+
+def _get_max_missing_rows_from_hourly_dataframe(df: pd.DataFrame, timestamp_col_name: str) -> int:
     """
     Given a DataFrame containing hourly timestamps over a year, determine the longest sequence of timestamps
     missing from that DataFrame.

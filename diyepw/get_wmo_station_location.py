@@ -2,7 +2,8 @@ import os
 import pkg_resources
 import pandas as pd
 
-def get_wmo_station_location(wmo_station_number:int):
+
+def get_wmo_station_location(wmo_station_number: int):
     """
         Get the state, and county associated with a WMO station
         :param wmo_station_number: The WMO Station ID of the weather station to get location information for
