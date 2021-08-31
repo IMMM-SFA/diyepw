@@ -19,6 +19,18 @@ file generation into other modules or custom scripts.
 as the reference for EPW file generation, in particular the ISDLite repository which provides a subset of the data 
 with eight surface parameters at hourly resolution.
 
+Our (Journal of Open Source Software paper)[https://joss.theoj.org/papers/10.21105/joss.03313] describes the background of `diyepw` with more detail.
+
+## Citing `diyepw`
+
+### Paper
+
+Amanda D. Smith, Benjamin Stürmer, Travis Thurber, & Chris R. Vernon. (2021). diyepw: A Python package for Do-It-Yourself EnergyPlus weather file generation. Journal of Open Source Software, 6(64), 3313, https://doi.org/10.21105/joss.03313
+
+### Software
+
+Amanda D. Smith, Benjamin Stürmer, Travis Thurber, & Chris R. Vernon. (2021). diyepw: A Python package for Do-It-Yourself EnergyPlus weather file generation. Zenodo. https://doi.org/10.5281/zenodo.5258122
+
 # Getting Started
 The `diyepw` Python package can be easily installed using PIP:
 
