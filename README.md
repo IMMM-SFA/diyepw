@@ -19,7 +19,7 @@ file generation into other modules or custom scripts.
 as the reference for EPW file generation, in particular the ISDLite repository which provides a subset of the data 
 with eight surface parameters at hourly resolution.
 
-Our (Journal of Open Source Software paper)[https://joss.theoj.org/papers/10.21105/joss.03313] describes the background of `diyepw` with more detail.
+Our [Journal of Open Source Software paper](https://joss.theoj.org/papers/10.21105/joss.03313) describes the background of `diyepw` with more detail.
 
 ## Citing `diyepw`
 
