@@ -107,52 +107,58 @@ def _get_tmy3_file_catalog(allow_downloads:bool = False) -> pd.DataFrame:
     # The sources we know of for TMY EPW files are http://climate.onebuilding.org and https://energyplus.net/weather;
     # we use the climate.onebuilding.org source here because it has all of the EPW files linked
     # from a single page, making it relatively easy to work with
-    catalog_url = "http://climate.onebuilding.org/WMO_Region_4_North_and_Central_America/USA_United_States_of_America/"
+    catalog_urls = (
+        "http://climate.onebuilding.org/WMO_Region_4_North_and_Central_America/USA_United_States_of_America/",
+        "http://climate.onebuilding.org/WMO_Region_4_North_and_Central_America/CAN_Canada/",
+    )
 
     if os.path.exists(catalog_file_path):
-        catalog = pd.read_csv(catalog_file_path)
+        catalogs = [pd.read_csv(catalog_file_path)]  # put in a list for pd.concat
     else:
-        # If the catalog is not already present, and the caller has allowed for downloads, download the catalog file
-        # from the source site
+        # If the catalog is not already present, and the caller has allowed for downloads,
+        # download the catalog file from the source site
+        catalogs = []
+        for catalog_url in catalog_urls:
+            if not allow_downloads:
+                raise DownloadNotAllowedError(
+                    f"The TMY3 catalog file {catalog_file_path} is not present. Pass allow_downloads=True to "
+                    f"allow the missing data to be automatically downloaded from {catalog_url}"
+                )
 
-        if not allow_downloads:
-            raise DownloadNotAllowedError(
-                f"The TMY3 catalog file {catalog_file_path} is not present. Pass allow_downloads=True to "
-                f"allow the missing data to be automatically downloaded from {catalog_url}"
-            )
+            _logger.info(f"The TMY3 catalog file was not found at {catalog_file_path}, and allow_downloads is True, so "
+                         f"the catalog will be downloaded from {catalog_url}")
 
-        _logger.info(f"The TMY3 catalog file was not found at {catalog_file_path}, and allow_downloads is True, so "
-                     f"the catalog will be downloaded from {catalog_url}")
+            # Retrieve the TMY EPW catalog for the requested year.
+            try:
+                with request.urlopen(catalog_url) as response:
+                    catalog_html = response.read().decode('utf-8')
+            except URLError: # pragma: no cover - Not worth the time to write a test that disables the internet just for one exception
+                raise Exception(f"Failed to connect to {catalog_url} - are you connected to the internet?")
+            except Exception as e: # pragma: no cover - This block is good for adding information to an Exception but can't be intentionally provoked
+                raise Exception(f"Error downloading from {catalog_url}: {e}")
 
-        # Retrieve the TMY EPW catalog for the requested year.
-        try:
-            with request.urlopen(catalog_url) as response:
-                catalog_html = response.read().decode('utf-8')
-        except URLError: # pragma: no cover - Not worth the time to write a test that disables the internet just for one exception
-            raise Exception(f"Failed to connect to {catalog_url} - are you connected to the internet?")
-        except Exception as e: # pragma: no cover - This block is good for adding information to an Exception but can't be intentionally provoked
-            raise Exception(f"Error downloading from {catalog_url}: {e}")
+            # Iterate over each line in the catalog HTML page, parsing out the file names for each TMY3 file that is
+            # encountered
+            catalog = pd.DataFrame(columns=['wmo_index', 'file_name', 'url'])
+            for line in catalog_html.splitlines():
+                # Regex: Match hrefs pointing to files in the form *.#_TMY3.zip, where the # is the WMO
+                # represented by the file.
+                # Capture groups: The big capture group gets the file name, and the small one gets the WMO
+                # Second period before .zip is to catch TMY3 or TMYx.
+                for match in re.finditer(r'href="([^"]*\.(\d{6})_TMY..zip)"', line):
+                    file_path, wmo_index = match.groups()
 
-        # Iterate over each line in the catalog HTML page, parsing out the file names for each TMY3 file that is
-        # encountered
-        catalog = pd.DataFrame(columns=['wmo_index', 'file_name', 'url'])
-        for line in catalog_html.splitlines():
-            # Regex: Match hrefs pointing to files in the form *.#_TMY3.zip, where the # is the WMO
-            # represented by the file.
-            # Capture groups: The big capture group gets the file name, and the small one gets the WMO
-            for match in re.finditer(r'href="([^"]*\.(\d{6})_TMY3.zip)"', line):
-                file_path, wmo_index = match.groups()
+                    # The file extension of the download URL is .zip, and points to an archive file containing a number
+                    # of files. Within that archive is the TMY EPW file, which has the same name and the .epw extension.
+                    file_name = file_path.split('/')[-1].replace('.zip', '.epw')
 
-                # The file extension of the download URL is .zip, and points to an archive file containing a number
-                # of files. Within that archive is the TMY EPW file, which has the same name and the .epw extension.
-                file_name = file_path.split('/')[-1].replace('.zip', '.epw')
+                    catalog = catalog.append({
+                        'wmo_index': int(wmo_index),
+                        'file_name': file_name,
+                        'url': catalog_url + '/' + file_path
+                    }, ignore_index=True)
+            catalogs.append(catalog)
 
-                catalog = catalog.append({
-                    'wmo_index': int(wmo_index),
-                    'file_name': file_name,
-                    'url': catalog_url + '/' + file_path
-                }, ignore_index=True)
-
-        catalog.to_csv(catalog_file_path, index=False)
-
-    return catalog
+    catalogs = pd.concat(catalogs, ignore_index=True)
+    catalogs.to_csv(catalog_file_path, index=False)
+    return catalogs
