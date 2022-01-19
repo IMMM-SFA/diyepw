@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pandas as pd
 import datetime
 import calendar
@@ -167,16 +168,16 @@ class Meteorology:
         first_day_of_week = calendar.day_name[first_observation_date.weekday()]
 
         with open(save_path, 'w') as epw_file:
-            epw_file.write("\n".join([
+            epw_file.write(os.linesep.join([
                 location_header,
-                "\n".join(self._headers[1:5]),
+                os.linesep.join(self._headers[1:5]),
                 self._comment,
 
                 'COMMENTS 2, TMY3 data from energyplus.net/weather supplemented with NOAA ISD Lite data from ' +
                 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/ for an actual meteorological year (AMY)',
 
                 'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31'
-            ]) + "\n")
+            ]) + os.linesep)
             epw_file.write(self._observations.to_csv(header=False, index=False))
 
     # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
