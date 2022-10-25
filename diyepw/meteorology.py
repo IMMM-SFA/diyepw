@@ -167,8 +167,8 @@ class Meteorology:
         )
         first_day_of_week = calendar.day_name[first_observation_date.weekday()]
 
-        with open(save_path, 'w') as epw_file:
-            epw_file.write(os.linesep.join([
+        with open(save_path, 'w', newline='') as epw_file:
+            epw_file.writelines([
                 location_header,
                 os.linesep.join(self._headers[1:5]),
                 self._comment,
@@ -177,8 +177,8 @@ class Meteorology:
                 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/ for an actual meteorological year (AMY)',
 
                 'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31'
-            ]) + os.linesep)
-            epw_file.write(self._observations.to_csv(header=False, index=False))
+            ])
+            self._observations.to_csv(epw_file, header=False, index=False)
 
     # adapted from https://github.com/SSESLab/laf/blob/master/LAF.py
     @staticmethod
