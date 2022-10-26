@@ -170,6 +170,7 @@ class Meteorology:
         with open(save_path, 'w', newline='') as epw_file:
             epw_file.writelines([
                 location_header,
+                os.linesep,
                 os.linesep.join(self._headers[1:5]),
                 self._comment,
 
