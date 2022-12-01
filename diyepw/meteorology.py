@@ -172,12 +172,15 @@ class Meteorology:
                 location_header,
                 os.linesep,
                 os.linesep.join(self._headers[1:5]),
+                os.linesep,
                 self._comment,
+                os.linesep,
 
                 'COMMENTS 2, TMY3 data from energyplus.net/weather supplemented with NOAA ISD Lite data from ' +
                 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/ for an actual meteorological year (AMY)',
-
-                'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31'
+                os.linesep,
+                'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31',
+                os.linesep
             ])
             self._observations.to_csv(epw_file, header=False, index=False)
 
