@@ -1,4 +1,3 @@
-import numpy as np
 import os
 import pandas as pd
 import datetime
@@ -172,12 +171,15 @@ class Meteorology:
                 location_header,
                 os.linesep,
                 os.linesep.join(self._headers[1:5]),
+                os.linesep,
                 self._comment,
+                os.linesep,
 
                 'COMMENTS 2, TMY3 data from energyplus.net/weather supplemented with NOAA ISD Lite data from ' +
                 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/ for an actual meteorological year (AMY)',
-
-                'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31'
+                os.linesep,
+                'DATA PERIODS,1,1,Data,' + first_day_of_week + ', 1/1, 12/31',
+                os.linesep
             ])
             self._observations.to_csv(epw_file, header=False, index=False)
 
@@ -217,44 +219,56 @@ class Meteorology:
         ############################
         # Read TMY3 data
         ############################
-        data = np.genfromtxt(file_path, delimiter=',', skip_header=8)
-        instance._observations = pd.DataFrame(data={
-            "year":           [ int(i) for i in data[:, 0] ],
-            "month":          [ int(i) for i in data[:, 1] ],
-            "day":            [ int(i) for i in data[:, 2] ],
-            "hour":           [ int(i) for i in data[:, 3] ],
-            "minute":         [ int(i) for i in data[:, 4] ],
-            "Flags" :         data[:, 5],
-            "Tdb":            data[:, 6],
-            "Tdew":           data[:, 7],
-            "RH":             data[:, 8],
-            "Patm":           data[:, 9],
-            "ExHorRad":       data[:, 10],
-            "ExDirNormRad":   data[:, 11],
-            "HorIR":          data[:, 12],
-            "GHRad":          data[:, 13],
-            "DNRad":          data[:, 14],
-            "DHRad":          data[:, 15],
-            "GHIll":          data[:, 16],
-            "DNIll":          data[:, 17],
-            "DHIll":          data[:, 18],
-            "ZenLum":         data[:, 19],
-            "Wdir":           data[:, 20],
-            "Wspeed":         data[:, 21],
-            "TotSkyCover":    data[:, 22],
-            "OpSkyCover":     data[:, 23],
-            "Visib":          data[:, 24],
-            "CeilH":          data[:, 25],
-            "PresWeathObs":   data[:, 26],
-            "PresWeathCodes": data[:, 27],
-            "PrecWater":      data[:, 28],
-            "AerOptDepth":    data[:, 29],
-            "SnowDepth":      data[:, 30],
-            "DSLS":           data[:, 31],
-            "Albedo":         data[:, 32],
-            "LiqPrecDepth":   data[:, 33],
-            "LiqPrecQuant":   data[:, 34]
-        })
+        instance._observations = pd.read_csv(
+            file_path,
+            names=[
+                "year",
+                "month",
+                "day",
+                "hour",
+                "minute",
+                "Flags",
+                "Tdb",
+                "Tdew",
+                "RH",
+                "Patm",
+                "ExHorRad",
+                "ExDirNormRad",
+                "HorIR",
+                "GHRad",
+                "DNRad",
+                "DHRad",
+                "GHIll",
+                "DNIll",
+                "DHIll",
+                "ZenLum",
+                "Wdir",
+                "Wspeed",
+                "TotSkyCover",
+                "OpSkyCover",
+                "Visib",
+                "CeilH",
+                "PresWeathObs",
+                "PresWeathCodes",
+                "PrecWater",
+                "AerOptDepth",
+                "SnowDepth",
+                "DSLS",
+                "Albedo",
+                "LiqPrecDepth",
+                "LiqPrecQuant",
+            ],
+            dtype={
+                "year": int,
+                "month": int,
+                "day": int,
+                "hour": int,
+                "minute": int,
+                "Flags": str,
+            },
+            skiprows=8,
+            index_col=False,
+        )
 
         return instance
 
