@@ -140,7 +140,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
         # Verify that the generated file can be parsed as an EPW
         with open(file_path, "r") as m:
             try:
-                parsed_epw, col_names = pvlib.iotools.parse_epw(m)
+                parsed_epw, col_names = pvlib.iotools.read_epw(m)
             except Exception as e:
                 raise Exception(f"Error parsing the result of create_amy_epw_file() as an EPW file: {e}")
 

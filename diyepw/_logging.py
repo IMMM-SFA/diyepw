@@ -1,12 +1,12 @@
 import logging
 import os
 import sys
-import pkg_resources
+import importlib_resources
 from datetime import datetime
 
 _LOG_LEVEL = logging.INFO
 
-log_dir = pkg_resources.resource_filename("diyepw", "log")
+log_dir = importlib_resources.files("diyepw") / "log"
 if not os.path.exists(log_dir): # pragma: no cover
     os.mkdir(log_dir)
 

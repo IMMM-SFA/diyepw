@@ -12,7 +12,7 @@ jobs:
 
       env:
         OS: ${{ matrix.os }}
-        PYTHON: '3.7'
+        PYTHON: '3.9'
 
       steps:
 
@@ -21,7 +21,7 @@ jobs:
         - name: Set up Python
           uses: actions/setup-python@master
           with:
-            python-version: 3.7
+            python-version: 3.9
 
         - name: Install dependencies
           run: |
@@ -38,4 +38,4 @@ jobs:
           uses: codecov/codecov-action@v1
           with:
             file: ./coverage.xml
-            fail_ci_if_error: true
+            fail_ci_if_error: false
