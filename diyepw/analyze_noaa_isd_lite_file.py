@@ -27,7 +27,7 @@ def analyze_noaa_isd_lite_file(
     """
     # Read the file into a Pandas dataframe.
     df = pd.read_csv(file,
-                     delim_whitespace=True,
+                     sep='\\s+',
                      header=None,
                      compression=compression,
                      names=["Year", "Month", "Day", "Hour", "Air_Temperature",
@@ -68,7 +68,7 @@ def _get_max_missing_rows_from_hourly_dataframe(df: pd.DataFrame, timestamp_col_
     :return: The size of the longest sequence of missing timestamps from the Dataframe `df`
     """
     # Create series of continuous timestamp values for that year
-    all_timestamps = pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='H')
+    all_timestamps = pd.date_range(df[timestamp_col_name].iloc[0], periods=8760, freq='h')
 
     # Merge to one dataframe containing all continuous timestamp values.
     all_times = pd.DataFrame(all_timestamps, columns=['all_timestamps'])

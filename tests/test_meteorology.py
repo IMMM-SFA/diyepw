@@ -37,11 +37,11 @@ class MeteorologyTest(unittest.TestCase):
         self._meteorology.write_epw(tmp_file)
         with open(tmp_file, "r") as m:
             try:
-                parsed_epw, col_names = pvlib.iotools.parse_epw(m)
+                parsed_epw, col_names = pvlib.iotools.read_epw(m)
             except Exception as e:
                 raise Exception(f"Encountered an error trying to parse the produce of Meteorology.write_epw() as an EPW file: {e}")
 
-            # Make sure that parse_epw() actually succeeded in creating a DataFrame instance
+            # Make sure that read_epw() actually succeeded in creating a DataFrame instance
             self.assertIsInstance(parsed_epw, pd.DataFrame)
         os.unlink(tmp_file)
 

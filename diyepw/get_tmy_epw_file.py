@@ -3,7 +3,7 @@ import urllib.request as request
 import re
 import os
 import shutil
-import pkg_resources
+import importlib_resources
 import pandas as pd
 from zipfile import ZipFile
 from urllib.error import URLError
@@ -30,7 +30,7 @@ def get_tmy_epw_file(wmo_index:int, output_dir:str = None, allow_downloads:bool 
     _logger.debug(f"get_tmy_epw_file() - Retrieving TMY EPW file for WMO {wmo_index}")
 
     if output_dir is None: # pragma: no cover - Not worth the risk of having tests that fiddle with real project data
-        output_dir = pkg_resources.resource_filename("diyepw", "data/tmy_epw_files")
+        output_dir = importlib_resources.files("diyepw") / "data/tmy_epw_files"
 
     if not os.path.isdir(output_dir):
         raise Exception(f'The path {output_dir} is not a valid directory path')
@@ -102,7 +102,7 @@ def _get_tmy3_file_catalog(allow_downloads:bool = False) -> pd.DataFrame:
         - url: The URL from which the TMY3 file can be downloaded
     """
 
-    catalog_file_path = pkg_resources.resource_filename("diyepw", "data/tmy_epw_catalogs/tmy_epw_catalog.csv")
+    catalog_file_path = importlib_resources.files("diyepw") / "data/tmy_epw_catalogs/tmy_epw_catalog.csv"
 
     # The sources we know of for TMY EPW files are http://climate.onebuilding.org and https://energyplus.net/weather;
     # we use the climate.onebuilding.org source here because it has all of the EPW files linked
@@ -152,11 +152,11 @@ def _get_tmy3_file_catalog(allow_downloads:bool = False) -> pd.DataFrame:
                     # of files. Within that archive is the TMY EPW file, which has the same name and the .epw extension.
                     file_name = file_path.split('/')[-1].replace('.zip', '.epw')
 
-                    catalog = catalog.append({
+                    catalog = pd.concat([catalog, pd.DataFrame([{
                         'wmo_index': int(wmo_index),
                         'file_name': file_name,
                         'url': catalog_url + '/' + file_path
-                    }, ignore_index=True)
+                    }])], ignore_index=True)
             catalogs.append(catalog)
 
     catalogs = pd.concat(catalogs, ignore_index=True)

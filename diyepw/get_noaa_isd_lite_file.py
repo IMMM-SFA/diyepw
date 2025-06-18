@@ -2,7 +2,7 @@ import urllib.request as request
 import re
 import os
 import pandas as pd
-import pkg_resources
+import importlib_resources
 from urllib.error import URLError
 
 from ._logging import _logger
@@ -21,7 +21,7 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
     :return: The path to the NOAA ISD Lite file
     """
     if output_dir is None: # pragma: no cover
-        output_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_files')
+        output_dir = importlib_resources.files("diyepw") / "data/noa_isd_lite_files"
         _logger.info(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
 
     if not os.path.exists(output_dir): # pragma: no cover
@@ -80,7 +80,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
         NOAA
     """
     if catalog_dir is None:
-        catalog_dir = pkg_resources.resource_filename('diyepw', 'data/noaa_isd_lite_catalogs')
+        catalog_dir = importlib_resources.files("diyepw") / "data/noaa_isd_lite_catalogs"
         _logger.info(f"catalog_dir was not defined, using {catalog_dir}")
 
     if not os.path.exists(catalog_dir): # pragma: no cover
@@ -115,7 +115,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
                 # Capture groups: The big capture group gets the file name, and the small one gets the WMO
                 for match in re.finditer(r'href="((7\d+)-.*\.gz)"', line):
                     file_name, wmo_index = match.groups()
-                    catalog = catalog.append({'wmo_index': int(wmo_index), 'file_name': file_name}, ignore_index=True)
+                    catalog = pd.concat([catalog, pd.DataFrame([{'wmo_index': int(wmo_index), 'file_name': file_name}])], ignore_index=True)
 
             catalog.to_csv(file_path, index=False)
             _logger.info(f"Catalog file for year {year} saved to {file_path}")

@@ -1,5 +1,5 @@
 import os
-import pkg_resources
+import importlib_resources
 import pandas as pd
 
 
@@ -10,7 +10,7 @@ def get_wmo_station_location(wmo_station_number: int):
         :return: Either a dict with fields "state" and "county", or None if no information is available for
             the passed WMO Station ID
     """
-    wmo_station_info_filepath = pkg_resources.resource_filename('diyepw', 'data/Weather_Stations_by_County.csv')
+    wmo_station_info_filepath = importlib_resources.files("diyepw") / "data/Weather_Stations_by_County.csv"
 
     if not os.path.exists(wmo_station_info_filepath):
         raise Exception("Missing WMO station info file at " + wmo_station_info_filepath)

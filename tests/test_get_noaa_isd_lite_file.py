@@ -1,6 +1,6 @@
 import unittest
 import diyepw
-import pkg_resources
+import importlib_resources
 import tempfile
 import os
 
@@ -36,7 +36,8 @@ class TmyGetNoaaIsdLiteFileTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as output_dir:
             # Delete the catalog data file, so that the next call to get_tmy_epw_file() will be forced to trigger
             # the file to be downloaded anew
-            os.unlink(pkg_resources.resource_filename("diyepw", f"data/noaa_isd_lite_catalogs/{year}"))
+            #os.unlink(pkg_resources.resource_filename("diyepw", f"data/noaa_isd_lite_catalogs/{year}"))
+            os.unlink(importlib_resources.files("diyepw") / f"data/noaa_isd_lite_catalogs/{year}")
 
             # With the catalog missing and a fresh temporary output directory, we get the same behavior as above
             # when trying to get a TMY EPW file without passing allow_downloads, but in this case it is due to

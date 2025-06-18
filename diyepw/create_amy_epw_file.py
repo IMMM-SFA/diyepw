@@ -7,7 +7,7 @@ import tempfile
 import pandas as pd
 import numpy as np
 import os
-import pkg_resources
+import importlib_resources
 from typing import Tuple
 from calendar import isleap
 
@@ -85,7 +85,7 @@ def create_amy_epw_file(
         amy_file_path, amy_next_year_file_path = amy_files
     else:
         if amy_dir is None:
-            amy_dir = pkg_resources.resource_filename("diyepw", "data/noaa_isd_lite_files")
+            amy_dir = importlib_resources.files("diyepw") / "data/noaa_isd_lite_files"
             _logger.info(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
 
         amy_file_path = get_noaa_isd_lite_file(wmo_index, year, output_dir=amy_dir, allow_downloads=allow_downloads)
@@ -110,7 +110,7 @@ def create_amy_epw_file(
             new_row_vals = [1982, 2, 29, hour, 0]
             new_row_vals.extend(np.repeat(np.nan, len(col_names) - len(new_row_vals)))
             new_row = pd.DataFrame([new_row_vals], columns=col_names)
-            tmy.observations = tmy.observations.append(new_row)
+            tmy.observations = pd.concat([tmy.observations, new_row], ignore_index=True)
 
         # We sort by month, day and hour. We do *not* sort by year, because the year column doesn't matter and because
         # it is in any case not consistent throughout a TMY data set
@@ -140,15 +140,15 @@ def create_amy_epw_file(
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
     # used to populate the last hours of the year because of the time shift that we perform, which moves the first
     # hours of January 1 into the final hours of December 31.
-    amy_df = pd.read_csv(amy_file_path, delim_whitespace=True, header=None)
-    amy_next_year_df = pd.read_csv(amy_next_year_file_path, delim_whitespace=True, header=None, nrows=23)
+    amy_df = pd.read_csv(amy_file_path, sep='\\s+', header=None)
+    amy_next_year_df = pd.read_csv(amy_next_year_file_path, sep='\\s+', header=None, nrows=23)
     amy_df = pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
 
     amy_df = _set_noaa_df_columns(amy_df)
     amy_df = _create_timestamp_index_for_noaa_df(amy_df)
 
     # Shift the timestamp (index) to match the time zone of the WMO station.
-    amy_df = amy_df.shift(periods= tmy.timezone_gmt_offset, freq='H')
+    amy_df = amy_df.shift(periods= tmy.timezone_gmt_offset, freq='h')
 
     # Remove time steps that aren't applicable to the year of interest
     amy_df = _map_noaa_df_to_year(amy_df, year)
@@ -237,7 +237,7 @@ def _map_noaa_df_to_year(df, year):
     The assumption of this function is that the dataframe ranges from the beginning of the year to some
     """
     # Create series of continuous timestamp values for that year
-    all_timestamps = pd.date_range(str(year) + '-01-01 00:00:00', str(year) + '-12-31 23:00:00', freq='H')
+    all_timestamps = pd.date_range(str(year) + '-01-01 00:00:00', str(year) + '-12-31 23:00:00', freq='h')
     all_timestamps = pd.DataFrame(all_timestamps, columns=['timestamp'])
 
     # Merge to one dataframe containing all continuous timestamp values.
@@ -352,13 +352,13 @@ def _handle_missing_values(
                     replacement_value_index += imputation_step
 
                 # Take the mean of the values pulled. Will ignore NaNs.
-                df[col_name][index_to_impute] = pd.Series(replacement_values, dtype=np.float64).mean()
+                df.loc[index_to_impute, col_name] = pd.Series(replacement_values, dtype=np.float64).mean()
 
         # Perform interpolation on any remaining missing values. At this point we know that there are no
         # sequences larger than the max permitted for interpolation, because they would have been imputed
         # or caused an exception (if larger than the imputation limit), so we can just call interpolate()
         # on anything that is still missing.
-        df[col_name].interpolate(inplace=True)
+        df[col_name] = df[col_name].interpolate()
 
 def _split_list_into_contiguous_segments(l:list, step):
     """
