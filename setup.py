@@ -30,7 +30,7 @@ setuptools.setup(  # pragma: no cover
           'numpy~=2.0.0',
           'pandas~=2.0.0',
           'pvlib~=0.13.0',
-          'xarray~=2025.0.0',
+          'xarray>=2024.0.0',
           'importlib_resources~=6.0.0',
       ],
       extras_require={
