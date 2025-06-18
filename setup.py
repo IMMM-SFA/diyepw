@@ -24,7 +24,7 @@ setuptools.setup(  # pragma: no cover
       packages=setuptools.find_packages(),
       package_data={'diyepw': ['data/**', 'test/files/**', 'data/**/*', 'test/files/**/*']},
       license='BSD 2-Clause',
-      python_requires='>=3.7',
+      python_requires='>=3.9',
       install_requires=[
           'click~=8.0.1',
           'numpy~=2.0.0',
