@@ -12,8 +12,8 @@ import pandas as pd
     type=int,
     help="""The maximum number of consecutive records to interpolate. See the documentation of the
             pandas.DataFrame.interpolate() method's "limit" argument for more details. Basically,
-            if a sequence of fields up to the length defined by this argument are missing, those 
-            missing values will be interpolated linearly using the values of the fields immediately 
+            if a sequence of fields up to the length defined by this argument are missing, those
+            missing values will be interpolated linearly using the values of the fields immediately
             preceding and following the missing field(s). If a sequence of fields is longer than this
             limit, then those fields' values will be imputed instead (see --max-records-to-impute)
             """
@@ -24,9 +24,9 @@ import pandas as pd
     show_default=True,
     type=int,
     help=f"""The maximum number of records to impute. For groups of missing records larger than the
-            limit set by --max-records-to-interpolate but up to --max-records-to-impute, we replace the 
-            missing values using the average of the value two weeks prior and the value two weeks after 
-            the missing value. If there are more consecutive missing records than this limit, then the 
+            limit set by --max-records-to-interpolate but up to --max-records-to-impute, we replace the
+            missing values using the average of the value two weeks prior and the value two weeks after
+            the missing value. If there are more consecutive missing records than this limit, then the
             file will not be processed, and will be added to the error file."""
 )
 @click.option(
@@ -109,7 +109,7 @@ def create_amy_epw_files(
 
             click.echo(f"Success! {os.path.basename(amy_file_path)} => {os.path.basename(amy_epw_file_path)} ({idx} / {num_files})")
         except Exception as e:
-            errors = errors.append({"file": amy_file_path, "error": str(e)}, ignore_index=True)
+            errors = pd.concat([errors, pd.DataFrame({"file": amy_file_path, "error": str(e)})], ignore_index=True)
             click.echo(f"\n*** Error! {amy_file_path} could not be processed, see {errors_path} for details ({idx} / {num_files})\n")
 
     click.echo("\nDone!")

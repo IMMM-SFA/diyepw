@@ -91,7 +91,7 @@ def create_amy_epw_files_for_years_and_wmos(
                 )
                 amy_epw_files[year][wmo_index].append(amy_epw_file)
             except Exception as e:
-                errors = errors.append({"year": year, "wmo_index": wmo_index, "error": str(e)}, ignore_index=True)
+                errors = pd.concat([errors, pd.DataFrame({"year": year, "wmo_index": wmo_index, "error": str(e)})], ignore_index=True)
                 print(f'Problem processing year {year} and WMO index {wmo_index}: ' + str(e))
 
     if not errors.empty:
