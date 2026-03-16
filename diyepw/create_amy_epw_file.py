@@ -89,7 +89,11 @@ def create_amy_epw_file(
             _logger.info(f"No amy_dir was specified - downloaded AMY files will be stored in the default location at {amy_dir}")
 
         amy_file_path = get_noaa_isd_lite_file(wmo_index, year, output_dir=amy_dir, allow_downloads=allow_downloads)
-        amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, output_dir=amy_dir, allow_downloads=allow_downloads)
+        try:
+                # If the next year does not exist, this will cause it to fail. Example:  2025 data exists, but because 2026 does not, it fails
+                amy_next_year_file_path = get_noaa_isd_lite_file(wmo_index, year+1, output_dir=amy_dir, allow_downloads=allow_downloads)
+        except Exception as e:
+                print(f"Error: The next year does not exist. Using {year} only. {e}")
 
     if max_missing_amy_rows is not None:
         amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path)
@@ -140,9 +144,19 @@ def create_amy_epw_file(
     # to handle the largest possible timezone shift) of the subsequent year - the subsequent year's data will be
     # used to populate the last hours of the year because of the time shift that we perform, which moves the first
     # hours of January 1 into the final hours of December 31.
+
+      
     amy_df = pd.read_csv(amy_file_path, sep='\\s+', header=None)
-    amy_next_year_df = pd.read_csv(amy_next_year_file_path, sep='\\s+', header=None, nrows=23)
-    amy_df = pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
+    
+    try:
+            amy_next_year_df = pd.read_csv(amy_next_year_file_path, sep='\\s+', header=None, nrows=23)
+            amy_df = pd.concat([amy_df, amy_next_year_df]).reset_index(drop=True)
+    except Exception as e:
+            # An issue occurs when trying to create an AMY for the current year
+            # This occurs because the next year has not been made yet, so the URL returns a 404
+            print(f"Error:  Next year does not exist. Using {year} only. {e}")
+            amy_df = amy_df.reset_index(drop=True)
+        
 
     amy_df = _set_noaa_df_columns(amy_df)
     amy_df = _create_timestamp_index_for_noaa_df(amy_df)
