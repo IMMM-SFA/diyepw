@@ -21,7 +21,7 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
     :return: The path to the NOAA ISD Lite file
     """
     if output_dir is None: # pragma: no cover
-        output_dir = importlib_resources.files("diyepw") / "data/noa_isd_lite_files"
+        output_dir = importlib_resources.files("diyepw") / "data/noaa_isd_lite_files"
         _logger.info(f"get_noaa_isd_lite_file() - output_dir was not defined, will use {output_dir}")
 
     if not os.path.exists(output_dir): # pragma: no cover
