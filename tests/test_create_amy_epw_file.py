@@ -1,4 +1,7 @@
+import shutil
 import unittest
+from unittest.mock import patch
+
 import diyepw
 import tempfile
 import pvlib
@@ -46,6 +49,96 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
             )
         )
         self._validate_epw_file(file_path)
+
+    def test_successor_year_isd_unavailable_falls_back(self):
+        """
+        AMY combines year Y ISD-Lite with the first UTC hours of Y+1 before timezone shifting.
+        If NOAA has no ISD-Lite for Y+1 yet (common for the freshly ended year), downloads should still succeed
+        via placeholder successor hours rather than failing the whole EPW generation.
+        """
+        orig_get = diyepw.get_noaa_isd_lite_file
+
+        def _get_stub(wmo_index, yr, *, output_dir=None, allow_downloads=False):
+            if yr == 2018:
+                raise OSError('simulating missing NOAA successor-year ISD-Lite')
+            return orig_get(wmo_index, yr, output_dir=output_dir, allow_downloads=allow_downloads)
+
+        with tempfile.TemporaryDirectory() as amy_tmp:
+            shutil.copyfile(
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz'),
+                os.path.join(amy_tmp, '725300-2017.gz'),
+            )
+            with tempfile.TemporaryDirectory() as epw_tmp:
+                with patch('diyepw.create_amy_epw_file.get_noaa_isd_lite_file', side_effect=_get_stub):
+                    file_path = diyepw.create_amy_epw_file(
+                        725300,
+                        2017,
+                        max_records_to_interpolate=5,
+                        max_records_to_impute=40,
+                        amy_epw_dir=epw_tmp,
+                        amy_dir=amy_tmp,
+                        allow_downloads=True,
+                    )
+                self._validate_epw_file(file_path)
+
+    def test_ghcnh_only_source(self):
+        """Generate an AMY EPW from explicit GHCNh PSV files via source='ghcnh'."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = diyepw.create_amy_epw_file(
+                725300,
+                2017,
+                max_records_to_interpolate=5,
+                max_records_to_impute=40,
+                amy_epw_dir=tmp_dir,
+                source='ghcnh',
+                station_id='USW00094846',
+                amy_files=(
+                    os.path.join(THIS_DIR, 'files', 'ghcnh', 'GHCNh_USW00094846_2017.psv'),
+                    os.path.join(THIS_DIR, 'files', 'ghcnh', 'GHCNh_USW00094846_2018.psv'),
+                ),
+            )
+            self._validate_epw_file(file_path)
+
+    def test_auto_falls_back_to_ghcnh(self):
+        """In auto mode, when the ISD-Lite year file is too sparse, the loader transparently retries
+           with GHCNh and still produces a valid EPW."""
+        with tempfile.TemporaryDirectory() as amy_tmp:
+            shutil.copyfile(
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', 'only_one_row'),
+                os.path.join(amy_tmp, '725300-2017.gz'),
+            )
+            shutil.copyfile(
+                os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz'),
+                os.path.join(amy_tmp, '725300-2018.gz'),
+            )
+            shutil.copyfile(
+                os.path.join(THIS_DIR, 'files', 'ghcnh', 'GHCNh_USW00094846_2017.psv'),
+                os.path.join(amy_tmp, 'GHCNh_USW00094846_2017.psv'),
+            )
+            shutil.copyfile(
+                os.path.join(THIS_DIR, 'files', 'ghcnh', 'GHCNh_USW00094846_2018.psv'),
+                os.path.join(amy_tmp, 'GHCNh_USW00094846_2018.psv'),
+            )
+            with tempfile.TemporaryDirectory() as epw_tmp:
+                file_path = diyepw.create_amy_epw_file(
+                    725300,
+                    2017,
+                    max_records_to_interpolate=5,
+                    max_records_to_impute=40,
+                    max_missing_amy_rows=100,
+                    amy_epw_dir=epw_tmp,
+                    amy_dir=amy_tmp,
+                    allow_downloads=True,
+                )
+                self._validate_epw_file(file_path)
+
+    def test_invalid_source_rejected(self):
+        with self.assertRaises(ValueError):
+            diyepw.create_amy_epw_file(
+                725300,
+                2017,
+                source='bogus',
+            )
 
     def test_leap_year(self):
         """Test that an AMY EPW file can be generated for a leap year, which is an issue because the

@@ -67,6 +67,23 @@ from typing import List
     ),
     help="""The path to which output and error files should be written."""
 )
+@click.option(
+    '--source',
+    default='auto',
+    show_default=True,
+    type=click.Choice(['auto', 'isd_lite', 'ghcnh'], case_sensitive=False),
+    help="""Which AMY data source to use. 'auto' tries ISD-Lite first and falls back to GHCNh if the
+            ISD-Lite file is too incomplete (NOAA stopped updating ISD-Lite in August 2025).
+            'isd_lite' forces the legacy NOAA ISD-Lite product. 'ghcnh' forces NCEI's new GHCN-hourly
+            product (PSV files)."""
+)
+@click.option(
+    '--station-id',
+    default=None,
+    type=str,
+    help="""Optional GHCN station identifier (e.g. 'USW00024233') for GHCNh access. If not provided,
+            the GHCN ID is looked up from the WMO index using the mapping shipped with diyepw."""
+)
 def create_amy_epw_files_for_years_and_wmos(
     years,
     wmo_indices,
@@ -74,6 +91,8 @@ def create_amy_epw_files_for_years_and_wmos(
     max_records_to_impute,
     max_missing_amy_rows,
     output_path,
+    source,
+    station_id,
 ):
     """Generate AMY EPW files for a set of years and WMO indices. The generated files will be written to
        the designated --output-path. A list of any files that could not be generated due to validation or other errors
@@ -95,6 +114,8 @@ def create_amy_epw_files_for_years_and_wmos(
         max_missing_amy_rows=max_missing_amy_rows,
         amy_epw_dir=output_path,
         allow_downloads=True,
+        source=source.lower(),
+        station_id=station_id,
     )
 
 

@@ -1,10 +1,10 @@
-import urllib.request as request
 import re
 import os
 import pandas as pd
 import importlib_resources
 from urllib.error import URLError
 
+from ._http import urlopen as _urlopen
 from ._logging import _logger
 from .exceptions import DownloadNotAllowedError
 
@@ -45,7 +45,7 @@ def get_noaa_isd_lite_file(wmo_index:int, year:int, *, output_dir:str = None, al
             )
 
         try:
-            with request.urlopen(url) as response:
+            with _urlopen(url) as response:
                 with open(file_path, 'wb') as downloaded_file:
                     downloaded_file.write(response.read())
         except URLError as e: # pragma: no cover
@@ -60,7 +60,7 @@ def _get_noaa_isd_lite_file_url(year:int, wmo_index:int, allow_downloads:bool) -
     wmo_index_row = catalog.loc[catalog['wmo_index'] == wmo_index]
 
     if len(wmo_index_row) == 0:
-        raise Exception(f"Invalid WMO Inex: The NOAA ISD Lite catalog does not contain an entry for WMO Index {wmo_index}")
+        raise Exception(f"Invalid WMO Index: The NOAA ISD Lite catalog does not contain an entry for WMO Index {wmo_index}")
 
     file_name = wmo_index_row['file_name'].iloc[0]
     return f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/{file_name}"
@@ -106,7 +106,7 @@ def _get_noaa_isd_lite_file_catalog(year:int, *, catalog_dir=None, allow_downloa
 
         # Retrieve the NOAA ISD Lite catalog for the requested year
         catalog = pd.DataFrame(columns=['wmo_index', 'file_name'])
-        with request.urlopen(f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/") as response:
+        with _urlopen(f"https://www1.ncdc.noaa.gov/pub/data/noaa/isd-lite/{year}/") as response:
             # Process the file: Look for an href linking to a file that starts with "7" (indicating it is
             # a North American WMO) and put all such referenced file names into the catalog file
             html = response.read().decode('utf-8')
