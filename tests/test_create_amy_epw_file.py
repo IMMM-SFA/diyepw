@@ -1,3 +1,4 @@
+import importlib
 import shutil
 import unittest
 from unittest.mock import patch
@@ -7,6 +8,11 @@ import tempfile
 import pvlib
 import pandas as pd
 import os
+
+# `diyepw.__init__` re-exports the function `create_amy_epw_file` under the same attribute
+# name as the submodule, shadowing the submodule object. Use importlib to grab the real
+# module for patching internal symbols like `get_noaa_isd_lite_file`.
+create_amy_epw_module = importlib.import_module("diyepw.create_amy_epw_file")
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -69,7 +75,7 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                 os.path.join(amy_tmp, '725300-2017.gz'),
             )
             with tempfile.TemporaryDirectory() as epw_tmp:
-                with patch('diyepw.create_amy_epw_file.get_noaa_isd_lite_file', side_effect=_get_stub):
+                with patch.object(create_amy_epw_module, 'get_noaa_isd_lite_file', side_effect=_get_stub):
                     file_path = diyepw.create_amy_epw_file(
                         725300,
                         2017,

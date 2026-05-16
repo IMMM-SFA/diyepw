@@ -1,5 +1,6 @@
 """Unit tests for the GHCN-hourly downloader."""
 
+import importlib
 import io
 import os
 import tempfile
@@ -10,6 +11,11 @@ from urllib.error import HTTPError
 import diyepw
 from diyepw import get_ghcnh_file
 from diyepw.exceptions import DownloadNotAllowedError
+
+# `diyepw.__init__` re-exports the `get_ghcnh_file` function with the same name as the
+# submodule, which shadows the submodule attribute. Use importlib to retrieve the actual
+# module object for patching its internal `_urlopen` symbol.
+ghcnh_module = importlib.import_module("diyepw.get_ghcnh_file")
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURE = os.path.join(THIS_DIR, "files", "ghcnh", "GHCNh_USW00094846_2017.psv")
@@ -46,13 +52,12 @@ class GetGhcnhFileTest(unittest.TestCase):
             return _FakeResponse(payload)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("diyepw.get_ghcnh_file._urlopen", side_effect=fake_urlopen):
+            with patch.object(ghcnh_module, "_urlopen", side_effect=fake_urlopen):
                 path = get_ghcnh_file(
                     "USW00094846", 2017, output_dir=tmp_dir, allow_downloads=True
                 )
             self.assertTrue(os.path.exists(path))
             self.assertTrue(calls[0].endswith("GHCNh_USW00094846_2017.psv"))
-            # Object store path should be tried first, so only one call.
             self.assertEqual(len(calls), 1)
 
     def test_falls_back_to_access_api_on_404(self):
@@ -65,7 +70,7 @@ class GetGhcnhFileTest(unittest.TestCase):
             return _FakeResponse(payload)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("diyepw.get_ghcnh_file._urlopen", side_effect=fake_urlopen):
+            with patch.object(ghcnh_module, "_urlopen", side_effect=fake_urlopen):
                 path = get_ghcnh_file(
                     "USW00094846", 2017, output_dir=tmp_dir, allow_downloads=True
                 )
@@ -76,7 +81,7 @@ class GetGhcnhFileTest(unittest.TestCase):
             existing = os.path.join(tmp_dir, "GHCNh_USW00094846_2017.psv")
             with open(existing, "w") as fh:
                 fh.write("placeholder")
-            with patch("diyepw.get_ghcnh_file._urlopen") as urlopen_mock:
+            with patch.object(ghcnh_module, "_urlopen") as urlopen_mock:
                 path = get_ghcnh_file(
                     "USW00094846", 2017, output_dir=tmp_dir, allow_downloads=True
                 )
