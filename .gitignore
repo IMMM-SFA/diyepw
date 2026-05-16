@@ -1,6 +1,9 @@
 # Mac system files
 .DS_Store
 
+# Pyenv files
+.python-version
+
 # pycharm
 .idea
 
