@@ -64,6 +64,51 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
         )
         self._validate_epw_file(file_path)
 
+    def test_no_empty_fields_in_observation_rows(self):
+        """Verify generated observation rows have no empty CSV fields (no double commas)."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = diyepw.create_amy_epw_file(
+                725300,
+                2016,
+                max_records_to_interpolate=2,
+                max_records_to_impute=20,
+                amy_epw_dir=tmp_dir,
+                allow_downloads=True,
+                amy_files=(
+                    os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2016.gz'),
+                    os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz')
+                )
+            )
+
+            with open(file_path, 'r') as f:
+                # EPW files have 8 header rows; observations start on line 9.
+                observation_rows = f.read().splitlines()[8:]
+
+            for row in observation_rows:
+                self.assertNotIn(',,', row)
+
+    def test_creates_missing_output_directory(self):
+        """Verify that amy_epw_dir is created automatically when it does not exist."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            output_dir = os.path.join(tmp_dir, 'nested', 'output')
+
+            file_path = diyepw.create_amy_epw_file(
+                725300,
+                2017,
+                max_records_to_interpolate=2,
+                max_records_to_impute=20,
+                amy_epw_dir=output_dir,
+                allow_downloads=True,
+                amy_files=(
+                    os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2017.gz'),
+                    os.path.join(THIS_DIR, 'files', 'noaa_isd_lite', '725300-2018.gz')
+                )
+            )
+
+            self.assertTrue(os.path.isdir(output_dir))
+            self.assertTrue(os.path.exists(file_path))
+            self._validate_epw_file(file_path)
+
     def test_validation_errors(self):
         """Verify that invalid inputs result in errors as expected"""
 
