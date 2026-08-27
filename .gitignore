@@ -13,6 +13,7 @@
 # Downloaded data files
 diyepw/data/noaa_isd_lite_files/*
 diyepw/data/tmy_epw_files/*
+diyepw/data/ghcnh_files/*
 
 # Package installation files
 *.egg-info
