@@ -5,13 +5,15 @@ ISD-Lite files. With the addition of GHCNh support, the generalized
 implementation lives in :mod:`diyepw.analyze_amy_file`.
 """
 
+from typing import Optional
+
 from .analyze_amy_file import analyze_amy_file
 
 
-def analyze_noaa_isd_lite_file(file: str, compression: str = "infer"):
+def analyze_noaa_isd_lite_file(file: str, compression: str = "infer", year: Optional[int] = None):
     """Analyze a single NOAA ISD-Lite file (kept for backward compatibility).
 
     See :func:`diyepw.analyze_amy_file.analyze_amy_file` for the generalized
     interface that also supports GHCN-hourly PSV files.
     """
-    return analyze_amy_file(file, format="isd_lite", compression=compression)
+    return analyze_amy_file(file, format="isd_lite", compression=compression, year=year)

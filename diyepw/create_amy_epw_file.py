@@ -82,7 +82,7 @@ def _load_isd_lite_year_canonical(
         )
 
     if max_missing_amy_rows is not None:
-        amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path)
+        amy_file_analysis = analyze_noaa_isd_lite_file(amy_file_path, year=year)
         if amy_file_analysis["total_rows_missing"] > max_missing_amy_rows:
             raise _IsdLiteIncompleteError(
                 amy_file_path, amy_file_analysis["total_rows_missing"], max_missing_amy_rows
