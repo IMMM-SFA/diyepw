@@ -52,6 +52,14 @@ def read_ghcnh_psv(file: str) -> pd.DataFrame:
     for col in GHCNH_CANONICAL_COLUMNS:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    # GHCNh represents a missing/variable wind direction with the sentinel value
+    # 999, which is otherwise impossible since a real heading is always in
+    # [0, 360]. Unlike the other canonical columns, wind direction has no
+    # sentinel-free equivalent (e.g. sea level pressure can legitimately read
+    # ~999 hPa), so it's sanitized by range rather than by an exact value match.
+    out_of_range = (df["Wind_Direction"] < 0) | (df["Wind_Direction"] > 360)
+    df.loc[out_of_range, "Wind_Direction"] = np.nan
+
     df.loc[df["DATE"].isna(), :] = np.nan
     df = df.dropna(subset=["DATE"]).copy()
     return df
