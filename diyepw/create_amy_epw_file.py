@@ -73,6 +73,9 @@ def create_amy_epw_file(
         global _tempdir_amy_epw
         amy_epw_dir = _tempdir_amy_epw
         _logger.info(f"No amy_epw_dir was specified - generated AMY EPWs will be stored in {amy_epw_dir}")
+    elif not os.path.isdir(amy_epw_dir):
+        os.makedirs(amy_epw_dir, exist_ok=True)
+        _logger.info(f"The requested amy_epw_dir did not exist and was created at {amy_epw_dir}")
 
     # Either amy_files is specified, in which case we use the specified paths, or amy_dir is specified,
     # in which case we will search that directory for AMY files, or neither is specified, in which case
@@ -128,6 +131,9 @@ def create_amy_epw_file(
             ignore_columns=["Flags"] # The TMY files we use seem to be missing data for this field entirely
         )
 
+        # Keep the EPW flag field non-empty for synthesized leap-day rows.
+        tmy.observations['Flags'] = tmy.observations['Flags'].ffill().bfill()
+
     amy_epw_file_name = f"{tmy.country}_{tmy.state}_{tmy.city}.{tmy.station_number}_AMY_{year}.epw"
     amy_epw_file_name = amy_epw_file_name.replace(" ", "-")
     amy_epw_file_path = os.path.join(amy_epw_dir, amy_epw_file_name)
@@ -171,13 +177,29 @@ def create_amy_epw_file(
         stp = _convert_sea_level_pressure_to_station_pressure(amy_df['Sea_Level_Pressure'][index], tmy.elevation)
         amy_df.loc[index, 'Station_Pressure'] = stp
 
-    # Change observation values to the values taken from the AMY data
+    # Change observation values to the values taken from the AMY data.
+    # If any AMY values remain missing after interpolation/imputation, fall back to the
+    # corresponding value from the source TMY observations so EPW fields are never left blank.
+    tmy_fallback = tmy.observations[['Tdb', 'Tdew', 'Patm', 'Wdir', 'Wspeed']].copy()
+
+    amy_tdb = pd.to_numeric(amy_df['Air_Temperature'], errors='coerce') / 10
+    amy_tdew = pd.to_numeric(amy_df['Dew_Point_Temperature'], errors='coerce') / 10
+    amy_patm = pd.to_numeric(amy_df['Station_Pressure'], errors='coerce')
+    amy_wdir = pd.to_numeric(amy_df['Wind_Direction'], errors='coerce')
+    amy_wspeed = pd.to_numeric(amy_df['Wind_Speed'], errors='coerce') / 10
+
+    amy_tdb = amy_tdb.fillna(tmy_fallback['Tdb']).ffill().bfill().fillna(99.9)
+    amy_tdew = amy_tdew.fillna(tmy_fallback['Tdew']).ffill().bfill().fillna(99.9)
+    amy_patm = amy_patm.fillna(tmy_fallback['Patm']).ffill().bfill().fillna(999999)
+    amy_wdir = amy_wdir.fillna(tmy_fallback['Wdir']).ffill().bfill().fillna(999)
+    amy_wspeed = amy_wspeed.fillna(tmy_fallback['Wspeed']).ffill().bfill().fillna(999)
+
     tmy.set('year', year)
-    tmy.set('Tdb', [i / 10 for i in amy_df['Air_Temperature']])  # Convert AMY value to degrees C
-    tmy.set('Tdew', [i / 10 for i in amy_df['Dew_Point_Temperature']])  # Convert AMY value to degrees C
-    tmy.set('Patm', amy_df['Station_Pressure'])
-    tmy.set('Wdir', amy_df['Wind_Direction'])
-    tmy.set('Wspeed', [i / 10 for i in amy_df['Wind_Speed']])  # Convert AMY value to m/sec
+    tmy.set('Tdb', amy_tdb.tolist())  # Convert AMY value to degrees C
+    tmy.set('Tdew', amy_tdew.tolist())  # Convert AMY value to degrees C
+    tmy.set('Patm', amy_patm.tolist())
+    tmy.set('Wdir', amy_wdir.tolist())
+    tmy.set('Wspeed', amy_wspeed.tolist())  # Convert AMY value to m/sec
 
     # Check for violations of EPW file standards
     epw_rule_violations = tmy.validate_against_epw_rules()
