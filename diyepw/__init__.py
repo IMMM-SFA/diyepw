@@ -1,10 +1,13 @@
-__version__ = '1.3.1'
+__version__ = '1.4.0'
 from .meteorology import Meteorology
 from .create_amy_epw_files_for_years_and_wmos import create_amy_epw_files_for_years_and_wmos
 from .analyze_noaa_isd_lite_files import analyze_noaa_isd_lite_files
 from .analyze_noaa_isd_lite_file import analyze_noaa_isd_lite_file
+from .analyze_amy_file import analyze_amy_file
 from .get_wmo_station_location import get_wmo_station_location
 from .get_noaa_isd_lite_file import get_noaa_isd_lite_file
+from .get_ghcnh_file import get_ghcnh_file
 from .get_tmy_epw_file import get_tmy_epw_file
 from .create_amy_epw_file import create_amy_epw_file
+from .wmo_to_ghcn import wmo_to_ghcn_id
 from .exceptions import DownloadNotAllowedError

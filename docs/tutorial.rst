@@ -25,7 +25,9 @@ Your call to ``diyepw`` will include:
        max_records_to_impute={integer},
        max_missing_amy_rows={integer},
        allow_downloads={Boolean},
-       amy_epw_dir='{dir}'
+       amy_epw_dir='{dir}',
+       source='{auto|isd_lite|ghcnh}',
+       station_id='{optional GHCN station id}',
      )
 
 You'll need to provide to `diyepw` in this call:
@@ -43,6 +45,16 @@ You'll want to provide to ``diyepw`` in this call:
    - Your internet connection must be active for ``diyepw`` to do this. 
 - ``amy_epw_dir='{dir}'``, where ``{dir}`` is replaced with the file path to the directory where you want your output EPWs (and any error files) to be stored.
    - Even if you don’t provide a file path, ``diyepw`` will return the location where it stored the output files at the console after it creates them.
+- ``source='{auto|isd_lite|ghcnh}'`` (optional, default ``'auto'``) selects the AMY data source.
+   - ``'auto'`` tries NOAA's legacy ISD-Lite product first and transparently falls back to NCEI's
+     replacement GHCN-hourly (GHCNh) product when the ISD-Lite file is missing or too incomplete.
+     NOAA stopped updating ISD-Lite in August 2025, so GHCNh is required for current-year data.
+   - ``'isd_lite'`` forces ISD-Lite (legacy behavior).
+   - ``'ghcnh'`` forces GHCNh (GHCN-hourly PSV files from NCEI).
+- ``station_id='{GHCN ID}'`` (optional). GHCNh identifies stations by GHCN IDs (e.g. ``'USW00024233'``
+  for Seattle-Tacoma) rather than WMO indices. ``diyepw`` ships with a WMO-to-GHCN map for most
+  stations whose ISD-Lite WMO codes have a published GHCN counterpart. Pass an explicit
+  ``station_id`` only when your station is not covered by that map.
   
 We have example scenarios below with tutorials explaining how to use the diyepw package to create actual meteorological year EnergyPlus weather files that will meet the modeler’s needs.
 
@@ -161,3 +173,95 @@ Now diyepw successfully creates the file. You will see:
 
 {2019: {727845: ['./USA_WA_Pasco-Tri-Cities-AP.727845_AMY_2019.epw']}}
 
+
+
+Example 3: Generating AMY EPWs for 2025 (after NOAA's ISD-Lite was retired)
+---------------------------------------------------------------------------------
+
+NOAA stopped updating ISD-Lite around August 2025; files for stations in that year are typically
+incomplete (only the months prior to the cutoff are populated). NCEI replaced ISD-Lite with the
+Global Historical Climatology Network hourly (GHCNh) product.
+
+With the default ``source='auto'``, ``diyepw`` tries ISD-Lite first and transparently falls back
+to GHCNh when the ISD-Lite file is too sparse. For 2025 onwards you can usually just run:
+::
+
+    diyepw.create_amy_epw_files_for_years_and_wmos(
+      [2021, 2022, 2023, 2024, 2025],
+      [727930],
+      max_records_to_interpolate=6,
+      max_records_to_impute=48,
+      max_missing_amy_rows=700,
+      allow_downloads=True,
+      amy_epw_dir='./'
+    )
+
+If you want to force the new product unconditionally, pass ``source='ghcnh'``:
+::
+
+    diyepw.create_amy_epw_files_for_years_and_wmos(
+      [2025],
+      [727930],
+      allow_downloads=True,
+      amy_epw_dir='./',
+      source='ghcnh',
+    )
+
+GHCNh stations are identified by GHCN IDs (e.g. ``'USW00024233'`` for Seattle-Tacoma). The
+``diyepw.wmo_to_ghcn_id()`` helper converts a 6-digit WMO index into the matching GHCN ID, and is
+used implicitly by ``create_amy_epw_file`` when you pass ``source='ghcnh'`` without an explicit
+``station_id``. For stations not covered by the packaged map, pass ``station_id='...'`` directly.
+
+Why ``diyepw`` needs GHCNh: the August 2025 ISD-Lite continuity issue
+---------------------------------------------------------------------------------
+
+NOAA/NCEI **stopped updating ISD-Lite in August 2025** in favor of GHCNh. Practically:
+
+* ISD-Lite files for 2025 are partial - typical files end in late August 2025 and contain only
+  ~5,700 hourly rows out of 8,760, with thousands of consecutive missing hours after the cutoff.
+* ISD-Lite files for 2026 and later do not exist on NOAA's servers at all (HTTP 404).
+
+Without a second source, ``diyepw`` would either fail outright on years ``>= 2025`` or produce
+EPWs with huge interpolated/imputed gaps. The GHCNh source was added so that
+``create_amy_epw_file`` can keep producing accurate AMY EPWs past the ISD-Lite cutoff. GHCNh is
+read from NCEI's object store as PSV (``GHCNh_<GHCN_ID>_<YEAR>.psv``), normalized into the same
+canonical hourly schema as ISD-Lite, and run through the existing missing-value handling and EPW
+writer.
+
+Station identifier mapping (WMO <-> GHCN)
+---------------------------------------------------------------------------------
+
+When ``source='ghcnh'`` (or ``'auto'`` falls back to GHCNh), ``diyepw`` must translate the 6-digit
+WMO index you pass into a GHCN station ID. It does this using ``diyepw.wmo_to_ghcn_id()``, backed
+by the packaged file ``diyepw/data/ghcn_station_map.csv``.
+
+How the map is built:
+
+1. ``diyepw`` downloads NCEI's GHCN-hourly station inventory:
+   ``https://www.ncei.noaa.gov/oa/global-historical-climatology-network/hourly/doc/ghcnh-station-list.txt``.
+2. The inventory is fixed-width; the GHCN ID is in columns 1-11 and the WMO ID is in
+   columns 81-86.
+3. Rows whose WMO column is exactly five digits are kept.
+4. The 5-digit WMO is multiplied by 10 to match NOAA's 6-digit ISD-Lite convention
+   (``72793`` -> ``727930``).
+5. The result is written as ``wmo_index,ghcn_id,name``.
+
+Worked example - WMO ``727930`` -> GHCN ``USW00024233``:
+
+::
+
+    USW00024233  47.4447 -122.3144  112.5 WA SEATTLE TACOMA AP                      72793 US
+
+The inventory shows ``USW00024233`` with WMO ``72793``. ``diyepw`` stores it as
+``727930,USW00024233,SEATTLE TACOMA AP``.
+
+A station may **not** be in the packaged map if NCEI's inventory leaves the WMO column blank,
+lists a non-five-digit value, or duplicates an existing ``wmo_index``. In those cases pass
+``station_id='<GHCN ID>'`` (e.g. ``USW00094846``) directly to
+``create_amy_epw_files_for_years_and_wmos``.
+
+To regenerate the packaged map from the latest NCEI inventory, delete
+``diyepw/data/ghcn_station_map.csv`` and call any
+``diyepw.wmo_to_ghcn_id(<wmo>, allow_downloads=True)`` lookup. To extend the map with custom rows
+for stations NCEI does not list with a usable WMO ID, append them manually using the same
+``wmo_index,ghcn_id,name`` schema.
