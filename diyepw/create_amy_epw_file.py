@@ -274,15 +274,17 @@ def _load_observations(
         )
         return canonical, year_path
     except _IsdLiteIncompleteError as exc:
+        isd_lite_failure_reason = (
+            f"too sparse ({exc.missing} missing rows > {exc.allowed})"
+        )
         _logger.warning(
-            "ISD-Lite for WMO %s year %s is too sparse (%s missing rows > %s); "
-            "falling back to GHCNh.",
+            "ISD-Lite for WMO %s year %s is %s; falling back to GHCNh.",
             wmo_index,
             year,
-            exc.missing,
-            exc.allowed,
+            isd_lite_failure_reason,
         )
     except Exception as exc:
+        isd_lite_failure_reason = str(exc)
         _logger.warning(
             "ISD-Lite source failed for WMO %s year %s (%s); falling back to GHCNh.",
             wmo_index,
@@ -290,22 +292,29 @@ def _load_observations(
             exc,
         )
 
-    resolved = _resolve_station_id(wmo_index, station_id, allow_downloads)
-    canonical, year_path = _load_ghcnh_year_canonical(
-        station_id=resolved,
-        year=year,
-        amy_dir=amy_dir,
-        amy_files=None,  # in auto mode amy_files refers to the ISD-Lite pair only
-        allow_downloads=allow_downloads,
-    )
-    if max_missing_amy_rows is not None:
-        missing = _canonical_missing_row_counts(canonical)
-        if missing > max_missing_amy_rows:
-            raise Exception(
-                f"GHCNh file {year_path} is missing {missing} hourly observations, "
-                f"but maximum allowed is {max_missing_amy_rows}"
-            )
-    return canonical, year_path
+    try:
+        resolved = _resolve_station_id(wmo_index, station_id, allow_downloads)
+        canonical, year_path = _load_ghcnh_year_canonical(
+            station_id=resolved,
+            year=year,
+            amy_dir=amy_dir,
+            amy_files=None,  # in auto mode amy_files refers to the ISD-Lite pair only
+            allow_downloads=allow_downloads,
+        )
+        if max_missing_amy_rows is not None:
+            missing = _canonical_missing_row_counts(canonical)
+            if missing > max_missing_amy_rows:
+                raise Exception(
+                    f"GHCNh file {year_path} is missing {missing} hourly observations, "
+                    f"but maximum allowed is {max_missing_amy_rows}"
+                )
+        return canonical, year_path
+    except Exception as ghcnh_exc:
+        raise Exception(
+            f"Could not obtain AMY data for WMO {wmo_index} year {year} from either "
+            f"source: ISD-Lite failed ({isd_lite_failure_reason}), and the GHCNh "
+            f"fallback also failed ({ghcnh_exc})"
+        ) from ghcnh_exc
 
 
 def create_amy_epw_file(

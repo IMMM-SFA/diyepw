@@ -87,6 +87,26 @@ class TmyCreateAmyEpwFileTest(unittest.TestCase):
                     )
                 self._validate_epw_file(file_path)
 
+    def test_auto_fallback_error_combines_both_failures(self):
+        """If ISD-Lite fails and the GHCNh fallback also fails (e.g. because the WMO has
+           no known GHCN station mapping), the raised error should describe both failures
+           instead of surfacing only the GHCNh-side LookupError."""
+        with tempfile.TemporaryDirectory() as amy_tmp:
+            with self.assertRaises(Exception) as ctx:
+                create_amy_epw_module._load_observations(
+                    wmo_index=999999,
+                    year=2017,
+                    source='auto',
+                    station_id=None,
+                    amy_dir=amy_tmp,
+                    amy_files=None,
+                    allow_downloads=False,
+                    max_missing_amy_rows=700,
+                )
+            message = str(ctx.exception)
+            self.assertIn('ISD-Lite failed', message)
+            self.assertIn('GHCNh fallback also failed', message)
+
     def test_ghcnh_only_source(self):
         """Generate an AMY EPW from explicit GHCNh PSV files via source='ghcnh'."""
         with tempfile.TemporaryDirectory() as tmp_dir:
